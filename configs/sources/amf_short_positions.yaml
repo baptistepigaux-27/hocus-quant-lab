@@ -1,0 +1,11 @@
+source_id: amf_net_short_positions
+provider: Gremlin
+contract_version: 1
+consumer_dataset: amf_short_positions
+expected_fields:
+  - publication_date
+  - position_date
+  - holder
+  - issuer
+  - isin
+  - net_short_position_pct

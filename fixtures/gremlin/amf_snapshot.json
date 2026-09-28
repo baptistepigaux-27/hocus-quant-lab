@@ -1,0 +1,11 @@
+{
+  "source_id": "amf_short_positions",
+  "retrieved_at": "2024-02-01T12:00:00Z",
+  "source_url": "https://fixture.invalid/amf.csv",
+  "content_type": "application/json",
+  "checksum": "sha256:cc52332feb0aed2f5cfe8881de4d0bc402d2d1d4f07fe0314303c453c09d5586",
+  "payload": "{\"records\":[{\"publication_date\":\"2024-02-01T09:00:00Z\",\"position_date\":\"2024-01-31\",\"holder\":\"Fixture Capital\",\"issuer\":\"Example SA\",\"isin\":\"FR0000000001\",\"net_short_position_pct\":0.52}]}",
+  "metadata": {
+    "fixture": true
+  }
+}

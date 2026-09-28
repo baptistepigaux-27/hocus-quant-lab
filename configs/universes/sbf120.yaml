@@ -1,0 +1,5 @@
+universe_id: euronext_paris_sbf120
+exchange: Euronext Paris
+benchmark: SBF 120
+membership_policy: point_in_time_required
+constituents_file: null
