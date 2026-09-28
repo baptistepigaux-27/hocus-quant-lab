@@ -1,0 +1,129 @@
+{
+  "corporate_actions": [
+    {
+      "available_at": "2020-01-06T12:00:00+00:00",
+      "cash_dividend": null,
+      "currency": null,
+      "event_date": "2020-01-03",
+      "event_type": "split",
+      "ex_date": "2020-01-03",
+      "instrument_id": "FR0000120073",
+      "isin": "FR0000120073",
+      "payment_date": null,
+      "provider": "fixture-provider",
+      "record_date": null,
+      "retrieved_at": "2020-01-06T12:00:00+00:00",
+      "snapshot_checksum": "sha256:86b677697062d457762b25e5c1f930923fb55a2499a41c41473169877bb0bbb5",
+      "source_symbol": "AIR.PA",
+      "split_ratio": 2.0
+    }
+  ],
+  "instruments": [
+    {
+      "candidates": [],
+      "currency": "EUR",
+      "exchange": "Euronext Paris",
+      "instrument_id": "FR0000120073",
+      "isin": "FR0000120073",
+      "issuer": "AIR LIQUIDE",
+      "mapping_confidence": 1.0,
+      "mapping_source": "synthetic fixture",
+      "mic": "XPAR",
+      "provider": "fixture-provider",
+      "provider_instrument_id": "fixture-air-liquide",
+      "provider_symbol": "AIR.PA",
+      "retrieved_at": "2020-01-06T12:00:00+00:00",
+      "status": "resolved",
+      "ticker": "AI",
+      "valid_from": "2012-01-01",
+      "valid_to": null
+    },
+    {
+      "candidates": [],
+      "currency": null,
+      "exchange": null,
+      "instrument_id": "FR0000120321",
+      "isin": "FR0000120321",
+      "issuer": null,
+      "mapping_confidence": null,
+      "mapping_source": "synthetic fixture",
+      "mic": null,
+      "provider": "fixture-provider",
+      "provider_instrument_id": null,
+      "provider_symbol": null,
+      "retrieved_at": "2020-01-06T12:00:00+00:00",
+      "status": "not_found",
+      "ticker": null,
+      "valid_from": null,
+      "valid_to": null
+    }
+  ],
+  "market_daily": [
+    {
+      "adjusted_close": 99.0,
+      "adjusted_close_available_at": "2020-01-06T12:00:00+00:00",
+      "adjusted_close_point_in_time_safe": false,
+      "adjustment_basis": "provider_total_return_current_snapshot",
+      "available_at": "2020-01-03T00:00:00+01:00",
+      "close": 101.0,
+      "currency": "EUR",
+      "high": 102.0,
+      "instrument_id": "FR0000120073",
+      "isin": "FR0000120073",
+      "low": 99.0,
+      "mic": "XPAR",
+      "open": 100.0,
+      "provider": "fixture-provider",
+      "provider_symbol": "AIR.PA",
+      "retrieved_at": "2020-01-06T12:00:00+00:00",
+      "session_date": "2020-01-02",
+      "snapshot_checksum": "sha256:86b677697062d457762b25e5c1f930923fb55a2499a41c41473169877bb0bbb5",
+      "volume": 1000.0
+    },
+    {
+      "adjusted_close": 102.0,
+      "adjusted_close_available_at": "2020-01-06T12:00:00+00:00",
+      "adjusted_close_point_in_time_safe": false,
+      "adjustment_basis": "provider_total_return_current_snapshot",
+      "available_at": "2020-01-04T00:00:00+01:00",
+      "close": 104.0,
+      "currency": "EUR",
+      "high": 105.0,
+      "instrument_id": "FR0000120073",
+      "isin": "FR0000120073",
+      "low": 100.0,
+      "mic": "XPAR",
+      "open": 101.0,
+      "provider": "fixture-provider",
+      "provider_symbol": "AIR.PA",
+      "retrieved_at": "2020-01-06T12:00:00+00:00",
+      "session_date": "2020-01-03",
+      "snapshot_checksum": "sha256:86b677697062d457762b25e5c1f930923fb55a2499a41c41473169877bb0bbb5",
+      "volume": 1200.0
+    }
+  ],
+  "metadata": {
+    "fixture_only": true,
+    "requested_isin_count": 271
+  },
+  "provider": "fixture-provider",
+  "raw_snapshots": [
+    {
+      "artifact_id": "raw-86b677697062d457762b25e5c1f930923fb55a2499a41c41473169877bb0bbb5",
+      "capture_id": "capture-fixture-market-20200106",
+      "checksum": "sha256:86b677697062d457762b25e5c1f930923fb55a2499a41c41473169877bb0bbb5",
+      "content_type": "text/csv",
+      "metadata": {
+        "fixture": "synthetic"
+      },
+      "provider_symbol": "AIR.PA",
+      "retrieved_at": "2020-01-06T12:00:00+00:00",
+      "size_bytes": 95,
+      "source_url": "https://fixture.invalid/eod/AIR.PA.csv"
+    }
+  ],
+  "retrieved_at": "2020-01-06T12:00:00+00:00",
+  "schema_version": "market-data/1.0",
+  "snapshot_id": "fixture-market-snapshot-20200106",
+  "universe_id": "amf_public_short_positions_2012_2026"
+}
