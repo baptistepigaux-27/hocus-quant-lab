@@ -121,6 +121,16 @@ def main() -> None:
     )
     target_set_parser.add_argument("--resume", action="store_true")
     target_set_parser.add_argument("--force", action="store_true")
+    signal_parser = subparsers.add_parser(
+        "analyze-signals", help="run the SPEC-006 univariate signal scan"
+    )
+    signal_parser.add_argument("--feature-cube", type=Path, required=True)
+    signal_parser.add_argument("--target-set", type=Path, required=True)
+    signal_parser.add_argument("--output", type=Path, required=True)
+    signal_parser.add_argument("--minimum-n", type=int, default=30)
+    signal_parser.add_argument("--minimum-cutoffs", type=int, default=13)
+    signal_parser.add_argument("--fdr-alpha", type=float, default=0.25)
+    signal_parser.add_argument("--no-resume", action="store_true")
     args = parser.parse_args()
     if args.command == "ingest-fixture":
         for stage, path in ingest_snapshot(args.snapshot, args.data_dir).items():
@@ -241,6 +251,21 @@ def main() -> None:
             data_dir=args.data_dir,
             resume=args.resume,
             force=args.force,
+        )
+        print(json.dumps(report, ensure_ascii=False, sort_keys=True, indent=2))
+    elif args.command == "analyze-signals":
+        import json
+
+        from hocus_quant.analysis.signals import build_signal_analysis
+
+        report = build_signal_analysis(
+            feature_cube_dir=args.feature_cube,
+            target_set_dir=args.target_set,
+            output_dir=args.output,
+            minimum_n=args.minimum_n,
+            minimum_cutoffs=args.minimum_cutoffs,
+            fdr_alpha=args.fdr_alpha,
+            resume=not args.no_resume,
         )
         print(json.dumps(report, ensure_ascii=False, sort_keys=True, indent=2))
 

@@ -182,6 +182,37 @@ not as real ISINs.
 See [the full delivery note](docs/ABC_BOURSE_DELIVERY.md) for coverage,
 replay commands, audit paths, metadata variants and point-in-time limits.
 
+### SPEC-006 — Univariate Signal Atlas
+
+The first research pass compares each approved feature with research-ready
+future targets at the same entity and cutoff. Build the weekly feature cube,
+matching targets, then the signal analysis:
+
+```sh
+uv run python -m hocus_quant.cli build-feature-cube \
+  --start 2024-04-05 --end 2026-04-03 --cadence weekly \
+  --quality-scope approved --output data/feature_cube/spec006-weekly-demo --resume
+
+uv run python -m hocus_quant.cli build-target-set \
+  --feature-cube data/feature_cube/spec006-weekly-demo \
+  --output data/targets/spec006-weekly-demo --resume
+
+uv run python -m hocus_quant.cli analyze-signals \
+  --feature-cube data/feature_cube/spec006-weekly-demo \
+  --target-set data/targets/spec006-weekly-demo \
+  --output data/analysis/spec006-weekly-demo
+```
+
+The analysis is incremental and resumes complete cutoff partitions. It writes
+Parquet and read-only DuckDB research views for summary metrics, date-local
+deciles, IC history, annual stability, family slices and mechanically filtered
+research candidates. The marimo explorer adds the Signal Atlas and detail view;
+set `HOCUS_QUANT_SIGNALS_DB` to choose another analysis database. Methodology,
+thresholds and limitations are documented in
+[`docs/SPEC_006_SIGNAL_ANALYSIS.md`](docs/SPEC_006_SIGNAL_ANALYSIS.md). The
+coverage and first real run statistics are in
+[`docs/SPEC_006_DATA_REPORT.md`](docs/SPEC_006_DATA_REPORT.md).
+
 ## Interactive local explorer
 
 Install the notebook extra and open the marimo explorer:
