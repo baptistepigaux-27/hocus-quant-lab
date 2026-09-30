@@ -7,8 +7,9 @@ Reproducible research sandbox for point-in-time scoring experiments. Data ingest
 - **AMF short positions:** Gremlin acquisition and the Quant Lab offline adapter are implemented; see [AMF rules](docs/AMF_SHORT_POSITIONS.md).
 - **Market prices:** real ABC Bourse files supplied manually have been imported. The full SRD archive has 199,416 observations across 197 provider identifiers; eight additional universes have 1,745,030 observations. Coverage is 2022-09-29 to 2026-09-28. These files are local and ignored by Git.
 - **Instrument reference:** the companion workbook has been ingested: 2,135 codes, including 2,067 with labels and 68 unresolved. Labels are a current snapshot, not historical point-in-time names.
-- **Cross-sectional measurements:** SPEC-003 v1 is implemented with an additive RSI `v2` contract. The local 2026-04-01 slice has 2,194 entities × 1,048 features (2,299,312 cells; about 96.1% available). Its long/wide Parquet and audit files are local under `data/features/2026-04-01/` and are ignored by Git. The ABC history is reconstructed PIT, and the hardening audit flags market-data quality candidates that must be reviewed before SPEC-004.
-- **Research still to build:** resolve audited extremes, construct a historically valid universe, repeat snapshots over time, then define targets and walk-forward evaluation. Do not describe the SRD sample as a historical SBF 120 universe.
+- **Cross-sectional measurements:** SPEC-003 v1 is implemented with an additive RSI `v2` contract. The local 2026-04-01 slice has 2,194 entities × 1,048 features (2,299,312 cells; about 96.1% available). Its long/wide Parquet and audit files are local under `data/features/2026-04-01/` and are ignored by Git. The ABC history is reconstructed PIT; SPEC-004 evaluates quality at each historical cutoff and preserves that PIT grade.
+- **Historical feature cube:** SPEC-004 adds sparse, weekly and daily grids over the frozen SPEC-003 engine. Its research scope is `approved`; this does not make the source strict observed-PIT or turn the delivered SRD sample into a historical SBF 120 universe. See [the cube guide](docs/SPEC_004_HISTORICAL_FEATURE_CUBE.md).
+- **Research still to build:** construct a historically valid universe, then define targets and walk-forward evaluation. Do not describe the SRD sample as a historical SBF 120 universe.
 
 ABC Bourse ingestion is manual and intended for this personal sandbox. The 2026-04-01 historical slice uses the source contract's session-date + one day `available_at` rule even though the archive was retrieved in September 2026; the audit reports this backfill. Historical vintages and split/corporate-action adjustment history are unverified, so this is not proof of fully versioned point-in-time prices and is not cleared for split-sensitive backtests. See [the feature formulas and caveats](docs/FEATURES.md) and [the ABC Bourse delivery note](docs/ABC_BOURSE_DELIVERY.md).
 
@@ -58,6 +59,24 @@ The long-form Parquet is canonical; a wide Parquet and local DuckDB catalog are
 derived conveniences. `--dry-run` computes and prints the audit without
 writing snapshot files. Formula IDs, definitions, normalization and the
 historical availability assumption are documented in [FEATURES.md](docs/FEATURES.md).
+
+## SPEC-004 historical feature cube
+
+Build point-in-time SPEC-003 snapshots over an explicit or generated grid:
+
+```sh
+uv run python -m hocus_quant.cli build-feature-cube \
+  --start 2022-09-29 --end 2026-09-28 --cadence weekly \
+  --quality-scope approved --output data/feature_cube/weekly
+```
+
+Use `--dry-run` to inspect the resolved cutoffs, `--resume` to reuse valid
+partitions, and `--force` to rebuild them. The output is partitioned long-form
+Parquet with a DuckDB catalog and temporal audit. For a filtered wide research
+panel, run `export-feature-panel`; to refresh/check coverage and historical
+quality transitions, run `audit-feature-cube`. The grid convention,
+reconstructed-PIT limitation, contract fingerprints, and performance notes are
+in [the SPEC-004 guide](docs/SPEC_004_HISTORICAL_FEATURE_CUBE.md).
 
 ## AMF short positions
 
