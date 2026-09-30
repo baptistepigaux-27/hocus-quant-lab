@@ -21,4 +21,5 @@ data/**
 !data/features/
 !data/features/.gitkeep
 notebooks/.ipynb_checkpoints/
+notebooks/__marimo__/
 .jupyter/

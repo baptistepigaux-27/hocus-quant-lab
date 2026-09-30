@@ -33,7 +33,12 @@ dev = [
 ]
 
 [project.optional-dependencies]
-notebook = ["ipykernel>=6.29", "jupyterlab>=4.3"]
+notebook = [
+    "ipykernel>=6.29",
+    "jupyterlab>=4.3",
+    "marimo>=0.25.0",
+    "plotly>=7.1.0",
+]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/hocus_quant"]

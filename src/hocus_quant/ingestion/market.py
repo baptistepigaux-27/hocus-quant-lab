@@ -282,6 +282,8 @@ def _market_frame(rows: list[dict[str, Any]]) -> pl.DataFrame:
         frame = frame.with_columns(pl.col(name).cast(pl.Date))
     for name in ("retrieved_at", "available_at", "adjusted_close_available_at"):
         frame = frame.with_columns(pl.col(name).cast(pl.Datetime("us", "UTC")))
+    for name in (*_OHLC_COLUMNS, "adjusted_close", "volume"):
+        frame = frame.with_columns(pl.col(name).cast(pl.Float64))
     return frame
 
 
