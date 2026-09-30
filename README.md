@@ -78,6 +78,29 @@ quality transitions, run `audit-feature-cube`. The grid convention,
 reconstructed-PIT limitation, contract fingerprints, and performance notes are
 in [the SPEC-004 guide](docs/SPEC_004_HISTORICAL_FEATURE_CUBE.md).
 
+## SPEC-005 future targets
+
+Build future outcome labels separately from features for one cutoff or every
+cutoff in an existing feature cube:
+
+```sh
+uv run python -m hocus_quant.cli build-target-snapshot \
+  --as-of 2026-04-01 --quality-scope approved \
+  --output data/targets/as_of_date=2026-04-01
+
+uv run python -m hocus_quant.cli build-target-set \
+  --feature-cube data/feature_cube/weekly \
+  --output data/targets/weekly --resume
+```
+
+SPEC-005 V1 emits nine target families for 5/10/20/60/120 future observed
+sessions. It builds continuous absolute and mapped broad-market relative returns,
+their direction labels, future volatility/drawdown/extrema, and same-family
+percentile ranks. It uses daily prices for labels even when feature cutoffs are
+weekly. Future quality events make labels unavailable and retain a separate
+candidate value for review. The output is reconstructed PIT and is not a
+predictive model or backtest. See the [target contract](docs/SPEC_005_TARGET_FACTORY.md).
+
 ## AMF short positions
 
 Gremlin acquires and parses the official AMF consolidated file; Quant Lab consumes the saved snapshot offline:

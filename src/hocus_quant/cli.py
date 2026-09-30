@@ -101,6 +101,26 @@ def main() -> None:
     export_parser.add_argument("--feature", action="append", dest="feature_ids")
     export_parser.add_argument("--entity", action="append", dest="entity_ids")
     export_parser.add_argument("--minimum-coverage", type=float)
+    target_parser = subparsers.add_parser(
+        "build-target-snapshot", help="build future outcomes for one point-in-time cutoff"
+    )
+    target_parser.add_argument("--as-of", type=date.fromisoformat, required=True)
+    target_parser.add_argument("--output", type=Path, required=True)
+    target_parser.add_argument(
+        "--data-dir", type=Path, default=Path(os.environ.get("HOCUS_QUANT_DATA_DIR", "data"))
+    )
+    target_parser.add_argument("--quality-scope", choices=("approved",), default="approved")
+    target_parser.add_argument("--entity", action="append", dest="entity_ids")
+    target_set_parser = subparsers.add_parser(
+        "build-target-set", help="build targets for each cutoff in a SPEC-004 feature cube"
+    )
+    target_set_parser.add_argument("--feature-cube", type=Path, required=True)
+    target_set_parser.add_argument("--output", type=Path, required=True)
+    target_set_parser.add_argument(
+        "--data-dir", type=Path, default=Path(os.environ.get("HOCUS_QUANT_DATA_DIR", "data"))
+    )
+    target_set_parser.add_argument("--resume", action="store_true")
+    target_set_parser.add_argument("--force", action="store_true")
     args = parser.parse_args()
     if args.command == "ingest-fixture":
         for stage, path in ingest_snapshot(args.snapshot, args.data_dir).items():
@@ -197,6 +217,32 @@ def main() -> None:
             output_path=args.output,
         )
         print(f"rows={frame.height} columns={frame.width} output={args.output}")
+    elif args.command == "build-target-snapshot":
+        import json
+
+        from hocus_quant.targets.factory import build_target_snapshot
+
+        report = build_target_snapshot(
+            as_of_date=args.as_of,
+            output_dir=args.output,
+            data_dir=args.data_dir,
+            quality_scope=args.quality_scope,
+            eligible_entity_ids=set(args.entity_ids) if args.entity_ids else None,
+        )
+        print(json.dumps(report, ensure_ascii=False, sort_keys=True, indent=2))
+    elif args.command == "build-target-set":
+        import json
+
+        from hocus_quant.targets.factory import build_target_set
+
+        report = build_target_set(
+            feature_cube_dir=args.feature_cube,
+            output_dir=args.output,
+            data_dir=args.data_dir,
+            resume=args.resume,
+            force=args.force,
+        )
+        print(json.dumps(report, ensure_ascii=False, sort_keys=True, indent=2))
 
 
 if __name__ == "__main__":

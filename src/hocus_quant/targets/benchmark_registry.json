@@ -1,0 +1,46 @@
+{
+  "mapping_count": 3,
+  "mappings": [
+    {
+      "benchmark_family": "index",
+      "benchmark_id": "abc-bourse-manual:market_indices:market_indices:QS0010989141",
+      "display_name": "CAC AllShares",
+      "entity_family": "equity",
+      "justification": "Broad French all-share index identified by the supplied ABC Bourse instrument-label workbook; selected over a sector index.",
+      "mapping_version": "benchmark-map/1.0.0",
+      "provenance": "data.silver/instrument_labels; market_series_history",
+      "provider_instrument_id": "QS0010989141",
+      "scope": "ABC Bourse SRD / Paris equities",
+      "series_id": "market_indices:QS0010989141",
+      "universe_id": "market_indices"
+    },
+    {
+      "benchmark_family": "index",
+      "benchmark_id": "abc-bourse-manual:market_indices:market_indices:DE0008469008",
+      "display_name": "DAX 40",
+      "entity_family": "equity_de",
+      "justification": "Explicit broad German large-cap market index present in the supplied ABC Bourse German-equity universe.",
+      "mapping_version": "benchmark-map/1.0.0",
+      "provenance": "data.silver/instrument_labels; market_series_history",
+      "provider_instrument_id": "DE0008469008",
+      "scope": "ABC Bourse German-equity universe",
+      "series_id": "market_indices:DE0008469008",
+      "universe_id": "market_indices"
+    },
+    {
+      "benchmark_family": "index",
+      "benchmark_id": "abc-bourse-manual:market_indices:market_indices:ABC003500387",
+      "display_name": "S&P 500",
+      "entity_family": "equity_us",
+      "justification": "Explicit broad US large-cap market index present in the supplied ABC Bourse market-index universe.",
+      "mapping_version": "benchmark-map/1.0.0",
+      "provenance": "data.silver/instrument_labels; market_series_history",
+      "provider_instrument_id": "ABC003500387",
+      "scope": "ABC Bourse US-equity universe",
+      "series_id": "market_indices:ABC003500387",
+      "universe_id": "market_indices"
+    }
+  ],
+  "registry_version": "SPEC-005-benchmarks/1.0.0",
+  "sha256": "53973913387b7f4725910bb4a1b39377c3c6451d39565bf0a337454ca6e4f501"
+}
