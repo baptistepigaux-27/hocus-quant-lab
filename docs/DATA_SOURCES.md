@@ -1,15 +1,15 @@
 # Data sources
 
-The initial research universe is Euronext Paris / SBF 120. Source acquisition is performed by Gremlin and reviewed independently from this repository.
+The intended research scope is Euronext Paris, eventually including a historically valid SBF 120 universe. No SBF 120 membership history is currently ingested. Source acquisition is performed by Gremlin and reviewed independently from this repository.
 
-| Planned connector | Initial scope | Quant Lab role |
+| Source / status | Initial scope | Quant Lab role |
 | --- | --- | --- |
-| GREMLIN-FIN-001 AMF | Public net short positions and history | Normalize publication, position, holder, issuer, ISIN, and percentage |
-| GREMLIN-FIN-002 INSEE | Inflation, industrial production, business climate, consumer confidence, unemployment | Preserve original series codes and publication/revision history |
-| GREMLIN-FIN-003 Banque de France | OAT/yields, yield curve, credit conditions, corporate rates, credit aggregates | Normalize observations while retaining vintages and release times |
-| GREMLIN-FIN-004 Euronext prices | ABC Bourse manually downloaded SRD history (current pilot) | Import local files through Gremlin; no automatic site access; adjustment history still needs PIT review |
+| GREMLIN-FIN-001 AMF — implemented | Public net short positions and history | Gremlin acquires/parses; Quant Lab imports offline and normalizes publication, position, holder, issuer, ISIN, and percentage |
+| GREMLIN-FIN-002 INSEE — planned | Inflation, industrial production, business climate, consumer confidence, unemployment | Preserve original series codes and publication/revision history |
+| GREMLIN-FIN-003 Banque de France — planned | OAT/yields, yield curve, credit conditions, corporate rates, credit aggregates | Normalize observations while retaining vintages and release times |
+| ABC Bourse — manual delivery imported | SRD plus eight supplemental universes; historical source files downloaded manually | Gremlin imports local SRD files; Quant Lab imports supplementary ZIPs and labels. No automatic site access; adjustment history still needs PIT review |
 
-V0 fixture ingestion itself does not contact external sources. SPEC-001 adds a source-specific Gremlin acquisition/parser and a Quant Lab offline adapter for AMF; the Quant Lab adapter never performs network requests.
+Quant Lab ingestion is offline: it does not fetch external sources. For AMF, the source-specific Gremlin acquisition/parser and Quant Lab offline adapter are implemented; the adapter never performs network requests.
 
 ABC Bourse's export contains ISIN, date, OHLC and share volume. The current
 input is an SRD-listing sample, not a complete or survivorship-free SBF 120

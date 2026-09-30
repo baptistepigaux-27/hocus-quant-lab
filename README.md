@@ -1,6 +1,15 @@
 # hocus-quant-lab
 
-Reproducible research sandbox for point-in-time scoring experiments on Euronext Paris / SBF 120 equities. V0 establishes data contracts and validation; it does not include a predictive model or a financial scraper.
+Reproducible research sandbox for point-in-time scoring experiments. Data ingestion and exploration are underway; there is not yet an end-to-end predictive experiment (features, target, model and backtest).
+
+## Current state (2026-09-30)
+
+- **AMF short positions:** Gremlin acquisition and the Quant Lab offline adapter are implemented; see [AMF rules](docs/AMF_SHORT_POSITIONS.md).
+- **Market prices:** real ABC Bourse files supplied manually have been imported. The full SRD archive has 199,416 observations across 197 provider identifiers; eight additional universes have 1,745,030 observations. Coverage is 2022-09-29 to 2026-09-28. These files are local and ignored by Git.
+- **Instrument reference:** the companion workbook has been ingested: 2,135 codes, including 2,067 with labels and 68 unresolved. Labels are a current snapshot, not historical point-in-time names.
+- **Research still to build:** point-in-time universe membership, feature and target definitions, walk-forward evaluation, portfolio construction and costs. Do not describe the SRD sample as a historical SBF 120 universe.
+
+ABC Bourse ingestion is manual and intended for this personal sandbox. Split and other corporate-action adjustment history has not been verified point-in-time, so the price history is not yet cleared for split-sensitive backtests. See [the ABC Bourse delivery note](docs/ABC_BOURSE_DELIVERY.md) for full coverage, caveats and replay commands.
 
 ## Setup
 
@@ -141,4 +150,4 @@ virtualenv, data and notebooks, mounted read-only.
 
 ## Scope
 
-Initial universe: Euronext Paris / SBF 120. Planned source order: AMF public short positions, selected INSEE series, Banque de France series, then a separately evaluated Euronext OHLCV source. AMF acquisition itself is done in Gremlin after this fixture pipeline and its leakage checks are validated.
+The intended equity research scope is Euronext Paris, eventually with a historically correct point-in-time universe. **No SBF 120 membership history is currently ingested.** AMF and ABC Bourse SRD price data are available through the workflows above; selected INSEE and Banque de France series remain planned. Quant Lab does not scrape financial sites or acquire ABC Bourse files automatically.
