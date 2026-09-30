@@ -37,7 +37,7 @@ from hocus_quant.validation.market_quality import (
 
 PARIS = ZoneInfo("Europe/Paris")
 PIT_GRADE = "reconstructed"
-_SCHEMA_VERSION = "target-factory/1.0"
+_SCHEMA_VERSION = "target-factory/1.1"
 _EXTREME_RETURN_ABS = 0.9
 
 TARGET_SCHEMA = pa.schema(
@@ -51,8 +51,13 @@ TARGET_SCHEMA = pa.schema(
         ("candidate_value", pa.float64()),
         ("target_status", pa.string()),
         ("unavailable_reason", pa.string()),
+        ("is_end_of_sample_censored", pa.bool_()),
         ("horizon", pa.int16()),
+        ("start_date", pa.date32()),
         ("target_end_date", pa.date32()),
+        ("start_price", pa.float64()),
+        ("end_price", pa.float64()),
+        ("quality_status_at_cutoff", pa.string()),
         ("last_future_observation_date", pa.date32()),
         ("benchmark_id", pa.string()),
         ("benchmark_family", pa.string()),
@@ -69,6 +74,10 @@ TARGET_SCHEMA = pa.schema(
         ("future_quality_reason", pa.string()),
         ("quality_rules_version", pa.string()),
         ("quality_rules_fingerprint", pa.string()),
+        ("event_id", pa.string()),
+        ("extreme_classification", pa.string()),
+        ("extreme_flags", pa.list_(pa.string())),
+        ("research_ready", pa.bool_()),
         ("target_registry_version", pa.string()),
         ("target_registry_fingerprint", pa.string()),
         ("benchmark_registry_version", pa.string()),
@@ -88,6 +97,8 @@ def build_target_snapshot(
     data_dir: Path = Path("data"),
     quality_scope: str = "approved",
     eligible_entity_ids: set[str] | None = None,
+    apply_hardening: bool = True,
+    global_future_session_count: int | None = None,
 ) -> dict[str, Any]:
     """Build one target snapshot at T, using daily observations after T for Y."""
     if quality_scope != "approved":
@@ -113,6 +124,8 @@ def build_target_snapshot(
     benchmark_ids = {item["benchmark_id"] for item in BENCHMARK_MAPPINGS}
     needed_ids = set(historical) | benchmark_ids
     future_by_id = _load_future_observations(db_path, as_of_date, needed_ids)
+    if global_future_session_count is None:
+        global_future_session_count = _global_future_session_count(db_path, as_of_date)
 
     target_doc = target_registry_document()
     benchmark_doc = benchmark_registry_document()
@@ -166,12 +179,18 @@ def build_target_snapshot(
     benchmark_outcomes: dict[str, dict[int, dict[str, Any]]] = {}
     for entity_id, entity in historical.items():
         outcome_by_entity[entity_id] = _future_outcomes(
-            entity, future_by_id.get(entity_id, []), as_of_date
+            entity,
+            future_by_id.get(entity_id, []),
+            as_of_date,
+            global_future_session_count,
         )
     for benchmark_id, benchmark_entity in benchmark_entities.items():
         if benchmark_entity is not None:
             benchmark_outcomes[benchmark_id] = _future_outcomes(
-                benchmark_entity, future_by_id.get(benchmark_id, []), as_of_date
+                benchmark_entity,
+                future_by_id.get(benchmark_id, []),
+                as_of_date,
+                global_future_session_count,
             )
 
     raw_rows: list[dict[str, Any]] = []
@@ -291,13 +310,14 @@ def build_target_snapshot(
                     target_status=status,
                     unavailable_reason=reason,
                     asset=asset,
-                    benchmark=benchmark if mapping is not None else None,
+                    benchmark=(benchmark if benchmark_mapping is not None else None),
                     mapping=benchmark_mapping,
                     cohort_id=cohort_id if definition.cohort_required else None,
                     cohort_size=cohort_size if definition.cohort_required else None,
                     target_doc=target_doc,
                     benchmark_doc=benchmark_doc,
                     run_id=run_id,
+                    quality_status_at_cutoff="approved",
                 )
                 raw_rows.append(row)
 
@@ -336,6 +356,22 @@ def build_target_snapshot(
         "status": "complete",
     }
     _write_json(output_dir / "manifest.json", manifest)
+    if apply_hardening:
+        from hocus_quant.targets.hardening import harden_target_set
+
+        hardening = harden_target_set(output_dir=output_dir, data_dir=data_dir)
+        manifest = json.loads((output_dir / "manifest.json").read_text(encoding="utf-8"))
+        manifest["target_hardening_summary"] = {
+            key: hardening[key]
+            for key in (
+                "extreme_target_rows",
+                "unique_events",
+                "entities_with_extreme_targets",
+                "research_ready_target_rows",
+                "target_rows_excluded_from_research_ready",
+            )
+        }
+        _write_json(output_dir / "manifest.json", manifest)
     return {**manifest, "audit": audit}
 
 
@@ -436,6 +472,7 @@ def build_target_set(
                 data_dir=data_dir,
                 quality_scope="approved",
                 eligible_entity_ids=feature_entities & approved_entities,
+                apply_hardening=False,
             )
             target_manifest = {
                 **snapshot_result,
@@ -477,8 +514,24 @@ def build_target_set(
         "elapsed_seconds": round(time.perf_counter() - set_started, 3),
         "status": "failed" if failed else "complete",
     }
+    hardening_audit: dict[str, Any] | None = None
+    if any(output_dir.glob("as_of_date=*/targets.parquet")):
+        from hocus_quant.targets.hardening import harden_target_set
+
+        hardening_audit = harden_target_set(output_dir=output_dir, data_dir=data_dir)
     audit = _audit_target_set(output_dir, all_manifests, failed)
     root_manifest["audit_path"] = str(output_dir / "target_audit.json")
+    if hardening_audit is not None:
+        root_manifest["target_hardening_summary"] = {
+            key: hardening_audit[key]
+            for key in (
+                "extreme_target_rows",
+                "unique_events",
+                "entities_with_extreme_targets",
+                "research_ready_target_rows",
+                "target_rows_excluded_from_research_ready",
+            )
+        }
     _write_json(output_dir / "manifests" / f"{root_manifest['run_id']}.json", root_manifest)
     if any(output_dir.glob("as_of_date=*/targets.parquet")):
         _refresh_target_set_catalog(output_dir)
@@ -489,7 +542,10 @@ def build_target_set(
 
 
 def _future_outcomes(
-    entity: dict[str, Any], future_rows: list[dict[str, Any]], as_of_date: date
+    entity: dict[str, Any],
+    future_rows: list[dict[str, Any]],
+    as_of_date: date,
+    global_future_session_count: int,
 ) -> dict[int, dict[str, Any]]:
     past_rows = entity["observations"]
     start_price = _finite(past_rows[-1].get("close")) if past_rows else None
@@ -506,6 +562,8 @@ def _future_outcomes(
             "reason": f"required_{horizon}_future_sessions_observed_{count}",
             "future_observation_count": count,
             "target_end_date": None,
+            "start_price": start_price,
+            "end_price": None,
             "start_date": past_rows[-1]["session_date"] if past_rows else None,
             "last_future_observation_date": last_date,
             "return_abs": None,
@@ -518,6 +576,11 @@ def _future_outcomes(
             "future_quality_evidence": [],
         }
         if count < horizon:
+            if global_future_session_count < horizon:
+                result["status"] = "right_censored_end_of_sample"
+                result["reason"] = (
+                    f"global_future_sessions_observed_{global_future_session_count}_before_horizon_{horizon}"
+                )
             outcomes[horizon] = result
             continue
         if start_price is None or start_price <= 0 or len(usable) != horizon:
@@ -566,6 +629,7 @@ def _future_outcomes(
             result["status"] = "available"
             result["reason"] = None
         result.update(values)
+        result["end_price"] = float(future_close[-1])
         result["start_date"] = past_rows[-1]["session_date"]
         result["target_end_date"] = rows[-1]["session_date"]
         result["last_future_observation_date"] = rows[-1]["session_date"]
@@ -578,6 +642,21 @@ def _future_outcomes(
     return outcomes
 
 
+def _global_future_session_count(db_path: Path, as_of_date: date) -> int:
+    with duckdb.connect(str(db_path), read_only=True) as connection:
+        row = connection.execute(
+            """SELECT count(DISTINCT session_date) FROM (
+                 SELECT session_date FROM market_daily_history WHERE session_date > ?
+                 UNION ALL
+                 SELECT session_date FROM market_series_history WHERE session_date > ?
+               )""",
+            [as_of_date, as_of_date],
+        ).fetchone()
+        if row is None:
+            raise RuntimeError("global future session count query returned no row")
+        return int(row[0])
+
+
 def _relative_result(
     *,
     asset: dict[str, Any],
@@ -587,18 +666,30 @@ def _relative_result(
 ) -> tuple[str, str | None, float | None]:
     if asset["status"] == "insufficient_future_history":
         return asset["status"], asset["reason"], None
+    if asset["status"] == "right_censored_end_of_sample":
+        return asset["status"], asset["reason"], None
     if asset["status"] == "undefined":
         return asset["status"], asset["reason"], None
     if mapping is None:
-        return "benchmark_unavailable", "no_defensible_v1_mapping_for_entity_family", None
+        return "benchmark_not_defined", "no_defensible_v1_mapping_for_entity_family", None
     if benchmark is None or benchmark_decision is None:
-        return "benchmark_unavailable", "mapped_benchmark_missing_at_cutoff", None
+        return "benchmark_defined_but_unavailable", "mapped_benchmark_missing_at_cutoff", None
     if benchmark_decision["quality_status"] != "approved":
-        return "benchmark_unavailable", "mapped_benchmark_not_approved_at_cutoff", None
+        return "benchmark_defined_but_unavailable", "mapped_benchmark_not_approved_at_cutoff", None
     if benchmark["status"] == "insufficient_future_history":
-        return "benchmark_unavailable", "mapped_benchmark_future_history_incomplete", None
+        return (
+            "benchmark_defined_but_unavailable",
+            "mapped_benchmark_future_history_incomplete",
+            None,
+        )
+    if benchmark["status"] == "right_censored_end_of_sample":
+        return (
+            "right_censored_end_of_sample",
+            "mapped_benchmark_future_horizon_right_censored",
+            None,
+        )
     if benchmark["status"] == "undefined":
-        return "benchmark_unavailable", "mapped_benchmark_target_undefined", None
+        return "benchmark_defined_but_unavailable", "mapped_benchmark_target_undefined", None
     candidate = float(asset["return_abs"] - benchmark["return_abs"])
     if (
         asset["status"] == "future_quality_quarantined"
@@ -632,6 +723,7 @@ def _target_row(
     target_doc: dict[str, Any],
     benchmark_doc: dict[str, Any],
     run_id: str,
+    quality_status_at_cutoff: str,
 ) -> dict[str, Any]:
     future_quality_event_count = int(asset["future_quality_event_count"])
     future_quality_reason = asset["future_quality_reason"]
@@ -651,8 +743,13 @@ def _target_row(
         "candidate_value": candidate_value,
         "target_status": target_status,
         "unavailable_reason": unavailable_reason,
+        "is_end_of_sample_censored": target_status == "right_censored_end_of_sample",
         "horizon": definition.horizon,
+        "start_date": asset["start_date"],
         "target_end_date": asset["target_end_date"],
+        "start_price": asset["start_price"],
+        "end_price": asset["end_price"],
+        "quality_status_at_cutoff": quality_status_at_cutoff,
         "last_future_observation_date": asset["last_future_observation_date"],
         "benchmark_id": mapping["benchmark_id"] if mapping is not None else None,
         "benchmark_family": mapping["benchmark_family"] if mapping is not None else None,
@@ -673,6 +770,10 @@ def _target_row(
         "future_quality_reason": future_quality_reason,
         "quality_rules_version": QUALITY_RULE_VERSION,
         "quality_rules_fingerprint": QUALITY_RULES_SHA256,
+        "event_id": None,
+        "extreme_classification": None,
+        "extreme_flags": None,
+        "research_ready": target_status == "available",
         "target_registry_version": target_doc["registry_version"],
         "target_registry_fingerprint": target_doc["sha256"],
         "benchmark_registry_version": benchmark_doc["registry_version"],
@@ -802,6 +903,10 @@ def _audit_target_rows(
             for (target_id, status), count in statuses.items()
             if target_id == definition.target_id
         }
+        right_censored = all_statuses.get("right_censored_end_of_sample", 0)
+        mapped_benchmark_unavailable = all_statuses.get("benchmark_defined_but_unavailable", 0)
+        unavailable = total - available
+        observable = total - right_censored
         target_coverage.append(
             {
                 "target_id": definition.target_id,
@@ -809,7 +914,38 @@ def _audit_target_rows(
                 "horizon": definition.horizon,
                 "rows": total,
                 "available": available,
+                "unavailable_total": unavailable,
+                "right_censored_end_of_sample": right_censored,
+                "insufficient_future_history": all_statuses.get("insufficient_future_history", 0),
+                "future_quality_review": all_statuses.get("future_quality_review", 0),
+                "future_quality_quarantined": all_statuses.get("future_quality_quarantined", 0),
+                "benchmark_not_defined": all_statuses.get("benchmark_not_defined", 0),
+                "benchmark_defined_but_unavailable": mapped_benchmark_unavailable,
+                "benchmark_incomplete": sum(
+                    count
+                    for reason, count in Counter(
+                        row["unavailable_reason"]
+                        for row in rows
+                        if row["target_id"] == definition.target_id
+                    ).items()
+                    if reason and "benchmark_future_history_incomplete" in reason
+                ),
+                "undefined_or_other": max(
+                    0,
+                    unavailable
+                    - right_censored
+                    - all_statuses.get("insufficient_future_history", 0)
+                    - all_statuses.get("future_quality_review", 0)
+                    - all_statuses.get("future_quality_quarantined", 0)
+                    - all_statuses.get("benchmark_not_defined", 0)
+                    - mapped_benchmark_unavailable,
+                ),
+                "availability_global": available / total if total else 0.0,
                 "coverage": available / total if total else 0.0,
+                "observable_candidates": observable,
+                "availability_excluding_right_censoring": (
+                    available / observable if observable else 0.0
+                ),
                 "statuses": all_statuses,
                 "value_distribution": _distribution(values_by_target.get(definition.target_id, [])),
                 "rank_cohort_sizes": sorted(cohort_sizes.get(definition.target_id, set())),
@@ -906,10 +1042,10 @@ def _audit_target_rows(
         },
         "end_of_sample_attrition": {
             str(horizon): {
-                "insufficient_future_history": sum(
+                "right_censored_end_of_sample": sum(
                     count
                     for (target_id, status), count in statuses.items()
-                    if status == "insufficient_future_history"
+                    if status == "right_censored_end_of_sample"
                     and _definition_by_id(target_id).horizon == horizon
                 )
             }
@@ -943,6 +1079,25 @@ def _audit_target_set(
                     max(target_value)
                   FROM read_parquet('{target_glob}', union_by_name=true)
                   GROUP BY ALL ORDER BY target_id, target_status"""
+            ).fetchall()
+            by_target_horizon = connection.execute(
+                f"""SELECT target_id, target_family, horizon, count(*) AS candidates,
+                    count(*) FILTER (WHERE target_status='available') AS available,
+                    count(*) FILTER (
+                      WHERE target_status='right_censored_end_of_sample') AS censored,
+                    count(*) FILTER (
+                      WHERE target_status='insufficient_future_history') AS insufficient,
+                    count(*) FILTER (WHERE target_status='future_quality_review') AS quality_review,
+                    count(*) FILTER (
+                      WHERE target_status='future_quality_quarantined') AS quarantined,
+                    count(*) FILTER (
+                      WHERE target_status='benchmark_not_defined') AS benchmark_not_defined,
+                    count(*) FILTER (
+                      WHERE target_status='benchmark_defined_but_unavailable')
+                      AS benchmark_defined_unavailable,
+                    count(*) FILTER (WHERE target_status='undefined') AS undefined
+                  FROM read_parquet('{target_glob}', union_by_name=true)
+                  GROUP BY ALL ORDER BY target_id"""
             ).fetchall()
             by_benchmark = connection.execute(
                 f"""SELECT entity_family, benchmark_id,
@@ -991,8 +1146,60 @@ def _audit_target_set(
                   WHERE target_family IN ('return_abs','return_rel') AND candidate_value IS NOT NULL
                   ORDER BY candidate_value LIMIT 20"""
             ).fetchall()
+            cutoff_coverage = connection.execute(
+                f"""SELECT as_of_date, horizon, count(DISTINCT entity_id) AS entities,
+                    count(*) AS candidates,
+                    count(*) FILTER (WHERE target_status='available') AS available,
+                    count(*) FILTER (
+                      WHERE target_status='right_censored_end_of_sample') AS censored,
+                    count(*) FILTER (WHERE target_status='future_quality_review') AS quality_review,
+                    count(*) FILTER (
+                      WHERE target_status='future_quality_quarantined') AS quarantined,
+                    count(*) FILTER (
+                      WHERE target_status='insufficient_future_history') AS insufficient,
+                    count(*) FILTER (
+                      WHERE target_status IN ('benchmark_not_defined',
+                        'benchmark_defined_but_unavailable')) AS benchmark_unavailable
+                  FROM read_parquet('{target_glob}', union_by_name=true)
+                  WHERE target_family='return_abs' GROUP BY ALL ORDER BY ALL"""
+            ).fetchall()
+            family_coverage = connection.execute(
+                f"""SELECT entity_family, horizon, count(DISTINCT entity_id) AS entities,
+                    count(*) AS candidates,
+                    count(*) FILTER (WHERE target_status='available') AS available,
+                    count(*) FILTER (
+                      WHERE target_status='right_censored_end_of_sample') AS censored,
+                    count(*) FILTER (WHERE target_status='future_quality_review') AS quality_review,
+                    count(*) FILTER (
+                      WHERE target_status='future_quality_quarantined') AS quarantined,
+                    count(*) FILTER (
+                      WHERE target_status='insufficient_future_history') AS insufficient
+                  FROM read_parquet('{target_glob}', union_by_name=true)
+                  WHERE target_family='return_abs' GROUP BY ALL ORDER BY ALL"""
+            ).fetchall()
+            relative_coverage = connection.execute(
+                f"""SELECT horizon, count(*) AS candidates,
+                    count(*) FILTER (WHERE target_status='available') AS available,
+                    count(*) FILTER (WHERE benchmark_id IS NOT NULL) AS benchmark_mapped,
+                    count(*) FILTER (WHERE benchmark_id IS NULL) AS benchmark_not_defined,
+                    count(*) FILTER (
+                      WHERE target_status='right_censored_end_of_sample') AS censored,
+                    count(*) FILTER (
+                      WHERE target_status='benchmark_defined_but_unavailable')
+                      AS benchmark_defined_unavailable
+                  FROM read_parquet('{target_glob}', union_by_name=true)
+                  WHERE target_family='return_rel' GROUP BY horizon ORDER BY horizon"""
+            ).fetchall()
+            usable_cohorts = connection.execute(
+                f"""SELECT horizon, min(as_of_date), max(as_of_date),
+                    count(DISTINCT as_of_date), count(*)
+                  FROM read_parquet('{target_glob}', union_by_name=true)
+                  WHERE target_family='return_abs' AND target_status='available'
+                  GROUP BY horizon ORDER BY horizon"""
+            ).fetchall()
     else:
         by_target = []
+        by_target_horizon = []
         by_benchmark = []
         direction_balance = []
         quality_exclusions = []
@@ -1000,6 +1207,10 @@ def _audit_target_set(
         extreme_counts = []
         extreme_positive = []
         extreme_negative = []
+        cutoff_coverage = []
+        family_coverage = []
+        relative_coverage = []
+        usable_cohorts = []
     audit = {
         "schema_version": _SCHEMA_VERSION,
         "slice_count": len(manifests),
@@ -1027,6 +1238,28 @@ def _audit_target_set(
             )
             for row in by_target
         ],
+        "availability_by_target_and_horizon": [
+            {
+                "target_id": row[0],
+                "target_family": row[1],
+                "horizon": row[2],
+                "candidate_rows": row[3],
+                "available": row[4],
+                "unavailable_total": row[3] - row[4],
+                "right_censored_end_of_sample": row[5],
+                "insufficient_future_history": row[6],
+                "future_quality_review": row[7],
+                "future_quality_quarantined": row[8],
+                "benchmark_not_defined": row[9],
+                "benchmark_defined_but_unavailable": row[10],
+                "undefined_or_other": row[11],
+                "availability_global": row[4] / row[3] if row[3] else 0.0,
+                "availability_excluding_censoring": row[4] / (row[3] - row[5])
+                if row[3] > row[5]
+                else 0.0,
+            }
+            for row in by_target_horizon
+        ],
         "benchmark_mapping_coverage": [
             dict(
                 zip(
@@ -1048,6 +1281,91 @@ def _audit_target_set(
             for row in direction_balance
         ],
         "future_quality_exclusions": dict(quality_exclusions),
+        "availability_by_cutoff_and_horizon": [
+            {
+                **dict(
+                    zip(
+                    (
+                        "as_of_date",
+                        "horizon",
+                        "entities",
+                        "candidates",
+                        "available",
+                        "right_censored_end_of_sample",
+                        "future_quality_review",
+                        "future_quality_quarantined",
+                        "insufficient_future_history",
+                        "benchmark_unavailable",
+                    ),
+                    row,
+                    strict=True,
+                    )
+                ),
+                "as_of_date": row[0].isoformat()
+                if hasattr(row[0], "isoformat")
+                else str(row[0]),
+            }
+            | {
+                "availability_global": row[4] / row[3] if row[3] else 0.0,
+                "availability_excluding_censoring": row[4] / (row[3] - row[5])
+                if row[3] > row[5]
+                else 0.0,
+            }
+            for row in cutoff_coverage
+        ],
+        "availability_by_family_and_horizon": [
+            dict(
+                zip(
+                    (
+                        "entity_family",
+                        "horizon",
+                        "entities",
+                        "candidates",
+                        "available",
+                        "right_censored_end_of_sample",
+                        "future_quality_review",
+                        "future_quality_quarantined",
+                        "insufficient_future_history",
+                    ),
+                    row,
+                    strict=True,
+                )
+            )
+            | {
+                "availability_global": row[4] / row[3] if row[3] else 0.0,
+                "availability_excluding_censoring": row[4] / (row[3] - row[5])
+                if row[3] > row[5]
+                else 0.0,
+            }
+            for row in family_coverage
+        ],
+        "relative_availability_by_horizon": [
+            {
+                "horizon": row[0],
+                "candidates": row[1],
+                "available": row[2],
+                "benchmark_mapped": row[3],
+                "benchmark_not_defined": row[4],
+                "right_censored_end_of_sample": row[5],
+                "benchmark_defined_but_unavailable": row[6],
+                "global_availability": row[2] / row[1] if row[1] else 0.0,
+                "benchmark_mapped_population_rate": row[3] / row[1] if row[1] else 0.0,
+                "availability_among_mapped_observable": row[2] / (row[3] - row[5])
+                if row[3] > row[5]
+                else 0.0,
+            }
+            for row in relative_coverage
+        ],
+        "usable_cutoff_cohorts_by_horizon": [
+            {
+                "horizon": row[0],
+                "first_usable_cutoff": row[1].isoformat(),
+                "last_usable_cutoff": row[2].isoformat(),
+                "cutoff_count": row[3],
+                "available_entity_cutoff_rows": row[4],
+            }
+            for row in usable_cohorts
+        ],
         "rank_cohort_sizes": {target_id: sizes for target_id, sizes in cohorts},
         "extreme_return_review": {
             "absolute_threshold": _EXTREME_RETURN_ABS,
@@ -1127,10 +1445,17 @@ def _refresh_target_catalog(output_dir: Path, target_path: Path) -> None:
 
 def _refresh_target_set_catalog(output_dir: Path) -> None:
     parquet = str((output_dir / "as_of_date=*/targets.parquet").resolve()).replace("'", "''")
+    ready_parquet = str(
+        (output_dir / "as_of_date=*/targets_research_ready.parquet").resolve()
+    ).replace("'", "''")
     with duckdb.connect(str(output_dir / "target_catalog.duckdb")) as connection:
         connection.execute(
             "CREATE OR REPLACE VIEW targets AS SELECT * FROM "
             f"read_parquet('{parquet}', union_by_name=true)"
+        )
+        connection.execute(
+            "CREATE OR REPLACE VIEW targets_research_ready AS SELECT * FROM "
+            f"read_parquet('{ready_parquet}', union_by_name=true)"
         )
 
 
