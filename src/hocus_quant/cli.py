@@ -64,6 +64,12 @@ def main() -> None:
         "--data-dir", type=Path, default=Path(os.environ.get("HOCUS_QUANT_DATA_DIR", "data"))
     )
     features_parser.add_argument("--dry-run", action="store_true")
+    features_parser.add_argument(
+        "--quality-scope",
+        choices=("all", "approved"),
+        default="all",
+        help="include every technically usable series or only quality-approved series",
+    )
     args = parser.parse_args()
     if args.command == "ingest-fixture":
         for stage, path in ingest_snapshot(args.snapshot, args.data_dir).items():
@@ -107,6 +113,7 @@ def main() -> None:
             output_dir=args.output,
             data_dir=args.data_dir,
             dry_run=args.dry_run,
+            quality_scope=args.quality_scope,
         )
         print(json.dumps(report, ensure_ascii=False, sort_keys=True, indent=2))
 

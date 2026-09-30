@@ -8,7 +8,7 @@ import time
 from datetime import date, datetime, timedelta
 from datetime import time as datetime_time
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 from zoneinfo import ZoneInfo
 
 import duckdb
@@ -19,6 +19,7 @@ import pyarrow.parquet as pq
 from hocus_quant.features.factory import compute_entity_features
 from hocus_quant.features.hardening import create_hardening_audit, render_hardening_report
 from hocus_quant.features.registry import FEATURE_REGISTRY, registry_document
+from hocus_quant.validation.market_quality import assess_series, summarize_decisions
 
 PARIS = ZoneInfo("Europe/Paris")
 _LONG_SCHEMA = pa.schema(
@@ -45,6 +46,7 @@ def build_feature_snapshot(
     output_dir: Path,
     data_dir: Path = Path("data"),
     dry_run: bool = False,
+    quality_scope: Literal["all", "approved"] = "all",
 ) -> dict[str, Any]:
     """Generate long/wide Parquet, an audit, and a small DuckDB catalog.
 
@@ -53,12 +55,23 @@ def build_feature_snapshot(
     membership enter the computation.
     """
     started = time.perf_counter()
+    if quality_scope not in {"all", "approved"}:
+        raise ValueError("quality_scope must be 'all' or 'approved'")
     db_path = data_dir / "research.duckdb"
     if not db_path.is_file():
         raise FileNotFoundError(f"research DuckDB does not exist: {db_path}")
     cutoff = datetime.combine(as_of_date + timedelta(days=1), datetime_time.min, tzinfo=PARIS)
     entities = _load_entities(db_path, as_of_date, cutoff)
+    quality_decisions = [assess_series(entity) for entity in entities]
+    quality_by_id = {item["entity_id"]: item for item in quality_decisions}
+    quality_summary = summarize_decisions(quality_decisions, as_of_date.isoformat())
     candidate_entity_count = len(entities)
+    if quality_scope == "approved":
+        entities = [
+            entity
+            for entity in entities
+            if quality_by_id[entity["entity_id"]]["quality_status"] == "approved"
+        ]
     definitions = FEATURE_REGISTRY
     feature_index = {item.feature_id: index for index, item in enumerate(definitions)}
     matrix = np.full((len(entities), len(definitions)), np.nan, dtype=np.float64)
@@ -89,6 +102,8 @@ def build_feature_snapshot(
         cutoff,
         started,
         candidate_entity_count=candidate_entity_count,
+        quality_scope=quality_scope,
+        quality_summary=quality_summary,
     )
     hardening = create_hardening_audit(
         entities=entities, definitions=definitions, values=matrix, audit=audit
@@ -98,6 +113,10 @@ def build_feature_snapshot(
         return audit
 
     output_dir.mkdir(parents=True, exist_ok=True)
+    quality_json_path = output_dir / "market_quality_audit.json"
+    quality_md_path = output_dir / "market_quality_audit.md"
+    _write_json(quality_json_path, quality_summary)
+    quality_md_path.write_text(_render_quality_report(quality_summary), encoding="utf-8")
     long_path = output_dir / "features_long.parquet"
     wide_path = output_dir / "features_wide.parquet"
     audit_path = output_dir / "audit.json"
@@ -115,6 +134,8 @@ def build_feature_snapshot(
         "human_audit": str(report_path),
         "hardening_audit": str(hardening_path),
         "hardening_machine_audit": str(hardening_json_path),
+        "market_quality_audit": str(quality_json_path),
+        "market_quality_report": str(quality_md_path),
     }
     audit["elapsed_seconds"] = round(time.perf_counter() - started, 3)
     hardening_path.write_text(render_hardening_report(hardening), encoding="utf-8")
@@ -208,6 +229,8 @@ def _audit(
     started: float,
     *,
     candidate_entity_count: int,
+    quality_scope: str,
+    quality_summary: dict[str, Any],
 ) -> dict[str, Any]:
     available = np.isfinite(values)
     summaries: list[dict[str, Any]] = []
@@ -323,6 +346,16 @@ def _audit(
         "entity_count": len(entities),
         "candidate_entity_count": candidate_entity_count,
         "ineligible_entity_count": candidate_entity_count - len(entities),
+        "quality_scope": quality_scope,
+        "quality_rule_version": quality_summary["quality_rule_version"],
+        "quality_rule_sha256": quality_summary["quality_rule_sha256"],
+        "quality_status_counts_before_scope": quality_summary["quality_status_counts"],
+        "quality_excluded_entity_count": (
+            quality_summary["quality_status_counts"]["review"]
+            + quality_summary["quality_status_counts"]["quarantined"]
+            if quality_scope == "approved"
+            else 0
+        ),
         "entity_count_by_family": coverage_by_family,
         "session_date_range_by_family": date_ranges_by_family,
         "feature_count": len(definitions),
@@ -487,12 +520,59 @@ def _write_json(path: Path, value: Any) -> None:
     )
 
 
+def _render_quality_report(report: dict[str, Any]) -> str:
+    counts = report["quality_status_counts"]
+    lines = [
+        "# Market data quality audit",
+        "",
+        f"- As-of date: `{report['as_of_date']}`",
+        f"- Series examined: {report['series_count']:,}",
+        f"- Rules: `{report['quality_rule_version']}` (`{report['quality_rule_sha256']}`)",
+        f"- Approved: {counts['approved']:,}; review: {counts['review']:,}; "
+        f"quarantined: {counts['quarantined']:,}",
+        "",
+        "## Status by family",
+        "",
+        "| Family | Approved | Review | Quarantined |",
+        "| --- | ---: | ---: | ---: |",
+    ]
+    for family, values in sorted(report["quality_status_by_family"].items()):
+        lines.append(
+            f"| {family} | {values['approved']:,} | {values['review']:,} | "
+            f"{values['quarantined']:,} |"
+        )
+    for status in ("quarantined", "review"):
+        rows = [item for item in report["decisions"] if item["quality_status"] == status]
+        lines.extend(["", f"## {status.title()} series ({len(rows):,})", ""])
+        lines.extend(
+            f"- `{item['entity_id']}` ({item['entity_family']}): {item['quality_reason']} "
+            f"({item['evidence_count']} evidence rows; through {item['observations_as_of']})"
+            for item in rows
+        )
+    lines.extend(
+        [
+            "",
+            "## Interpretation",
+            "",
+            "Hard rules quarantine series with impossible OHLC structure or invalid numeric "
+            "values. Review rules flag large moves, wide daily ranges and likely scale changes; "
+            "they do not establish bad data. The raw observations are not modified.",
+            "",
+        ]
+    )
+    return "\n".join(lines)
+
+
 def _render_report(audit: dict[str, Any]) -> str:
     lines = [
         "# SPEC-003 feature snapshot audit",
         "",
         f"- As-of date: `{audit['as_of_date']}`; cutoff instant `{audit['cutoff_timestamp']}`",
         f"- Entities: {audit['entity_count']}",
+        f"- Quality scope: `{audit['quality_scope']}`; rule "
+        f"`{audit['quality_rule_version']}` ({audit['quality_rule_sha256']})",
+        f"- Quality statuses before scope: {audit['quality_status_counts_before_scope']}",
+        f"- Entities excluded by quality scope: {audit['quality_excluded_entity_count']:,}",
         f"- Features per entity: {audit['feature_count']}",
         f"- Cells: {audit['total_cells']:,}",
         f"- Available: {audit['cell_status_counts']['available']:,} "
