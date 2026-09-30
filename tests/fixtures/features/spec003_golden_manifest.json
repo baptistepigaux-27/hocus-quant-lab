@@ -1,0 +1,112 @@
+{
+  "as_of_date": "2026-04-01",
+  "available_cells": 2208926,
+  "available_rate": 0.9606899803071528,
+  "entity_count": 2194,
+  "entity_count_by_family": {
+    "bond": 15,
+    "commodity": 27,
+    "crypto": 75,
+    "equity": 197,
+    "equity_de": 486,
+    "equity_us": 1124,
+    "fx_rates": 145,
+    "index": 95,
+    "sector_index": 30
+  },
+  "feature_count": 1048,
+  "feature_count_by_family": {
+    "distribution": 504,
+    "ohlc": 108,
+    "returns": 216,
+    "technical": 31,
+    "trend": 180,
+    "volume": 9
+  },
+  "fixed_panel": {
+    "bond": {
+      "entity_id": "abc-bourse-manual:bonds:bonds:FR0000047664",
+      "features": {
+        "close.level.mean_delta.w60.v1": -3.5575210589651185,
+        "close.log.trend_pct.w60.v1": 7.541981300233333,
+        "ohlc.technical.rsi.w14.v1": 48.89086069210293,
+        "ohlc.technical.rsi.w15.v2": 51.73184357541898
+      }
+    },
+    "commodity": {
+      "entity_id": "abc-bourse-manual:commodities:commodities:ABC000000010",
+      "features": {
+        "close.level.mean_delta.w60.v1": 4.382754859295468,
+        "close.log.trend_pct.w60.v1": 0.8157680117899038,
+        "ohlc.technical.rsi.w14.v1": 33.19886713623826,
+        "ohlc.technical.rsi.w15.v2": 32.24436644562185
+      }
+    },
+    "crypto": {
+      "entity_id": "abc-bourse-manual:crypto:crypto:ABC000000087",
+      "features": {
+        "close.level.mean_delta.w60.v1": 12.211530055475638,
+        "close.log.trend_pct.w60.v1": -48.18789043978194,
+        "ohlc.technical.rsi.w14.v1": 51.94271537115389,
+        "ohlc.technical.rsi.w15.v2": 53.185028358650925
+      }
+    },
+    "equity": {
+      "entity_id": "abc-bourse-manual:equity:BE0974310428",
+      "features": {
+        "close.level.mean_delta.w60.v1": -0.6027640941433821,
+        "close.log.trend_pct.w60.v1": -13.817537397368273,
+        "ohlc.technical.rsi.w14.v1": 56.818181818181806,
+        "ohlc.technical.rsi.w15.v2": 54.71380471380473
+      }
+    },
+    "equity_de": {
+      "entity_id": "abc-bourse-manual:german_equities:german_equities:AT0000606306",
+      "features": {
+        "close.level.mean_delta.w60.v1": 8.621004566210022,
+        "close.log.trend_pct.w60.v1": -4.576414902388792,
+        "ohlc.technical.rsi.w14.v1": 41.26213592233011,
+        "ohlc.technical.rsi.w15.v2": 36.95652173913044
+      }
+    },
+    "equity_us": {
+      "entity_id": "abc-bourse-manual:us_equities:us_equities:AN8068571086",
+      "features": {
+        "close.level.mean_delta.w60.v1": -5.283129013426747,
+        "close.log.trend_pct.w60.v1": 6.90754145966473,
+        "ohlc.technical.rsi.w14.v1": 72.69102990033223,
+        "ohlc.technical.rsi.w15.v2": 58.62808145766345
+      }
+    },
+    "fx_rates": {
+      "entity_id": "abc-bourse-manual:fx_rates:fx_rates:ABC000000010",
+      "features": {
+        "close.level.mean_delta.w60.v1": 4.382754859295468,
+        "close.log.trend_pct.w60.v1": 0.8157680117899038,
+        "ohlc.technical.rsi.w14.v1": 33.19886713623826,
+        "ohlc.technical.rsi.w15.v2": 32.24436644562185
+      }
+    },
+    "index": {
+      "entity_id": "abc-bourse-manual:market_indices:market_indices:ABC000000080",
+      "features": {
+        "close.level.mean_delta.w60.v1": 4.411497138382536,
+        "close.log.trend_pct.w60.v1": -4.92588111227298,
+        "ohlc.technical.rsi.w14.v1": 38.27523449531008,
+        "ohlc.technical.rsi.w15.v2": 32.559247350244135
+      }
+    },
+    "sector_index": {
+      "entity_id": "abc-bourse-manual:sector_indices:sector_indices:DE000SL0BWG3",
+      "features": {
+        "close.level.mean_delta.w60.v1": -2.2351806761048643,
+        "close.log.trend_pct.w60.v1": 9.573343593669236,
+        "ohlc.technical.rsi.w14.v1": 45.537729996979124,
+        "ohlc.technical.rsi.w15.v2": 49.1844300477444
+      }
+    }
+  },
+  "registry_sha256": "97fc1dc4c34c54cedd41771c5dc30224db24427981639a0d46256a3a7d17f552",
+  "total_cells": 2299312,
+  "unavailable_cells": 90386
+}

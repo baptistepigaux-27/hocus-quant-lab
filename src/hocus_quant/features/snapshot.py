@@ -17,7 +17,8 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 
 from hocus_quant.features.factory import compute_entity_features
-from hocus_quant.features.registry import FEATURE_REGISTRY
+from hocus_quant.features.hardening import create_hardening_audit, render_hardening_report
+from hocus_quant.features.registry import FEATURE_REGISTRY, registry_document
 
 PARIS = ZoneInfo("Europe/Paris")
 _LONG_SCHEMA = pa.schema(
@@ -89,6 +90,9 @@ def build_feature_snapshot(
         started,
         candidate_entity_count=candidate_entity_count,
     )
+    hardening = create_hardening_audit(
+        entities=entities, definitions=definitions, values=matrix, audit=audit
+    )
     if dry_run:
         audit["dry_run"] = True
         return audit
@@ -98,6 +102,8 @@ def build_feature_snapshot(
     wide_path = output_dir / "features_wide.parquet"
     audit_path = output_dir / "audit.json"
     report_path = output_dir / "audit.md"
+    hardening_path = output_dir / "hardening_audit.md"
+    hardening_json_path = output_dir / "hardening_audit.json"
     _write_long(long_path, entities, definitions, matrix, counts, ratios, as_of_date)
     _write_wide(wide_path, entities, definitions, matrix, as_of_date)
     _write_catalog(output_dir / "features.duckdb", long_path, wide_path)
@@ -107,8 +113,12 @@ def build_feature_snapshot(
         "duckdb": str(output_dir / "features.duckdb"),
         "machine_audit": str(audit_path),
         "human_audit": str(report_path),
+        "hardening_audit": str(hardening_path),
+        "hardening_machine_audit": str(hardening_json_path),
     }
     audit["elapsed_seconds"] = round(time.perf_counter() - started, 3)
+    hardening_path.write_text(render_hardening_report(hardening), encoding="utf-8")
+    _write_json(hardening_json_path, hardening)
     _write_json(audit_path, audit)
     report_path.write_text(_render_report(audit), encoding="utf-8")
     return audit
@@ -241,6 +251,7 @@ def _audit(
                     "feature_id": definition.feature_id,
                     "min": float(q[0]),
                     "p01": float(q[1]),
+                    "median": float(q[2]),
                     "p99": float(q[3]),
                     "max": float(q[4]),
                 }
@@ -278,9 +289,21 @@ def _audit(
     late_retrievals = sum(
         1 for entity in entities for row in entity["observations"] if row["retrieved_at"] > cutoff
     )
+    registry = registry_document()
     return {
-        "spec": "SPEC-003",
+        "spec": "SPEC-003R",
         "as_of_date": as_of.isoformat(),
+        "pit_grade": "reconstructed",
+        "pit_grade_by_source": {
+            "abc-bourse-manual": "reconstructed",
+        },
+        "pit_grade_reason": (
+            "ABC history was retrieved after the cutoff; session_date + 1 day is a declared "
+            "availability convention. Historical vintages and adjustment history are absent."
+        ),
+        "strict_pit_claimed": False,
+        "feature_registry_version": registry["registry_version"],
+        "feature_registry_sha256": registry["sha256"],
         "cutoff_timestamp": cutoff.isoformat(),
         "date_cutoff_semantics": "inclusive session date; cutoff is 00:00 Europe/Paris on D+1",
         "availability_filter": (
@@ -358,6 +381,7 @@ def _correlation_audit(values: np.ndarray, definitions: tuple[Any, ...]) -> list
                         "feature_id_a": definitions[candidates[left]].feature_id,
                         "feature_id_b": definitions[candidates[right]].feature_id,
                         "correlation": value,
+                        "interpretation": "review-only; see SPEC-003R hardening audit",
                     }
                 )
     return sorted(pairs, key=lambda row: -abs(row["correlation"]))[:200]

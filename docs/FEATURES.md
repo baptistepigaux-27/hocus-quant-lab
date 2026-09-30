@@ -51,7 +51,8 @@ package is used.
 
 | Feature | v1 formula / lookback |
 | --- | --- |
-| RSI | Simple mean gain/loss RSI, 14 close differences |
+| RSI v1 (`...rsi.w14.v1`) | Simple mean gain/loss over 13 close differences from 14 closes; frozen legacy output |
+| RSI v2 (`...rsi.w15.v2`) | Simple mean gain/loss over 14 close differences from 15 closes |
 | MACD | Recursive EMA seeded at first close; EMA(12)-EMA(26), signal EMA(9); components as % of close; 34 observations |
 | Stochastic K / D | 14-row high-low position; D is mean of last three K values; 14 / 16 observations |
 | Williams %R | 14-row high-low range |
@@ -71,6 +72,21 @@ non-finite inputs and insufficient history produce unavailable values; no
 missing value is silently replaced with zero. OHLC gap frequency is the share
 of observed gaps whose absolute size exceeds 0.1%. Positive/negative session
 shares compare close with the preceding observed close.
+
+## Feature contract freeze
+
+`src/hocus_quant/features/feature_registry.json` is the versioned feature
+contract and includes each ID's formula, inputs, observation horizon, minimum
+history, output scale, dimensionless flag and applicable entity families. The
+registry fingerprint is written to snapshot run metadata. A technical repair
+that leaves theoretical outputs unchanged may remain v1. Any formula or
+semantic change requires a new ID with `v2`; changing the meaning behind a v1
+ID silently is forbidden. Intentional changes to the 2026-04-01 golden slice
+must update its fixed panel/manifest and explain the change in `docs/SPEC_003R_HARDENING.md`.
+
+The current ABC Bourse slice has PIT grade `reconstructed`: its September 2026
+capture is assigned historical availability by convention, and no source
+vintages exist to prove historical values. See `docs/POINT_IN_TIME.md`.
 
 ## Outputs and audit
 
