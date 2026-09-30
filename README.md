@@ -7,9 +7,10 @@ Reproducible research sandbox for point-in-time scoring experiments. Data ingest
 - **AMF short positions:** Gremlin acquisition and the Quant Lab offline adapter are implemented; see [AMF rules](docs/AMF_SHORT_POSITIONS.md).
 - **Market prices:** real ABC Bourse files supplied manually have been imported. The full SRD archive has 199,416 observations across 197 provider identifiers; eight additional universes have 1,745,030 observations. Coverage is 2022-09-29 to 2026-09-28. These files are local and ignored by Git.
 - **Instrument reference:** the companion workbook has been ingested: 2,135 codes, including 2,067 with labels and 68 unresolved. Labels are a current snapshot, not historical point-in-time names.
-- **Research still to build:** point-in-time universe membership, feature and target definitions, walk-forward evaluation, portfolio construction and costs. Do not describe the SRD sample as a historical SBF 120 universe.
+- **Cross-sectional measurements:** SPEC-003 v1 is implemented. The local 2026-04-01 slice has 2,194 entities × 1,047 features (2,297,118 cells; 96.1% available). Its long/wide Parquet and audit files are local under `data/features/2026-04-01/` and are ignored by Git.
+- **Research still to build:** resolve audited extremes, construct a historically valid universe, repeat snapshots over time, then define targets and walk-forward evaluation. Do not describe the SRD sample as a historical SBF 120 universe.
 
-ABC Bourse ingestion is manual and intended for this personal sandbox. Split and other corporate-action adjustment history has not been verified point-in-time, so the price history is not yet cleared for split-sensitive backtests. See [the ABC Bourse delivery note](docs/ABC_BOURSE_DELIVERY.md) for full coverage, caveats and replay commands.
+ABC Bourse ingestion is manual and intended for this personal sandbox. The 2026-04-01 historical slice uses the source contract's session-date + one day `available_at` rule even though the archive was retrieved in September 2026; the audit reports this backfill. Historical vintages and split/corporate-action adjustment history are unverified, so this is not proof of fully versioned point-in-time prices and is not cleared for split-sensitive backtests. See [the feature formulas and caveats](docs/FEATURES.md) and [the ABC Bourse delivery note](docs/ABC_BOURSE_DELIVERY.md).
 
 ## Setup
 
@@ -26,7 +27,7 @@ Copy `.env.example` to `.env` if you want to override local paths. `data/` and M
 
 ## Data flow
 
-Gremlin acquires source snapshots and records provenance. Quant Lab consumes those snapshots without fetching external data, stores the source payload unchanged under `data/raw/`, writes parsed records to Parquet bronze, then normalizes them into silver. Silver observations retain `observation_date`, `published_at`, `retrieved_at`, and `valid_from`; `available_at` is the conservative point-in-time boundary used by queries. It is derived as the latest of publication and retrieval timestamps, so data cannot be used before it was actually retrieved. Source-specific semantics and correction policies belong in a later, explicit normalizer.
+Gremlin acquires source snapshots and records provenance. Quant Lab consumes those snapshots without fetching external data, stores the source payload unchanged under `data/raw/`, writes parsed records to Parquet bronze, then normalizes them into silver. Silver observations retain `observation_date`, `published_at`, `retrieved_at`, and `valid_from`; `available_at` follows the source-specific availability contract. For AMF it uses publication/retrieval rules; for ABC daily bars it is modeled as session date + 1 day. The ABC archive was retrieved after the historical cutoff and has no dated source vintages, so this session-date rule is an explicit backfill assumption rather than proof of historically captured values.
 
 ```text
 source → Gremlin snapshot → immutable raw → bronze Parquet → silver Parquet
@@ -42,6 +43,21 @@ uv run python -m hocus_quant.cli ingest-fixture fixtures/gremlin/amf_snapshot.js
 ```
 
 The command writes the original fixture payload to raw, its records to bronze and silver Parquet, and creates/updates a DuckDB `observations` view over silver. Replaying the same capture is idempotent. Raw objects are content-addressed by SHA-256 and never overwritten; each distinct capture keeps its own provenance manifest, including when the payload checksum is unchanged.
+
+## SPEC-003 feature snapshot
+
+Build the local cross-sectional feature slice from the imported research DuckDB:
+
+```sh
+uv run python -m hocus_quant.cli build-feature-snapshot \
+  --as-of 2026-04-01 \
+  --output data/features/2026-04-01
+```
+
+The long-form Parquet is canonical; a wide Parquet and local DuckDB catalog are
+derived conveniences. `--dry-run` computes and prints the audit without
+writing snapshot files. Formula IDs, definitions, normalization and the
+historical availability assumption are documented in [FEATURES.md](docs/FEATURES.md).
 
 ## AMF short positions
 

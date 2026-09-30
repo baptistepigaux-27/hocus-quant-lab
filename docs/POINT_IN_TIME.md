@@ -12,4 +12,14 @@ A point-in-time query must filter `available_at <= as_of`. Missing publication t
 
 For AMF, the consolidated CSV contains a publication **date** but no time. Gremlin retains that source date and leaves `published_at` null. Quant Lab accepts the row only from 00:00 UTC on the next calendar day (`publication_date + 1 day`); if publication date is absent, it requires `retrieved_at`. `position_date` never determines availability. This hides same-day rows even when queried later during the publication date.
 
+For the manually supplied ABC Bourse daily history, the current ingestion
+contract models a session as available at 00:00 Europe/Paris on the next
+calendar date. The archive itself was retrieved in September 2026, after the
+2026-04-01 feature cutoff, and the files contain no historical source vintages
+or revision timestamps. The feature snapshot follows the stored `available_at`
+rule, reports every included row whose `retrieved_at` is after the cutoff, and
+excludes adjusted closes. This is a declared backfill assumption for the
+descriptive snapshot; it does not establish that ABC's historical values or
+corporate-action adjustments are fully point-in-time safe.
+
 Tests assert that every returned row is available by the requested cutoff and that rows retrieved after the cutoff are excluded even when their observation date is old.

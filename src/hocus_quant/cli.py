@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import os
+from datetime import date
 from pathlib import Path
 
 from hocus_quant.ingestion.pipeline import ingest_snapshot
@@ -54,6 +55,15 @@ def main() -> None:
         type=Path,
         default=Path(os.environ.get("HOCUS_QUANT_DATA_DIR", "data")),
     )
+    features_parser = subparsers.add_parser(
+        "build-feature-snapshot", help="build a point-in-time cross-sectional feature snapshot"
+    )
+    features_parser.add_argument("--as-of", type=date.fromisoformat, required=True)
+    features_parser.add_argument("--output", type=Path, required=True)
+    features_parser.add_argument(
+        "--data-dir", type=Path, default=Path(os.environ.get("HOCUS_QUANT_DATA_DIR", "data"))
+    )
+    features_parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
     if args.command == "ingest-fixture":
         for stage, path in ingest_snapshot(args.snapshot, args.data_dir).items():
@@ -86,6 +96,18 @@ def main() -> None:
         from hocus_quant.ingestion.instrument_labels import ingest_instrument_labels
 
         report = ingest_instrument_labels(args.workbook, data_dir=args.data_dir)
+        print(json.dumps(report, ensure_ascii=False, sort_keys=True, indent=2))
+    elif args.command == "build-feature-snapshot":
+        import json
+
+        from hocus_quant.features.snapshot import build_feature_snapshot
+
+        report = build_feature_snapshot(
+            as_of_date=args.as_of,
+            output_dir=args.output,
+            data_dir=args.data_dir,
+            dry_run=args.dry_run,
+        )
         print(json.dumps(report, ensure_ascii=False, sort_keys=True, indent=2))
 
 
