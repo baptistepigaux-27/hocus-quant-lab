@@ -206,6 +206,8 @@ def test_replay_is_deterministic_and_resume_skips_valid_partition(tmp_path: Path
     first_hash = _hash(partition)
     replay = _build(data_dir, output, [as_of], resume=True)
     assert replay["reused_slices"]
+    assert replay["generated_cells"] == 0
+    assert replay["cells_per_second"] == 0
     assert _hash(partition) == first_hash
 
 

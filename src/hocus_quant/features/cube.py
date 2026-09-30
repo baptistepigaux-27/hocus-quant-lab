@@ -196,10 +196,13 @@ def build_feature_cube(
     elapsed = time.perf_counter() - started
     run_manifest["elapsed_seconds"] = round(elapsed, 3)
     run_manifest["status"] = "failed" if failed else "complete"
+    run_manifest["generated_cells"] = sum(item["cell_count"] for item in generated)
     run_manifest["total_cells"] = sum(item["cell_count"] for item in generated + reused)
     run_manifest["generated_seconds"] = round(sum(item["elapsed_seconds"] for item in generated), 3)
     run_manifest["disk_bytes"] = sum(item["bytes"] for item in generated + reused)
-    run_manifest["cells_per_second"] = round(run_manifest["total_cells"] / max(elapsed, 1e-9), 1)
+    run_manifest["cells_per_second"] = round(
+        run_manifest["generated_cells"] / max(elapsed, 1e-9), 1
+    )
     _write_json(manifest_path, run_manifest)
     audit = audit_feature_cube(output_dir, expected_dates=grid)
     if list(output_dir.glob("as_of_date=*/features.parquet")):
