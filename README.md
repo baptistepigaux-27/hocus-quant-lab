@@ -213,6 +213,29 @@ thresholds and limitations are documented in
 coverage and first real run statistics are in
 [`docs/SPEC_006_DATA_REPORT.md`](docs/SPEC_006_DATA_REPORT.md).
 
+### SPEC-006R — Period Stability & Validation Atlas
+
+Freeze two discovery cohorts (all targets and return/direction only) on the
+configured discovery period, then evaluate those exact relations over separate
+validation windows. No validation-period rows participate in selection. Build
+or replay the local Parquet atlas with:
+
+```sh
+uv run python -m hocus_quant.cli build-stability-atlas \
+  --config configs/experiments/stability_atlas.toml \
+  --output data/analysis/spec006r-stability-atlas
+```
+
+The outputs include frozen selections, signal × period and signal × period ×
+family tables, cutoff-level IC and decile histories, and a coverage/maturity
+audit. In the current sandbox, the Stability Atlas separates risk-oriented
+signals from return/direction signals and shows discovery/validation detail.
+The 2026 validation window is incomplete; horizon maturity and missing ICs
+remain visible in the tables. This is descriptive univariate analysis, not
+alpha validation or a strategy. Periods, target families, ranking contract and
+classification thresholds are configurable in the TOML file; see the
+[SPEC-006R methodology and current report](docs/SPEC_006R_PERIOD_STABILITY.md).
+
 ## Interactive local explorer
 
 Install the notebook extra and open the marimo explorer:
@@ -233,9 +256,12 @@ The hosted explorer is available at
 [`staging.hocus.works/quant-lab/`](https://staging.hocus.works/quant-lab/) and
 [`sandbox.hocus.works/quant-lab/`](https://sandbox.hocus.works/quant-lab/). Both
 use the host's existing authentication and read the same local database in
-read-only mode. The systemd service runs as the dedicated non-login
+read-only mode. Staging and sandbox run as separate systemd services and use
+separate Nginx upstreams so a sandbox release does not replace the staging UI.
+Each service runs as the dedicated non-login
 `hocus-quant-lab` account; within `/home/ubuntu`, it sees only this project's
-virtualenv, data and notebooks, mounted read-only.
+virtualenv, data and notebooks, mounted read-only. The service split and
+maintenance commands are in [the hosted deployment note](docs/SANDBOX_DEPLOYMENT.md).
 
 ## Scope
 

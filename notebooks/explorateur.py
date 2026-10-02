@@ -205,8 +205,7 @@ def _(mo, px):
         "SELECT count(*) FROM signal_summary WHERE scope='global'"
     ).fetchone()[0]
     signal_fdr_025_count = signal_connection.execute(
-        "SELECT count(*) FROM signal_summary "
-        "WHERE scope='global' AND fdr_q_value<=0.25"
+        "SELECT count(*) FROM signal_summary WHERE scope='global' AND fdr_q_value<=0.25"
     ).fetchone()[0]
     signal_run = (
         _json.loads(signal_manifest_path.read_text(encoding="utf-8"))
@@ -217,8 +216,10 @@ def _(mo, px):
         "SELECT DISTINCT target_family FROM signal_summary ORDER BY target_family"
     ).fetchall()
     signal_families = [row[0] for row in signal_filters]
-    median_entities = signal_run.get("data_quality", {}).get("feature_cube", {}).get(
-        "entity_count_median", "n.c."
+    median_entities = (
+        signal_run.get("data_quality", {})
+        .get("feature_cube", {})
+        .get("entity_count_median", "n.c.")
     )
     signal_home = mo.md(
         f"""
@@ -256,6 +257,7 @@ def _(mo, px):
           <nav class="ql-nav">
             <a href="#signal-atlas">Signal Atlas</a><a href="#signal-heatmap">Horizon map</a>
             <a href="#signal-detail">Signal detail</a><a href="#market-data">Market data</a>
+            <a href="#stability-atlas">Stability Atlas</a>
             <a href="#signal-method">Methodology</a>
           </nav>
         </section>
@@ -331,9 +333,7 @@ def _(mo, signal_connection, signal_families):
         options=["Any", "Positive", "Negative"], value="Any", label="Signe de l’IC"
     )
     n_filter = mo.ui.slider(start=0, stop=500000, step=1000, value=1000, label="N minimal")
-    fdr_filter = mo.ui.slider(
-        start=0.01, stop=1.0, step=0.01, value=1.0, label="FDR q maximal"
-    )
+    fdr_filter = mo.ui.slider(start=0.01, stop=1.0, step=0.01, value=1.0, label="FDR q maximal")
     controls = mo.hstack(
         [
             family_filter,
@@ -550,14 +550,10 @@ def _(detail_choice, human_feature_label, mo, px, signal_connection, signal_run)
         else "n.c."
     )
     benchmark_coverage_display = (
-        f"{_fmt(benchmark_coverage * 100, '.1f')}%"
-        if benchmark_coverage is not None
-        else "n.c."
+        f"{_fmt(benchmark_coverage * 100, '.1f')}%" if benchmark_coverage is not None else "n.c."
     )
     ready_target_rows = target_quality.get("research_ready_target_rows", "n.c.")
-    excluded_target_rows = target_quality.get(
-        "target_rows_excluded_from_research_ready", "n.c."
-    )
+    excluded_target_rows = target_quality.get("target_rows_excluded_from_research_ready", "n.c.")
     unresolved_extreme_events = target_quality.get("unresolved_event_count", "n.c.")
 
     decile_chart = None
@@ -601,8 +597,7 @@ def _(detail_choice, human_feature_label, mo, px, signal_connection, signal_run)
                 else "Métriques résumé indisponibles pour cette relation."
             ),
             mo.md(
-                f"**Target definition.** `{signal_hero[10]}` · échelle : "
-                f"`{signal_hero[11]}`"
+                f"**Target definition.** `{signal_hero[10]}` · échelle : `{signal_hero[11]}`"
                 if signal_hero
                 else "Définition du target indisponible."
             ),
@@ -734,10 +729,7 @@ def _(default_as_of, isin_options, max_date, mo, series_universes):
         value=series_universes[0] if series_universes else None,
         label="Univers",
     )
-    mo.md(
-        "<div id='market-data'></div>\n"
-        "### Data Explorer · séries de marché et snapshots as-of"
-    )
+    mo.md("<div id='market-data'></div>\n### Data Explorer · séries de marché et snapshots as-of")
     mo.hstack([dataset, isin, universe, as_of], justify="start", gap=2)
     return as_of, dataset, isin, universe
 
@@ -906,6 +898,532 @@ def _(as_of, connection, dataset, datetime, isin, mo, px, series, time, universe
                     ]
                 )
     result  # noqa: B018 -- marimo renders the final cell expression.
+    return
+
+
+@app.cell
+def _(mo):
+    import json as stability_json
+    import os as stability_os
+    from pathlib import Path as StabilityPath
+
+    import pandas as stability_load_pd
+
+    stability_data_dir = StabilityPath(
+        stability_os.environ.get(
+            "HOCUS_QUANT_STABILITY_DIR",
+            StabilityPath(__file__).resolve().parents[1]
+            / "data"
+            / "analysis"
+            / "spec006r-stability-atlas",
+        )
+    )
+    stability_required_files = [
+        "signal_stability_summary.parquet",
+        "signal_stability_by_family.parquet",
+        "signal_period_metrics.parquet",
+        "signal_period_ic_history.parquet",
+        "signal_period_deciles.parquet",
+        "stability_audit.json",
+    ]
+    mo.stop(
+        not all((stability_data_dir / file).is_file() for file in stability_required_files),
+        mo.md(
+            "## Stability Atlas\n\n"
+            "Le snapshot de stabilité est absent ou incomplet. Construisez-le avec "
+            "`build-stability-atlas` avant d’ouvrir cette vue."
+        ),
+    )
+    stability_summary = stability_load_pd.read_parquet(
+        stability_data_dir / "signal_stability_summary.parquet"
+    )
+    stability_families = stability_load_pd.read_parquet(
+        stability_data_dir / "signal_stability_by_family.parquet"
+    )
+    stability_periods = stability_load_pd.read_parquet(
+        stability_data_dir / "signal_period_metrics.parquet"
+    )
+    stability_history = stability_load_pd.read_parquet(
+        stability_data_dir / "signal_period_ic_history.parquet"
+    )
+    stability_deciles = stability_load_pd.read_parquet(
+        stability_data_dir / "signal_period_deciles.parquet"
+    )
+    stability_audit = stability_json.loads(
+        (stability_data_dir / "stability_audit.json").read_text(encoding="utf-8")
+    )
+    return (
+        stability_audit,
+        stability_deciles,
+        stability_families,
+        stability_history,
+        stability_periods,
+        stability_summary,
+    )
+
+
+@app.cell
+def _(mo, stability_audit, stability_periods, stability_summary):
+    stability_scopes = sorted(stability_summary["scope"].dropna().unique().tolist())
+    stability_scope_filter = mo.ui.dropdown(
+        options=stability_scopes,
+        value="equity" if "equity" in stability_scopes else stability_scopes[0],
+        label="Scope de discovery",
+    )
+    stability_bucket_filter = mo.ui.dropdown(
+        options=["General · risque", "Rendement / direction"],
+        value="General · risque",
+        label="Cohorte figée en discovery",
+    )
+    stability_families_options = sorted(stability_summary["target_family"].dropna().unique())
+    stability_family_filter = mo.ui.dropdown(
+        options={"Toutes": "Toutes", **{value: value for value in stability_families_options}},
+        value="Toutes",
+        label="Target family",
+    )
+    stability_horizons = sorted(
+        int(value) for value in stability_summary["horizon"].dropna().unique()
+    )
+    stability_horizon_filter = mo.ui.dropdown(
+        options=["Tous", *[f"H{value}" for value in stability_horizons]],
+        value="Tous",
+        label="Horizon · séances",
+    )
+    stability_validation_ids = [
+        period["period_id"]
+        for period in stability_audit["periods"]
+        if period["role"] == "validation"
+    ]
+    stability_latest_period = stability_validation_ids[-1] if stability_validation_ids else None
+    stability_latest = stability_summary.loc[
+        stability_summary["period_id"] == stability_latest_period
+    ]
+    stability_classes = sorted(stability_latest["stability_class"].dropna().unique().tolist())
+    stability_class_filter = mo.ui.dropdown(
+        options={"Toutes": "Toutes", **{value: value for value in stability_classes}},
+        value="Toutes",
+        label="Classe descriptive · dernière validation",
+    )
+    stability_maturity_filter = mo.ui.slider(
+        start=0,
+        stop=100,
+        step=10,
+        value=0,
+        label="Maturité cible minimale · dernière validation (%)",
+    )
+    stability_sign_filter = mo.ui.dropdown(
+        options=["Tous les signes", "Discovery positif", "Discovery négatif"],
+        value="Tous les signes",
+        label="Signe IC discovery",
+    )
+    stability_controls = mo.hstack(
+        [
+            stability_scope_filter,
+            stability_bucket_filter,
+            stability_family_filter,
+            stability_horizon_filter,
+            stability_class_filter,
+            stability_maturity_filter,
+            stability_sign_filter,
+        ],
+        justify="start",
+        gap=1,
+    )
+    stability_controls  # noqa: B018 -- render interactive atlas filters.
+    return (
+        stability_bucket_filter,
+        stability_class_filter,
+        stability_family_filter,
+        stability_horizon_filter,
+        stability_latest_period,
+        stability_maturity_filter,
+        stability_scope_filter,
+        stability_sign_filter,
+        stability_validation_ids,
+    )
+
+
+@app.cell
+def _(
+    mo,
+    stability_audit,
+    stability_bucket_filter,
+    stability_class_filter,
+    stability_family_filter,
+    stability_horizon_filter,
+    stability_latest_period,
+    stability_maturity_filter,
+    stability_periods,
+    stability_scope_filter,
+    stability_sign_filter,
+    stability_validation_ids,
+):
+    import numpy as stability_np
+    import pandas as stability_pd
+    import plotly.express as stability_px
+
+    stability_scope = stability_scope_filter.value
+    stability_primary = stability_periods.loc[
+        (stability_periods["scope"] == stability_scope)
+        & (stability_periods["evaluation_scope"] == stability_scope)
+    ].copy()
+    stability_latest_rows = stability_primary.loc[
+        stability_primary["period_id"] == stability_latest_period
+    ]
+    stability_latest_rows = stability_latest_rows.loc[
+        stability_latest_rows["selection_bucket"]
+        == {
+            "General · risque": "general",
+            "Rendement / direction": "return_direction",
+        }[stability_bucket_filter.value]
+    ]
+    if stability_family_filter.value != "Toutes":
+        stability_latest_rows = stability_latest_rows.loc[
+            stability_latest_rows["target_family"] == stability_family_filter.value
+        ]
+    if stability_horizon_filter.value != "Tous":
+        stability_latest_rows = stability_latest_rows.loc[
+            stability_latest_rows["horizon"]
+            == int(stability_horizon_filter.value.removeprefix("H"))
+        ]
+    if stability_class_filter.value != "Toutes":
+        stability_latest_rows = stability_latest_rows.loc[
+            stability_latest_rows["stability_class"] == stability_class_filter.value
+        ]
+    stability_latest_rows = stability_latest_rows.loc[
+        stability_latest_rows["maturity_ratio"].fillna(0) >= stability_maturity_filter.value / 100
+    ]
+    if stability_sign_filter.value == "Discovery positif":
+        stability_latest_rows = stability_latest_rows.loc[
+            stability_latest_rows["discovery_ic_mean"] > 0
+        ]
+    elif stability_sign_filter.value == "Discovery négatif":
+        stability_latest_rows = stability_latest_rows.loc[
+            stability_latest_rows["discovery_ic_mean"] < 0
+        ]
+    stability_ids = stability_latest_rows["signal_id"].unique().tolist()
+    stability_visible = stability_primary.loc[stability_primary["signal_id"].isin(stability_ids)]
+    stability_period_ids = [period["period_id"] for period in stability_audit["periods"]]
+    stability_table_rows = []
+    for stability_id, stability_group in stability_visible.groupby("signal_id", sort=False):
+        stability_discovery = stability_group.loc[stability_group["is_discovery_period"]].head(1)
+        if stability_discovery.empty:
+            continue
+        stability_discovery_row = stability_discovery.iloc[0]
+        stability_row = {
+            "Feature": stability_discovery_row["feature_id"],
+            "Target": stability_discovery_row["target_id"],
+            "Horizon": f"H{int(stability_discovery_row['horizon'])}",
+            "Discovery rank": int(stability_discovery_row["discovery_rank"]),
+            f"IC · {stability_discovery_row['period_id']}": stability_discovery_row["ic_mean"],
+            "signal_id": stability_id,
+        }
+        for stability_period_id in stability_period_ids:
+            stability_period_row = stability_group.loc[
+                stability_group["period_id"] == stability_period_id
+            ].head(1)
+            if stability_period_row.empty:
+                continue
+            stability_period_value = stability_period_row.iloc[0]
+            if stability_period_id != stability_discovery_row["period_id"]:
+                stability_row[f"IC · {stability_period_id}"] = stability_period_value["ic_mean"]
+                stability_row[f"Signe · {stability_period_id}"] = stability_period_value[
+                    "sign_retained"
+                ]
+                stability_row[f"Rétention · {stability_period_id}"] = stability_period_value[
+                    "impact_retention"
+                ]
+                stability_row[f"Maturité · {stability_period_id}"] = (
+                    f"{int(stability_period_value['target_mature_cutoffs'])}/"
+                    f"{int(stability_period_value['theoretical_cutoffs'])}"
+                )
+                stability_row["Classe"] = stability_period_value["stability_class"]
+                stability_row["Preuve"] = stability_period_value["evidence_level"]
+        stability_table_rows.append(stability_row)
+    stability_table = stability_pd.DataFrame(stability_table_rows)
+    if not stability_table.empty:
+        stability_table = stability_table.sort_values("Discovery rank")
+    stability_detail_options = {
+        f"{row['Feature']} → {row['Target']} · {row['Horizon']} · {row['signal_id']}": row[
+            "signal_id"
+        ]
+        for row in stability_table.to_dict(orient="records")
+    }
+    stability_detail_choice = mo.ui.dropdown(
+        options=list(stability_detail_options),
+        value=next(iter(stability_detail_options), None),
+        searchable=True,
+        label="Détail cross-period",
+    )
+    stability_heading = mo.md(
+        "<div id='stability-atlas'></div>\n"
+        "## Stability Atlas\n\n"
+        "Discovery reste figée ; les colonnes de validation mesurent les mêmes relations "
+        "sur les fenêtres suivantes. Les classes et la maturité décrivent les données observées."
+    )
+    if stability_table.empty:
+        stability_main_view = mo.callout(
+            mo.md(
+                "Aucun signal ne passe ces filtres. Réduisez la maturité minimale "
+                "ou élargissez le scope."
+            ),
+            kind="neutral",
+        )
+        stability_risk_return = mo.md("Aucun agrégat disponible pour cette sélection.")
+        stability_heatmap_view = mo.md("Aucune relation à représenter.")
+    else:
+        stability_main_view = mo.vstack(
+            [
+                mo.md(f"**{len(stability_table):,} relations** · sélection initiale inchangée"),
+                mo.ui.table(stability_table, page_size=18),
+                stability_detail_choice,
+            ]
+        )
+        stability_aggregate_rows = []
+        for (stability_bucket, stability_period_id), stability_group in stability_visible.loc[
+            stability_visible["period_id"].isin(stability_validation_ids)
+        ].groupby(["selection_bucket", "period_id"]):
+            stability_observed = stability_group.loc[stability_group["ic_mean"].notna()]
+            stability_aggregate_rows.append(
+                {
+                    "Cohorte": stability_bucket,
+                    "Période": stability_period_id,
+                    "Signes conservés (%)": (
+                        float(stability_observed["sign_retained"].fillna(False).mean() * 100)
+                        if not stability_observed.empty
+                        else None
+                    ),
+                    "Rétention médiane |IC|": stability_observed["impact_retention"].median(),
+                    "Médiane |IC|": stability_observed["ic_mean"].abs().median(),
+                    "Signaux observés": int(stability_observed["signal_id"].nunique()),
+                    "Maturité médiane (%)": float(
+                        stability_observed["maturity_ratio"].median() * 100
+                    )
+                    if not stability_observed.empty
+                    else None,
+                }
+            )
+        stability_risk_return = mo.vstack(
+            [
+                mo.md("### Comparaison risque vs rendement / direction"),
+                mo.ui.table(stability_pd.DataFrame(stability_aggregate_rows), page_size=8),
+            ]
+        )
+        stability_heatmap_rows = (
+            stability_visible.loc[stability_visible["is_discovery_period"]]
+            .sort_values("discovery_rank")
+            .head(40)["signal_id"]
+            .tolist()
+        )
+        stability_heatmap_data = stability_visible.loc[
+            stability_visible["signal_id"].isin(stability_heatmap_rows)
+        ]
+        stability_heatmap_matrix = stability_heatmap_data.pivot_table(
+            index="signal_id", columns="period_id", values="ic_mean", aggfunc="first"
+        ).reindex(columns=stability_period_ids)
+        stability_labels = stability_visible.drop_duplicates("signal_id").set_index("signal_id")
+        stability_heatmap_matrix.index = [
+            f"{stability_labels.loc[signal_id, 'feature_id']} → "
+            f"{stability_labels.loc[signal_id, 'target_id']}"
+            for signal_id in stability_heatmap_matrix.index
+        ]
+        stability_color_max = float(
+            stability_np.nanmax(stability_np.abs(stability_heatmap_matrix.to_numpy()))
+        )
+        if not stability_color_max:
+            stability_color_max = 1.0
+        stability_figure = stability_px.imshow(
+            stability_heatmap_matrix,
+            aspect="auto",
+            color_continuous_scale="RdBu",
+            color_continuous_midpoint=0,
+            zmin=-stability_color_max,
+            zmax=stability_color_max,
+            labels={"x": "Period", "y": "Frozen signal", "color": "Mean Spearman IC"},
+            title="Discovery / validation · IC signé",
+        )
+        stability_figure.update_layout(template="plotly_dark", paper_bgcolor="rgba(0,0,0,0)")
+        stability_heatmap_view = mo.vstack(
+            [
+                mo.md(
+                    "### Heatmap période × signal · rouge négatif / bleu positif · "
+                    "échelle centrée sur zéro"
+                ),
+                mo.ui.plotly(stability_figure),
+            ]
+        )
+    stability_atlas_view = mo.vstack(
+        [
+            stability_heading,
+            stability_main_view,
+            stability_risk_return,
+            stability_heatmap_view,
+        ]
+    )
+    stability_atlas_view  # noqa: B018 -- render filtered atlas, comparison, and heatmap.
+    return stability_detail_choice, stability_detail_options, stability_visible
+
+
+@app.cell
+def _(
+    mo,
+    stability_deciles,
+    stability_detail_choice,
+    stability_detail_options,
+    stability_families,
+    stability_history,
+    stability_periods,
+):
+    import plotly.express as stability_detail_px
+
+    mo.stop(
+        stability_detail_choice.value is None,
+        mo.md("Aucun signal disponible dans cette sélection."),
+    )
+    stability_selected_id = stability_detail_options[stability_detail_choice.value]
+    stability_selected_metrics = stability_periods.loc[
+        (stability_periods["signal_id"] == stability_selected_id)
+        & (
+            stability_periods["evaluation_scope"]
+            == stability_periods.loc[
+                stability_periods["signal_id"] == stability_selected_id, "scope"
+            ].iloc[0]
+        )
+    ].copy()
+    stability_selected_history = stability_history.loc[
+        (stability_history["signal_id"] == stability_selected_id)
+        & (stability_history["evaluation_scope"] == stability_selected_metrics["scope"].iloc[0])
+    ].copy()
+    stability_selected_deciles = stability_deciles.loc[
+        (stability_deciles["signal_id"] == stability_selected_id)
+        & (stability_deciles["evaluation_scope"] == stability_selected_metrics["scope"].iloc[0])
+    ].copy()
+    stability_selected_families = stability_families.loc[
+        (stability_families["signal_id"] == stability_selected_id)
+        & (~stability_families["is_discovery_period"])
+    ].copy()
+    stability_selected_name = stability_selected_metrics.iloc[0]
+    if stability_selected_history.empty:
+        stability_ic_chart = None
+    else:
+        stability_ic_chart = stability_detail_px.line(
+            stability_selected_history,
+            x="as_of_date",
+            y="spearman_ic",
+            color="period_id",
+            markers=True,
+            title="IC cross-sectionnel par cutoff · mêmes feature/target",
+            labels={"as_of_date": "Cutoff", "spearman_ic": "Spearman IC", "period_id": "Période"},
+        )
+        stability_ic_chart.add_hline(y=0, line_dash="dot", line_color="#9da49b")
+        stability_ic_chart.update_layout(template="plotly_dark", paper_bgcolor="rgba(0,0,0,0)")
+    if stability_selected_deciles.empty:
+        stability_decile_chart = None
+    else:
+        stability_decile_profile = stability_selected_deciles.groupby(
+            ["period_id", "decile"], as_index=False
+        )["mean_target"].mean()
+        stability_decile_chart = stability_detail_px.line(
+            stability_decile_profile,
+            x="decile",
+            y="mean_target",
+            color="period_id",
+            markers=True,
+            title="Outcome moyen par décile de feature · agrégé par période",
+            labels={"decile": "Décile feature · bas → haut", "mean_target": "Outcome moyen"},
+        )
+        stability_decile_chart.update_layout(template="plotly_dark", paper_bgcolor="rgba(0,0,0,0)")
+    if stability_selected_metrics["stability_class"].eq("insufficient_validation").any():
+        stability_auto_note = (
+            "Certaines validations n’ont pas quatre cutoffs avec targets mûrs ; "
+            "leur classe reste insufficient_validation, même si un signe observé diffère."
+        )
+    elif stability_selected_metrics["sign_retained"].eq(False).any():
+        stability_auto_note = (
+            "Au moins une période affiche un IC moyen de signe opposé à la discovery."
+        )
+    elif stability_selected_metrics["stability_class"].eq("unstable").any():
+        stability_auto_note = (
+            "Les signes d’IC varient entre cutoffs malgré un signe moyen conservé."
+        )
+    elif stability_selected_metrics["stability_class"].eq("weakened").any():
+        stability_auto_note = (
+            "Le signe observé est conservé, avec un impact ou une maturité sous le seuil stable."
+        )
+    else:
+        stability_auto_note = (
+            "Les observations disponibles gardent le signe et dépassent "
+            "les seuils descriptifs stable."
+        )
+    stability_cross_period = stability_selected_metrics[
+        [
+            "period_id",
+            "ic_mean",
+            "ic_median",
+            "t_stat",
+            "hit_rate",
+            "top_bottom_decile_spread",
+            "monotonicity",
+            "fdr_q_descriptive",
+            "evaluated_cutoffs",
+            "target_mature_cutoffs",
+            "theoretical_cutoffs",
+            "maturity_ratio",
+            "signed_retention",
+            "impact_retention",
+            "rank_retention",
+            "periods_sign_retained",
+            "periods_evaluated",
+            "evidence_level",
+            "stability_class",
+        ]
+    ]
+    stability_detail_view = mo.vstack(
+        [
+            mo.md(
+                f"<div id='stability-signal-detail'></div>\n### Détail cross-period\n"
+                f"`{stability_selected_name['feature_id']}` → "
+                f"`{stability_selected_name['target_id']}` · "
+                f"{stability_selected_name['selection_bucket']} · "
+                f"{stability_selected_name['scope']}"
+            ),
+            mo.callout(mo.md(stability_auto_note), kind="neutral"),
+            mo.md("#### Discovery, validation et maturité"),
+            mo.ui.table(stability_cross_period, page_size=8),
+            mo.ui.plotly(stability_ic_chart)
+            if stability_ic_chart is not None
+            else mo.md("IC timeline indisponible."),
+            mo.ui.plotly(stability_decile_chart)
+            if stability_decile_chart is not None
+            else mo.md("Déciles indisponibles."),
+            mo.md("#### Stabilité par scope/famille d’entités"),
+            mo.ui.table(
+                stability_selected_families[
+                    [
+                        "period_id",
+                        "evaluation_scope",
+                        "ic_mean",
+                        "sign_retained",
+                        "impact_retention",
+                        "target_mature_cutoffs",
+                        "theoretical_cutoffs",
+                        "maturity_ratio",
+                        "evidence_level",
+                        "stability_class",
+                    ]
+                ],
+                page_size=12,
+            ),
+            mo.md(
+                "**Méthode descriptive.** Le signal est gelé sur discovery ; les mêmes clés "
+                "feature/target/scope sont évaluées ensuite. Les IC cross-sectionnels et leurs "
+                "périodes chevauchantes ne démontrent pas un alpha. Maturité = cutoffs avec au "
+                "moins 30 targets research-ready ; `thin`, `partial`, `adequate` indiquent la "
+                "quantité observée, pas une probabilité de confiance. PIT : reconstructed."
+            ),
+        ]
+    )
+    stability_detail_view  # noqa: B018 -- render the selected signal's detail.
     return
 
 
