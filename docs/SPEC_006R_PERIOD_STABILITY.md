@@ -109,8 +109,18 @@ absolute-impact retention is 22.9%. In 2026, 69 of 100 relations have an IC
 observed on the first two cutoffs, and all 69 reverse the discovery sign; 31
 have no evaluable IC. All 100 are below the four-cutoff evidence threshold and
 are therefore classified `insufficient_validation`, even where the observed
-two-cutoff mean has reversed. H120 target maturity is approximately 4.9% for
-`return_abs` and 3.5% for `return_rel`.
+two-cutoff mean has reversed. For the frozen equity return cohort, H120 median
+maturity is 2/27 cutoffs (7.4%) for `return_abs` and 0/27 for `return_rel` in
+the current data snapshot.
+
+The family view evaluates the frozen primary `equity` cohort separately on
+`equity`, `equity_de`, and `equity_us`; it never reselects within those slices.
+For return/direction, sign retention in 2025 is 6% on `equity`, 75% on
+`equity_de`, and 0% on `equity_us`. In 2026 it is 0% on `equity` (69 ICs
+observed), 62% on `equity_de`, and 0% on `equity_us`. Those 2026 family slices
+are still based on a very short, partially immature window and must be read
+with their per-horizon maturity columns. The general/risk cohort retains all
+observed signs on all three family slices in both validation periods.
 
 These figures are regression baselines for the pipeline, not inferential
 claims. Family-specific relations and maturity are visible separately in the
