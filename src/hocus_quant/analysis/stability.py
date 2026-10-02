@@ -470,7 +470,12 @@ def _evidence_level(cutoffs: int, classification: dict[str, Any]) -> str:
 
 
 def build_stability_atlas(
-    *, config_path: Path, repo_root: Path, output_dir: Path, top_n: int | None = None
+    *,
+    config_path: Path,
+    repo_root: Path,
+    output_dir: Path,
+    top_n: int | None = None,
+    return_top_n: int | None = None,
 ) -> dict[str, Any]:
     """Freeze discovery selections and write period/family stability datasets."""
     config = _read_period_config(config_path, repo_root)
@@ -486,14 +491,23 @@ def build_stability_atlas(
             raise ValueError(
                 "discovery and validation periods must have distinct IDs and non-overlapping dates"
             )
-    selection_n = int(config["top_n"] if top_n is None else top_n)
+    general_selection_n = int(config["top_n"] if top_n is None else top_n)
+    return_selection_n = int(
+        config.get("return_top_n", config["top_n"])
+        if return_top_n is None
+        else return_top_n
+    )
+    if general_selection_n < 1 or return_selection_n < 1:
+        raise ValueError("top-N counts must be positive")
+    config["top_n"] = general_selection_n
+    config["return_top_n"] = return_selection_n
     scope_candidates: dict[str, list[dict[str, Any]]] = {}
     skipped_scopes: dict[str, dict[str, int]] = {}
     for scope in config["target_scopes"]:
         general = freeze_top_signals(
             discovery,
             scope,
-            selection_n,
+            general_selection_n,
             analysis_database=discovery["analysis_database"],
             selection_rule_version=config["selection_rule_version"],
             minimum_n=int(config["minimum_discovery_n"]),
@@ -503,7 +517,7 @@ def build_stability_atlas(
         performance = freeze_top_signals(
             discovery,
             scope,
-            selection_n,
+            return_selection_n,
             analysis_database=discovery["analysis_database"],
             selection_rule_version=config["selection_rule_version"],
             minimum_n=int(config["minimum_discovery_n"]),
@@ -517,14 +531,15 @@ def build_stability_atlas(
             _RETURN: len(performance),
         }
     primary_scope = str(config.get("primary_scope", "equity"))
-    for bucket in (_GENERAL, _RETURN):
-        count = sum(
-            row["selection_bucket"] == bucket for row in scope_candidates.get(primary_scope, [])
-        )
-        if count < selection_n:
+    for bucket, requested_n in (
+        (_GENERAL, general_selection_n),
+        (_RETURN, return_selection_n),
+    ):
+        count = sum(row["selection_bucket"] == bucket for row in scope_candidates[primary_scope])
+        if count < requested_n:
             raise ValueError(
                 f"primary scope {primary_scope!r} has {count} {bucket} candidates; "
-                f"expected {selection_n}"
+                f"expected {requested_n}"
             )
     selections = [row for rows in scope_candidates.values() for row in rows]
     if not selections:
@@ -962,7 +977,10 @@ def _make_audit(
         "selection_rule_version": config["selection_rule_version"],
         "selection_period_ids": sorted({row["discovery_period_id"] for row in selections}),
         "invariant_selection_period_differs_from_validation_period": True,
-        "top_n_per_bucket_and_scope": int(config["top_n"]),
+        "top_n_per_bucket_and_scope": {
+            _GENERAL: int(config["top_n"]),
+            _RETURN: int(config.get("return_top_n", config["top_n"])),
+        },
         "minimum_discovery_n": int(config["minimum_discovery_n"]),
         "minimum_discovery_cutoffs": int(config["minimum_discovery_cutoffs"]),
         "minimum_discovery_coverage": float(config["minimum_discovery_coverage"]),

@@ -223,7 +223,7 @@ or replay the local Parquet atlas with:
 ```sh
 uv run python -m hocus_quant.cli build-stability-atlas \
   --config configs/experiments/stability_atlas.toml \
-  --output data/analysis/spec006r-stability-atlas
+  --output data/analysis/spec006r-stability-atlas-top500
 ```
 
 The outputs include frozen selections, signal × period and signal × period ×

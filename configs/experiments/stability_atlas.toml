@@ -1,6 +1,7 @@
 selection_rule_version = "q_abs_ic_coverage_cutoff_v1"
 target_scopes = ["equity", "equity_us", "equity_de"]
 top_n = 100
+return_top_n = 500
 minimum_discovery_n = 1000
 minimum_discovery_cutoffs = 13
 minimum_discovery_coverage = 0.60

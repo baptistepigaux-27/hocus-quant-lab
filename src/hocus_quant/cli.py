@@ -140,6 +140,7 @@ def main() -> None:
     )
     stability_parser.add_argument("--output", type=Path, required=True)
     stability_parser.add_argument("--top-n", type=int)
+    stability_parser.add_argument("--return-top-n", type=int)
     args = parser.parse_args()
     if args.command == "ingest-fixture":
         for stage, path in ingest_snapshot(args.snapshot, args.data_dir).items():
@@ -287,6 +288,7 @@ def main() -> None:
             repo_root=Path.cwd(),
             output_dir=args.output,
             top_n=args.top_n,
+            return_top_n=args.return_top_n,
         )
         print(json.dumps(report, ensure_ascii=False, sort_keys=True, indent=2))
 

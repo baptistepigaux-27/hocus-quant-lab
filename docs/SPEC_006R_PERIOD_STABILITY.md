@@ -28,12 +28,17 @@ signal/horizon/scope level. “Mature” means at least the configured 30 usable
 research-ready target outcomes for that horizon and evaluation scope. The
 feature-target pair still needs the same minimum to produce an IC.
 
-Two separate top-N cohorts are frozen for each supported discovery scope:
+Two separate top-N cohorts are frozen for each supported discovery scope. The
+current configuration keeps the broad risk-oriented cohort at 100 and widens
+the return/direction cohort to 500:
 
 - `general`: all target families, currently led by future volatility and
   drawdown relations;
 - `return_direction`: only `return_abs`, `return_rel`, `direction_abs`,
   `direction_rel`, and `rank_pct`.
+
+Discovery eligibility and sorting remain identical between cohorts. Changing
+one N does not change the other cohort's selection.
 
 The initial scopes are `equity`, `equity_us`, and `equity_de`. A scope with fewer
 than N candidates is recorded with its candidate count and is not silently
@@ -103,24 +108,34 @@ In 2026 all 100 have an observed aligned average sign, median impact retention
 93.0%, but the 70 H120 risk/drawdown relations have only two mature cutoffs and
 are classified `insufficient_validation`.
 
-The primary return/direction top 100 reproduces 6/100 retained signs in 2025;
-mean IC goes from -0.0999 in discovery to +0.0482 in validation and median
-absolute-impact retention is 22.9%. In 2026, 69 of 100 relations have an IC
-observed on the first two cutoffs, and all 69 reverse the discovery sign; 31
-have no evaluable IC. All 100 are below the four-cutoff evidence threshold and
-are therefore classified `insufficient_validation`, even where the observed
-two-cutoff mean has reversed. For the frozen equity return cohort, H120 median
-maturity is 2/27 cutoffs (7.4%) for `return_abs` and 0/27 for `return_rel` in
-the current data snapshot.
+The primary `equity` return/direction top 500 has 21/500 retained signs in
+2025 (4.2%); 479 reverse. Mean discovery IC is -0.1019 and mean validation IC
+is +0.0496. Median absolute-impact retention is 37.8%. This is a wider frozen
+discovery cohort, not a claim that the additional signals are more robust.
+
+In 2026, 367/500 have an IC observed: 12 retain the discovery sign and 355
+reverse; 133 have no evaluable IC. Of the 500, 492 are classified
+`insufficient_validation`; eight have enough mature cutoffs to receive an
+observed `sign_reversed` class. Mean validation IC is +0.0653 and median
+absolute-impact retention among evaluable rows is 75.2%, but the window has
+only two mature cutoffs at the median. The wider cohort is concentrated in
+H120: 484 signals, versus 16 at H60. Its H120 median maturity in 2026 is
+2/27 cutoffs (7.4%) for `direction_abs`, `return_abs`, and `rank_pct`, and
+0/27 for `return_rel`.
+
+The original top 100 remains identifiable as ranks 1–100 under the same
+selection rule. The widening does not replace, alter, or use validation data
+to rerank those original selections.
 
 The family view evaluates the frozen primary `equity` cohort separately on
 `equity`, `equity_de`, and `equity_us`; it never reselects within those slices.
-For return/direction, sign retention in 2025 is 6% on `equity`, 75% on
-`equity_de`, and 0% on `equity_us`. In 2026 it is 0% on `equity` (69 ICs
-observed), 62% on `equity_de`, and 0% on `equity_us`. Those 2026 family slices
-are still based on a very short, partially immature window and must be read
-with their per-horizon maturity columns. The general/risk cohort retains all
-observed signs on all three family slices in both validation periods.
+For the **top 500** return/direction cohort, 2025 sign retention is 4.2% on
+`equity`, 48.2% on `equity_de`, and 1.4% on `equity_us`. In 2026 it is 3.3% on
+`equity` among 367 observed ICs, 58.4% on `equity_de`, and 5.2% on `equity_us`.
+Those 2026 family slices are still based on a very short, partially immature
+window and must be read with their per-horizon maturity columns. The general /
+risk top 100 retains all observed signs on all three family slices in both
+validation periods.
 
 These figures are regression baselines for the pipeline, not inferential
 claims. Family-specific relations and maturity are visible separately in the
@@ -131,7 +146,7 @@ Parquet atlas.
 ```sh
 uv run python -m hocus_quant.cli build-stability-atlas \
   --config configs/experiments/stability_atlas.toml \
-  --output data/analysis/spec006r-stability-atlas
+  --output data/analysis/spec006r-stability-atlas-top500
 ```
 
 The builder writes:
