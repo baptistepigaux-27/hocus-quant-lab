@@ -2,14 +2,24 @@
 
 Reproducible research sandbox for point-in-time scoring experiments. Data ingestion and exploration are underway; there is not yet an end-to-end predictive experiment (features, target, model and backtest).
 
-## Current state (2026-09-30)
+## Current state (2026-10-05)
+
+The complete correlation exploration is documented in the [French synthesis](docs/EXPLORATION_CORRELATIONS_SYNTHESE.md) ([PDF](docs/EXPLORATION_CORRELATIONS_SYNTHESE.pdf)): data, features, targets, 2024–2026 comparisons, reversal audit, H5 results by historical window, bootstrap intervals and remaining methodological limitations.
+
+**SPEC-006T:** the [ex-ante research contract](docs/SPEC_006T_EX_ANTE_RESEARCH_CONTRACT.md)
+now separates frozen eligibility from future outcome quality for equity direction H5.
+The [immutable candidate lock](configs/research/candidate_lock_v1.json) contains 504 broad,
+138 strong and 85 strict candidates (nested tiers). 2025/2026 are development periods;
+independent confirmation is pending new unconsulted data. The sandbox provides both
+cohort policies and a precomputed Candidate Explorer.
 
 - **AMF short positions:** Gremlin acquisition and the Quant Lab offline adapter are implemented; see [AMF rules](docs/AMF_SHORT_POSITIONS.md).
 - **Market prices:** real ABC Bourse files supplied manually have been imported. The full SRD archive has 199,416 observations across 197 provider identifiers; eight additional universes have 1,745,030 observations. Coverage is 2022-09-29 to 2026-09-28. These files are local and ignored by Git.
 - **Instrument reference:** the companion workbook has been ingested: 2,135 codes, including 2,067 with labels and 68 unresolved. Labels are a current snapshot, not historical point-in-time names.
 - **Cross-sectional measurements:** SPEC-003 v1 is implemented with an additive RSI `v2` contract. The local 2026-04-01 slice has 2,194 entities × 1,048 features (2,299,312 cells; about 96.1% available). Its long/wide Parquet and audit files are local under `data/features/2026-04-01/` and are ignored by Git. The ABC history is reconstructed PIT; SPEC-004 evaluates quality at each historical cutoff and preserves that PIT grade.
 - **Historical feature cube:** SPEC-004 adds sparse, weekly and daily grids over the frozen SPEC-003 engine. Its research scope is `approved`; this does not make the source strict observed-PIT or turn the delivered SRD sample into a historical SBF 120 universe. See [the cube guide](docs/SPEC_004_HISTORICAL_FEATURE_CUBE.md).
-- **Research still to build:** construct a historically valid universe, then define targets and walk-forward evaluation. Do not describe the SRD sample as a historical SBF 120 universe.
+- **Targets and exploratory correlations:** nine target families across H5/H10/H20/H60/H120 are implemented. SPEC-006T repairs eligibility for the sole primary experiment, equity absolute direction H5, and exposes explicit ex-ante/future-clean policies. Prior scans retain their legacy filters as audit references. Reconstructed-PIT, price, universe and individual-inference limitations remain.
+- **Research still to build:** establish a historically valid universe and price-adjustment conventions, define execution rules, then acquire new unconsulted confirmation data for a predictive experiment and walk-forward backtest. Admission for other target families remains a separate research task. Do not describe the SRD sample as a historical SBF 120 universe.
 
 ABC Bourse ingestion is manual and intended for this personal sandbox. The 2026-04-01 historical slice uses the source contract's session-date + one day `available_at` rule even though the archive was retrieved in September 2026; the audit reports this backfill. Historical vintages and split/corporate-action adjustment history are unverified, so this is not proof of fully versioned point-in-time prices and is not cleared for split-sensitive backtests. See [the feature formulas and caveats](docs/FEATURES.md) and [the ABC Bourse delivery note](docs/ABC_BOURSE_DELIVERY.md).
 
@@ -244,6 +254,28 @@ Install the notebook extra and open the marimo explorer:
 uv sync --extra notebook
 uv run --extra notebook marimo edit notebooks/explorateur.py
 ```
+
+For hands-on SRD tests over 2024 discovery and the 2025/2026 development periods,
+open the dedicated research lab:
+
+```sh
+make srd-lab
+```
+
+It walks through price inspection, source breaks, one frozen feature/target
+relation, current versus candidate target samples, cutoff ICs, deciles and a
+read-only DuckDB query area. The complete procedure and required local
+artifacts are documented in
+[`docs/SRD_MARIMO_LAB.md`](docs/SRD_MARIMO_LAB.md).
+The primary SRD lab surfaces the **deduplicated SPEC-006T candidate lock**,
+with an ex-ante/future-clean toggle and strict candidates displayed initially.
+The historical audit selector defaults to a **H5-only frozen top 500**, selected
+on 2024 and examined on matched 2025/2026 periods (2026 is partial). Reproduce that audit with
+`configs/experiments/stability_atlas_h5.toml`; target horizons are filtered
+before ranking. The former all-horizon cohort is still selectable.
+See [the H5 results and limitations](docs/SPEC_006R_H5_RESULTS.md).
+The authenticated sandbox app is available at
+[`sandbox.hocus.works/quant-lab-srd/`](https://sandbox.hocus.works/quant-lab-srd/).
 
 It reads `data/research.duckdb` in read-only mode and lets you inspect SRD
 OHLCV, the supplementary ABC Bourse universes, or AMF positions by identifier

@@ -436,7 +436,7 @@ def test_future_quality_is_not_projected_back_and_bad_targets_are_not_consumed(
         ["abc-bourse-manual:equity:FR0000000003"],
     )[0]
     assert review[0] == "future_quality_review"
-    assert review[1] is None
+    assert review[1] == pytest.approx(0.44)  # SPEC-006T retains review candidates.
     assert review[2] == pytest.approx(0.44)
     assert review[3] > 0
     quarantined = _rows(
@@ -448,6 +448,16 @@ def test_future_quality_is_not_projected_back_and_bad_targets_are_not_consumed(
     assert quarantined[0] == "future_quality_quarantined"
     assert quarantined[1] is None
     assert quarantined[2] == pytest.approx(0.05)
+    flags = _rows(
+        output_dir,
+        """SELECT entity_id, eligible_at_cutoff, target_observable,
+                  future_quality_status, target_interpretable
+           FROM read_parquet(?) WHERE target_family='direction_abs' AND horizon=5
+           AND entity_id IN (?,?) ORDER BY entity_id""",
+        ["abc-bourse-manual:equity:FR0000000003", "abc-bourse-manual:equity:FR0000000004"],
+    )
+    assert flags[0][1:] == (True, True, "review", True)
+    assert flags[1][1:] == (True, True, "quarantined", False)
     rank_status = _rows(
         output_dir,
         """SELECT target_status, cohort_size FROM read_parquet(?)

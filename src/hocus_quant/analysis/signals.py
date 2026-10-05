@@ -119,6 +119,7 @@ def analyze_cutoff(
     target_rows: pd.DataFrame,
     *,
     minimum_n: int = 30,
+    target_policy: str = "legacy_research_ready",
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     """Measure all available feature/target pairs at one cutoff.
 
@@ -130,6 +131,20 @@ def analyze_cutoff(
         (feature_rows["feature_status"] == "available")
         & np.isfinite(pd.to_numeric(feature_rows["feature_value"], errors="coerce"))
     ].copy()
+    if target_policy != "legacy_research_ready":
+        import polars as pl
+
+        from hocus_quant.targets.research_contract import TargetPolicy, select_targets
+
+        if target_policy not in {"ex_ante", "clean_future"}:
+            raise ValueError(f"unknown target policy: {target_policy}")
+        policy: TargetPolicy = "ex_ante" if target_policy == "ex_ante" else "clean_future"
+        target_rows = select_targets(pl.from_pandas(target_rows), policy).to_pandas()
+        target_rows["research_ready"] = True
+        target_rows["target_status"] = "available"
+    elif "legacy_target_value" in target_rows:
+        target_rows = target_rows.copy()
+        target_rows["target_value"] = target_rows["legacy_target_value"]
     targets = target_rows.loc[
         target_rows["research_ready"].fillna(False)
         & (target_rows["target_status"] == "available")
@@ -256,11 +271,7 @@ def analyze_cutoff(
             ranked_x_deciles = ranked_x
             bins = np.minimum(
                 10,
-                np.ceil(
-                    np.where(valid, ranked_x_deciles, 0)
-                    * 10
-                    / np.maximum(n[None, :], 1)
-                ),
+                np.ceil(np.where(valid, ranked_x_deciles, 0) * 10 / np.maximum(n[None, :], 1)),
             ).astype(np.int8)
             bins[~valid] = 0
             for decile in range(1, 11):
@@ -273,9 +284,7 @@ def analyze_cutoff(
                 nonempty = np.flatnonzero(counts > 0)
                 if nonempty.size:
                     medians[nonempty] = np.nanmedian(
-                        np.where(
-                            members[:, nonempty], y[:, None], np.nan
-                        ),
+                        np.where(members[:, nonempty], y[:, None], np.nan),
                         axis=0,
                     )
                 for idx in np.flatnonzero(keep & (counts > 0)):
@@ -626,7 +635,7 @@ def _summarize_files(
                      THEN agg.spearman_ic_mean / (agg.ic_std / sqrt(agg.cutoff_count))
                      ELSE NULL END AS ic_t_stat
             FROM agg LEFT JOIN decile USING (feature_id, target_id, scope)"""
-    ).df()
+        ).df()
     if summary.empty:
         _write_empty_outputs(output_dir)
         return {"summary_rows": 0, "decile_rows": 0, "history_rows": 0, "period_rows": 0}
@@ -673,21 +682,16 @@ def _summarize_files(
     summary["monotonicity_axis"] = summary["monotonicity_spearman"].abs()
     summary["coverage_axis"] = summary["coverage"]
     summary["family_consistency_axis"] = np.nan
-    eligible = summary.loc[
-        (summary["status"] == "eligible") & np.isfinite(summary["ic_t_stat"])
-    ]
+    eligible = summary.loc[(summary["status"] == "eligible") & np.isfinite(summary["ic_t_stat"])]
     if not eligible.empty:
-        p_values = 2 * student_t.sf(
-            np.abs(eligible["ic_t_stat"]), df=eligible["cutoff_count"] - 1
-        )
+        p_values = 2 * student_t.sf(np.abs(eligible["ic_t_stat"]), df=eligible["cutoff_count"] - 1)
         finite_p = np.isfinite(p_values)
         summary.loc[eligible.index[finite_p], "p_value_descriptive"] = p_values[finite_p]
         fdr_groups = ["scope", "target_family", "horizon"]
         # Re-select after assigning p-values: `eligible` is a copy and still
         # contains the original NaNs from the initialized summary columns.
         eligible_with_p = summary.loc[
-            (summary["status"] == "eligible")
-            & np.isfinite(summary["p_value_descriptive"])
+            (summary["status"] == "eligible") & np.isfinite(summary["p_value_descriptive"])
         ]
         for _keys, group in eligible_with_p.groupby(fdr_groups, sort=True):
             q_values = multipletests(
@@ -958,16 +962,14 @@ def build_signal_analysis(
         raise ValueError("SPEC-006 requires a feature cube with quality_scope=approved")
     if target_details.get("quality_scope") != "approved":
         raise ValueError("SPEC-006 requires targets from the approved quality scope")
-    if (
-        target_details.get("feature_cube_contract_fingerprint")
-        != cube_contract.get("contract_fingerprint")
+    if target_details.get("feature_cube_contract_fingerprint") != cube_contract.get(
+        "contract_fingerprint"
     ):
         raise ValueError("target set was not built from the supplied feature cube contract")
     if cube_details.get("feature_registry_fingerprint") != registry_document().get("sha256"):
         raise ValueError("feature cube registry fingerprint does not match this code version")
-    if (
-        target_details.get("target_registry_fingerprint")
-        != target_registry_document().get("sha256")
+    if target_details.get("target_registry_fingerprint") != target_registry_document().get(
+        "sha256"
     ):
         raise ValueError("target set registry fingerprint does not match this code version")
     cutoff_dirs = sorted(feature_cube_dir.glob("as_of_date=*/features.parquet"))
@@ -1014,7 +1016,7 @@ def build_signal_analysis(
             "SELECT entity_id, entity_family, as_of_date, feature_id, feature_value, "
             "feature_status "
             f"FROM read_parquet('{feature_path.resolve()}')"
-            ).df()
+        ).df()
         target_rows = duckdb.sql(
             "SELECT entity_id, entity_family, as_of_date, target_id, target_family, horizon, "
             "target_value, target_status, research_ready "
@@ -1049,9 +1051,7 @@ def build_signal_analysis(
     ):
         pooled_spearman = pq.read_table(pooled_spearman_path).to_pylist()
     else:
-        pooled_spearman = _pooled_spearman_rows(
-            x_panel_files, y_panel_files, minimum_n=minimum_n
-        )
+        pooled_spearman = _pooled_spearman_rows(x_panel_files, y_panel_files, minimum_n=minimum_n)
         _write_parquet(pooled_spearman_path, pooled_spearman)
         pooled_contract_path.write_text(
             json.dumps(pooled_contract, sort_keys=True, indent=2) + "\n", encoding="utf-8"
@@ -1094,9 +1094,7 @@ def build_signal_analysis(
     cube_audit_path = feature_cube_dir / "cube_audit.json"
     hardening_audit_path = target_set_dir / "target_hardening_audit.json"
     cube_audit = (
-        json.loads(cube_audit_path.read_text(encoding="utf-8"))
-        if cube_audit_path.is_file()
-        else {}
+        json.loads(cube_audit_path.read_text(encoding="utf-8")) if cube_audit_path.is_file() else {}
     )
     hardening_audit = (
         json.loads(hardening_audit_path.read_text(encoding="utf-8"))

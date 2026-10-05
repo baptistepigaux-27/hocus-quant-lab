@@ -52,10 +52,15 @@ def freeze_top_signals(
     minimum_cutoffs: int = 13,
     minimum_coverage: float = 0.60,
     return_target_families: set[str] | None = None,
+    target_horizons: set[int] | None = None,
 ) -> list[dict[str, Any]]:
     """Freeze a discovery-only top N; this function never reads validation data."""
     if n < 1:
         raise ValueError("N must be positive")
+    if target_horizons is not None and (
+        not target_horizons or any(horizon < 1 for horizon in target_horizons)
+    ):
+        raise ValueError("target_horizons must contain positive horizons")
     if not analysis_database.is_file():
         raise FileNotFoundError(f"discovery database not found: {analysis_database}")
     with duckdb.connect(str(analysis_database), read_only=True) as db:
@@ -72,6 +77,8 @@ def freeze_top_signals(
         ).fetchdf()
     if return_target_families is not None:
         frame = frame.loc[frame["target_family"].isin(return_target_families)]
+    if target_horizons is not None:
+        frame = frame.loc[frame["horizon"].isin(target_horizons)]
     frame = frame.dropna(subset=["spearman_ic_mean", "feature_id", "target_id"]).copy()
     frame["fdr_q_value"] = pd.to_numeric(frame["fdr_q_value"], errors="coerce")
     frame["abs_ic"] = frame["spearman_ic_mean"].abs()
@@ -493,14 +500,15 @@ def build_stability_atlas(
             )
     general_selection_n = int(config["top_n"] if top_n is None else top_n)
     return_selection_n = int(
-        config.get("return_top_n", config["top_n"])
-        if return_top_n is None
-        else return_top_n
+        config.get("return_top_n", config["top_n"]) if return_top_n is None else return_top_n
     )
     if general_selection_n < 1 or return_selection_n < 1:
         raise ValueError("top-N counts must be positive")
     config["top_n"] = general_selection_n
     config["return_top_n"] = return_selection_n
+    target_horizons = (
+        {int(value) for value in config["target_horizons"]} if "target_horizons" in config else None
+    )
     scope_candidates: dict[str, list[dict[str, Any]]] = {}
     skipped_scopes: dict[str, dict[str, int]] = {}
     for scope in config["target_scopes"]:
@@ -513,6 +521,7 @@ def build_stability_atlas(
             minimum_n=int(config["minimum_discovery_n"]),
             minimum_cutoffs=int(config["minimum_discovery_cutoffs"]),
             minimum_coverage=float(config["minimum_discovery_coverage"]),
+            target_horizons=target_horizons,
         )
         performance = freeze_top_signals(
             discovery,
@@ -524,6 +533,7 @@ def build_stability_atlas(
             minimum_cutoffs=int(config["minimum_discovery_cutoffs"]),
             minimum_coverage=float(config["minimum_discovery_coverage"]),
             return_target_families=set(config["return_target_families"]),
+            target_horizons=target_horizons,
         )
         scope_candidates[scope] = general + performance
         skipped_scopes[scope] = {
@@ -975,6 +985,7 @@ def _make_audit(
     return {
         "schema_version": "spec006r-stability-atlas/1.0",
         "selection_rule_version": config["selection_rule_version"],
+        "target_horizons": config.get("target_horizons"),
         "selection_period_ids": sorted({row["discovery_period_id"] for row in selections}),
         "invariant_selection_period_differs_from_validation_period": True,
         "top_n_per_bucket_and_scope": {
@@ -1029,6 +1040,7 @@ def _audit_markdown(audit: dict[str, Any]) -> str:
         "# SPEC-006R — Stability Atlas audit",
         "",
         f"- Rule: `{audit['selection_rule_version']}`",
+        f"- Target horizons: {audit['target_horizons'] or 'all'}",
         f"- Unique frozen signals: {audit['unique_signal_ids']}",
         "- Selection/validation leakage invariant: "
         f"`{audit['invariant_selection_period_differs_from_validation_period']}`",

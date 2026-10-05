@@ -29,6 +29,12 @@ from hocus_quant.targets.registry import (
     target_registry,
     target_registry_document,
 )
+from hocus_quant.targets.research_contract import (
+    CONTRACT_VERSION,
+    freeze_eligibility,
+    publish_contract_partition,
+    refresh_contract_views,
+)
 from hocus_quant.validation.market_quality import (
     QUALITY_RULE_VERSION,
     QUALITY_RULES_SHA256,
@@ -37,7 +43,7 @@ from hocus_quant.validation.market_quality import (
 
 PARIS = ZoneInfo("Europe/Paris")
 PIT_GRADE = "reconstructed"
-_SCHEMA_VERSION = "target-factory/1.1"
+_SCHEMA_VERSION = "target-factory/1.2"
 _EXTREME_RETURN_ABS = 0.9
 
 TARGET_SCHEMA = pa.schema(
@@ -120,6 +126,19 @@ def build_target_snapshot(
         for entity_id, entity in approved_at_cutoff.items()
         if eligible_entity_ids is None or entity_id in eligible_entity_ids
     }
+    eligibility = [
+        freeze_eligibility(
+            entity_id=entity["entity_id"],
+            entity_family=entity["entity_family"],
+            as_of_date=as_of_date,
+            quality_status=decisions[entity["entity_id"]]["quality_status"],
+            past_dates=[row["session_date"] for row in entity["observations"]],
+            universe_admissible=(
+                eligible_entity_ids is None or entity["entity_id"] in eligible_entity_ids
+            ),
+        )
+        for entity in observed
+    ]
     benchmark_by_family = {item["entity_family"]: item for item in BENCHMARK_MAPPINGS}
     benchmark_ids = {item["benchmark_id"] for item in BENCHMARK_MAPPINGS}
     needed_ids = set(historical) | benchmark_ids
@@ -150,8 +169,10 @@ def build_target_snapshot(
             "sample std (ddof=1) of H-1 log returns from future closes only * sqrt(252)"
         ),
         "future_quality_policy": (
-            "future review/quarantine makes target unavailable; raw candidate retained separately"
+            "separate frozen eligibility from outcome quality; legacy research_ready retained; "
+            "review candidates kept in ex_ante, hard source errors uninterpretable"
         ),
+        "research_contract_version": CONTRACT_VERSION,
         "source_fingerprints": source_fingerprints,
         "code_commit_sha": code_sha,
         "working_tree_dirty": bool(_git_value("status", "--porcelain")),
@@ -372,6 +393,11 @@ def build_target_snapshot(
             )
         }
         _write_json(output_dir / "manifest.json", manifest)
+    publish_contract_partition(output_dir, eligibility)
+    manifest["target_parquet_sha256"] = _sha256_file(target_path)
+    manifest["target_parquet_bytes"] = target_path.stat().st_size
+    manifest["research_contract_version"] = CONTRACT_VERSION
+    _write_json(output_dir / "manifest.json", manifest)
     return {**manifest, "audit": audit}
 
 
@@ -1285,25 +1311,23 @@ def _audit_target_set(
             {
                 **dict(
                     zip(
-                    (
-                        "as_of_date",
-                        "horizon",
-                        "entities",
-                        "candidates",
-                        "available",
-                        "right_censored_end_of_sample",
-                        "future_quality_review",
-                        "future_quality_quarantined",
-                        "insufficient_future_history",
-                        "benchmark_unavailable",
-                    ),
-                    row,
-                    strict=True,
+                        (
+                            "as_of_date",
+                            "horizon",
+                            "entities",
+                            "candidates",
+                            "available",
+                            "right_censored_end_of_sample",
+                            "future_quality_review",
+                            "future_quality_quarantined",
+                            "insufficient_future_history",
+                            "benchmark_unavailable",
+                        ),
+                        row,
+                        strict=True,
                     )
                 ),
-                "as_of_date": row[0].isoformat()
-                if hasattr(row[0], "isoformat")
-                else str(row[0]),
+                "as_of_date": row[0].isoformat() if hasattr(row[0], "isoformat") else str(row[0]),
             }
             | {
                 "availability_global": row[4] / row[3] if row[3] else 0.0,
@@ -1457,6 +1481,9 @@ def _refresh_target_set_catalog(output_dir: Path) -> None:
             "CREATE OR REPLACE VIEW targets_research_ready AS SELECT * FROM "
             f"read_parquet('{ready_parquet}', union_by_name=true)"
         )
+        columns = {row[0] for row in connection.execute("DESCRIBE targets").fetchall()}
+        if "eligible_at_cutoff" in columns:
+            refresh_contract_views(connection)
 
 
 def _valid_target_partition(

@@ -1,0 +1,43 @@
+[Unit]
+Description=Hocus Quant Lab SRD marimo sandbox
+After=network.target
+
+[Service]
+Type=simple
+User=hocus-quant-lab
+Group=hocus-quant-lab
+WorkingDirectory=/home/ubuntu/hocus-quant-lab
+Environment=PYTHONUNBUFFERED=1
+Environment=HOME=/var/lib/hocus-quant-lab-srd
+Environment=HOCUS_QUANT_DB=/home/ubuntu/hocus-quant-lab/data/research.duckdb
+ExecStart=/home/ubuntu/hocus-quant-lab/.venv/bin/marimo run notebooks/srd_research_lab.py --host 127.0.0.1 --port 8068 --headless --no-token --no-sandbox --base-url /quant-lab-srd
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+CapabilityBoundingSet=
+AmbientCapabilities=
+ProtectSystem=strict
+ProtectHome=tmpfs
+BindReadOnlyPaths=/home/ubuntu/hocus-quant-lab/.venv
+BindReadOnlyPaths=/home/ubuntu/hocus-quant-lab/data
+BindReadOnlyPaths=/home/ubuntu/hocus-quant-lab/notebooks
+BindReadOnlyPaths=/home/ubuntu/hocus-quant-lab/src
+StateDirectory=hocus-quant-lab-srd
+PrivateTmp=true
+PrivateDevices=true
+ProtectProc=invisible
+ProcSubset=pid
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+ProtectHostname=true
+ProtectClock=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+LockPersonality=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

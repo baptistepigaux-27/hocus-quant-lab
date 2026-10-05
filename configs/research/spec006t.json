@@ -1,0 +1,31 @@
+{
+  "contract_version": "SPEC-006T/1.0.0",
+  "target_id": "future.direction_abs.h5.v1",
+  "scope": "equity",
+  "horizon": 5,
+  "policies": ["legacy_research_ready", "ex_ante", "clean_future"],
+  "minimum_pairs_per_cutoff": 30,
+  "minimum_discovery_pairs": 1000,
+  "minimum_discovery_cutoffs": 13,
+  "minimum_discovery_coverage": 0.6,
+  "minimum_development_cutoffs": 13,
+  "amplitude_minimum": 0.01,
+  "bootstrap_replicates": 10000,
+  "bootstrap_seed": 20261005,
+  "bootstrap_blocks": [2, 4, 6],
+  "selection_order": ["abs_ic_2024_desc", "canonical_feature_asc"],
+  "canonical_rule": "lexicographic_feature_id",
+  "period_roles": {"2024": "discovery_development", "2025": "development", "2026": "development_partial"},
+  "tiers": {
+    "broad_candidates": "minimum observations/cutoffs, nonzero same sign 2025/2026, amplitude >=0.01 in both",
+    "strong_sign_candidates": "broad AND annual support >90% in both AND joint support >90%, all blocks",
+    "strict_candidates": "strong AND CI90 entirely on same side of zero in both years, all blocks"
+  },
+  "regime_definitions": {
+    "market_direction": "CAC AllShares trailing 20 observed-session return sign",
+    "global_volatility": "CAC AllShares trailing 20 daily log-return sample std * sqrt(252)",
+    "dispersion": "sample std of trailing 20-session equity returns on frozen eligible cohort",
+    "breadth": "fraction of eligible equity trailing 20-session returns >0",
+    "large_market_trend": "CAC AllShares close / trailing 60-session mean close -1"
+  }
+}

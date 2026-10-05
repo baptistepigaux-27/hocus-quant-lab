@@ -1,0 +1,223 @@
+{
+  "document": "docs/EXPLORATION_CORRELATIONS_SYNTHESE.md",
+  "version": 1,
+  "compiled_at": "2026-10-05",
+  "branch": "spec/005-target-factory",
+  "base_commit": "e298231ee9ca4e93c42757d2eadf4f583b121189",
+  "worktree_analysis_uncommitted": true,
+  "scope": "Existing local correlation exploration; no new acquisition or scientific scan.",
+  "data_policy": "Raw observations are excluded. References under data/ require the original local artifacts; data/ is ignored by Git.",
+  "sources": [
+    {
+      "path": "data/analysis/spec006-weekly-demo/manifest.json",
+      "sha256": "f6cba678149c58389102e2e85a03b7c8b5fa71ae400bdd577e563feaefb5e732",
+      "size_bytes": 1896,
+      "kind": "analysis_artifact"
+    },
+    {
+      "path": "data/analysis/spec006r-h5-ic-confidence/audit.json",
+      "sha256": "9f2fc82ed89d5ede7f1ff4539c0dc66088d0607508de6b65536e9d57f0cf8837",
+      "size_bytes": 27208,
+      "kind": "analysis_artifact"
+    },
+    {
+      "path": "data/analysis/spec006r-h5-ic-confidence/sign_comparison.parquet",
+      "sha256": "ac421511f6750c883a5f4af6677fb01825e48cfdddb287f9b3a8d40355cd72a1",
+      "size_bytes": 309893,
+      "kind": "analysis_artifact"
+    },
+    {
+      "path": "data/analysis/spec006r-h5-ic-confidence/window_summary.parquet",
+      "sha256": "72913313f7099f555b901e9502dd74664d6b3547e89f0b3080f58154e9e58e7c",
+      "size_bytes": 11483,
+      "kind": "analysis_artifact"
+    },
+    {
+      "path": "data/analysis/spec006r-h5-top100-by-window-2025-2026/audit.json",
+      "sha256": "8cc7ed82bfef1278077f1fd1492f7215b30b65f902463869807e2c016efccba2",
+      "size_bytes": 8598,
+      "kind": "analysis_artifact"
+    },
+    {
+      "path": "data/analysis/spec006r-h5-top100-by-window-2025-2026/signal_comparison.parquet",
+      "sha256": "dc1b927c587f60124392e8ae3f5768804054b87ded6bc35478339afeeb205af8",
+      "size_bytes": 78919,
+      "kind": "analysis_artifact"
+    },
+    {
+      "path": "data/analysis/spec006r-h5-top100-by-window-2025-2026/window_summary.csv",
+      "sha256": "09adf0a69b218de8282c640ac33263e69f94cca4cd238761430a390e0ca76ec3",
+      "size_bytes": 1419,
+      "kind": "analysis_artifact"
+    },
+    {
+      "path": "data/analysis/spec006r-h5-top100-by-window/audit.json",
+      "sha256": "648273280b644054f91e06f993108e8212d3ecbcd18f3d698f7c589dbb1b6f40",
+      "size_bytes": 8766,
+      "kind": "analysis_artifact"
+    },
+    {
+      "path": "data/analysis/spec006r-h5-top100-by-window/window_summary.csv",
+      "sha256": "6c38ead7f6cdb4674b60644c9a60aba59169a709a8d50304477ee725988e80fd",
+      "size_bytes": 1998,
+      "kind": "analysis_artifact"
+    },
+    {
+      "path": "data/analysis/spec006r-reversal-audit/population_comparison.json",
+      "sha256": "b8ccc4c69d9738e69a6d68b2d9b67e150998fdc3f8760b94addb00aa5082cd45",
+      "size_bytes": 4982,
+      "kind": "analysis_artifact"
+    },
+    {
+      "path": "data/analysis/spec006r-root-cause-audit/root_cause_audit.json",
+      "sha256": "d32e5669b1894a67032e6dd125385d86a76ac2e2385f7f62c8169a2d2c4b767e",
+      "size_bytes": 2475,
+      "kind": "analysis_artifact"
+    },
+    {
+      "path": "data/analysis/spec006r-stability-atlas-h5-top500/h5_diagnostics.json",
+      "sha256": "0663f5146d50cee80d9222eaf9647a26f11410875a59822643909abf7327578a",
+      "size_bytes": 1639,
+      "kind": "analysis_artifact"
+    },
+    {
+      "path": "data/analysis/spec006r-stability-atlas-h5-top500/stability_audit.json",
+      "sha256": "e2cca1e83d25f8bf55c61a13c7c301745c50bb78aff530ec384cfe22a73bc54e",
+      "size_bytes": 4699,
+      "kind": "analysis_artifact"
+    },
+    {
+      "path": "data/analysis/spec006r-stability-atlas-top500/stability_audit.json",
+      "sha256": "3f6d6ffa072720a8ee8795c2bd49f98a4b734f0bff6728959bf3ec4783c2aaac",
+      "size_bytes": 6073,
+      "kind": "analysis_artifact"
+    },
+    {
+      "path": "docs/FEATURES.md",
+      "sha256": "a6eb85a06fd6ab8b19e4547cbe4c517f462b33abd9a868c0acf2ad1d99934c4c",
+      "size_bytes": 6738,
+      "kind": "source_document"
+    },
+    {
+      "path": "docs/POINT_IN_TIME.md",
+      "sha256": "01bd1912ea2033f64c0f31c2a55c1b31bc353919d1e6b274c3f00f5884116285",
+      "size_bytes": 3556,
+      "kind": "source_document"
+    },
+    {
+      "path": "docs/SPEC_003Q_MARKET_DATA_QUALITY.md",
+      "sha256": "05e77dcac55b9b87921520e182653bc4ff8b5ce57b720227eb8fce66208dbdee",
+      "size_bytes": 10165,
+      "kind": "source_document"
+    },
+    {
+      "path": "docs/SPEC_004_HISTORICAL_FEATURE_CUBE.md",
+      "sha256": "94c85bc070434a6ac2f68a855c69ae8dcb63bf17a6d9e9ecf9bdcc3b6535f370",
+      "size_bytes": 6973,
+      "kind": "source_document"
+    },
+    {
+      "path": "docs/SPEC_005R_TARGET_HARDENING.md",
+      "sha256": "cac407eb4388420ff3fe30f01904e725fd84f90f5c64c694503aff664ee3dbb9",
+      "size_bytes": 3136,
+      "kind": "source_document"
+    },
+    {
+      "path": "docs/SPEC_005_TARGET_FACTORY.md",
+      "sha256": "fb0efa028518ba6501ee59ede10511e97baa855359245d42cfeff4388872f9c7",
+      "size_bytes": 3939,
+      "kind": "source_document"
+    },
+    {
+      "path": "docs/SPEC_006R_H5_BY_WINDOW.md",
+      "sha256": "18f52cc490f5371a7e180aebd5254accaa428ace516d61c5f2a69b4b688fa343",
+      "size_bytes": 5508,
+      "kind": "source_document"
+    },
+    {
+      "path": "docs/SPEC_006R_H5_BY_WINDOW_2025_2026.md",
+      "sha256": "e51795d40bbd0213465e8a2c1efdd7757663257c5fe816e5641c717e9bc8e358",
+      "size_bytes": 4609,
+      "kind": "source_document"
+    },
+    {
+      "path": "docs/SPEC_006R_H5_IC_CONFIDENCE.md",
+      "sha256": "59f65c4c67e16feedd06070a091fbc54382853ef0aaf5c798c491645b66d01fc",
+      "size_bytes": 7009,
+      "kind": "source_document"
+    },
+    {
+      "path": "docs/SPEC_006R_H5_RESULTS.md",
+      "sha256": "85d57512775abe3dc3d88d7c62bfa478bba2d9d85b339ba38924ce5029e76b9a",
+      "size_bytes": 6875,
+      "kind": "source_document"
+    },
+    {
+      "path": "docs/SPEC_006R_PERIOD_STABILITY.md",
+      "sha256": "9695d4eeff06db32d5ca5fe348fdb9e7baedb6278d2cf4d31afb04c1f6eb9cc9",
+      "size_bytes": 8960,
+      "kind": "source_document"
+    },
+    {
+      "path": "docs/SPEC_006R_REVERSAL_AUDIT.md",
+      "sha256": "efcbb8cab4b002323084dab8242736eba9f1bc199740d72776322229076b6f98",
+      "size_bytes": 16932,
+      "kind": "source_document"
+    },
+    {
+      "path": "docs/SPEC_006_DATA_REPORT.md",
+      "sha256": "a3dbb6db84f3f7a3acf765a5ad36a9ae86913f63e9d8c3678223fe344346d172",
+      "size_bytes": 5006,
+      "kind": "source_document"
+    },
+    {
+      "path": "docs/SPEC_006_PERIOD_STABILITY_2025_2026.md",
+      "sha256": "8f505893a08010e10b38c0e9015bad75f67cc8575cec21516ef3c8817bf620e2",
+      "size_bytes": 7836,
+      "kind": "source_document"
+    },
+    {
+      "path": "docs/SPEC_006_SIGNAL_ANALYSIS.md",
+      "sha256": "97b1bf173d0d1ba43768c162f31308124d76a648e321690c58bf69f6c0e17958",
+      "size_bytes": 4876,
+      "kind": "source_document"
+    },
+    {
+      "path": "docs/SRD_MARIMO_LAB.md",
+      "sha256": "c76dd4572ca2b9021c95a82ce60f8ae25af7a657b3111e7ae2e4415f02ac31c1",
+      "size_bytes": 7208,
+      "kind": "source_document"
+    },
+    {
+      "path": "scripts/audit_spec006r_reversals.py",
+      "sha256": "e250bca17522c7363984c81ebe30f48f2e848838299c75e57d9bcf6f89ec7c1e",
+      "size_bytes": 14762,
+      "kind": "analysis_code"
+    },
+    {
+      "path": "scripts/audit_spec006r_root_causes.py",
+      "sha256": "53d2242f6b6afab2d81e8031e60eabee5c4c07c7784af402725a1f580250e5bb",
+      "size_bytes": 13211,
+      "kind": "analysis_code"
+    },
+    {
+      "path": "scripts/bootstrap_h5_ic_confidence.py",
+      "sha256": "cbeb449eae7a22f0f12c02dae042ed1a41c08af57fa25bc5bb19fab0c6c0a3e1",
+      "size_bytes": 13168,
+      "kind": "analysis_code"
+    },
+    {
+      "path": "scripts/compare_h5_by_feature_window.py",
+      "sha256": "0e1392a89217424835266968a381322f21059b23538f75841d7ab12c798099e9",
+      "size_bytes": 8793,
+      "kind": "analysis_code"
+    },
+    {
+      "path": "scripts/compare_h5_windows_2025_2026.py",
+      "sha256": "1e1268b91e548924747b406009947c5e8b3e3f8eafd765b6038bc43868a2d908",
+      "size_bytes": 8153,
+      "kind": "analysis_code"
+    }
+  ],
+  "publication_note": "SPEC-006T follow-up notice and Marimo guide refreshed on 2026-10-05; historical scientific artifacts and figures retain their original inputs."
+}

@@ -1,0 +1,39 @@
+# H5-only selection: apply the horizon filter before ranking and top-N.
+selection_rule_version = "q_abs_ic_coverage_cutoff_v1"
+target_scopes = ["equity"]
+primary_scope = "equity"
+target_horizons = [5]
+top_n = 100
+return_top_n = 500
+minimum_discovery_n = 1000
+minimum_discovery_cutoffs = 13
+minimum_discovery_coverage = 0.60
+minimum_validation_n = 30
+return_target_families = ["return_abs", "return_rel", "direction_abs", "direction_rel", "rank_pct"]
+
+[discovery_period]
+id = "2024_discovery"
+start_date = "2024-04-05"
+end_date = "2024-10-04"
+analysis_database = "data/analysis/spec006-weekly-demo/signals.duckdb"
+
+[[validation_periods]]
+id = "2025_validation"
+start_date = "2025-04-05"
+end_date = "2025-10-04"
+feature_cube = "data/feature_cube/spec006-2025-matched"
+target_set = "data/targets/spec006-2025-matched"
+
+[[validation_periods]]
+id = "2026_validation"
+start_date = "2026-04-05"
+end_date = "2026-10-04"
+feature_cube = "data/feature_cube/spec006-2026-matched"
+target_set = "data/targets/spec006-2026-matched"
+
+[classification]
+minimum_cutoffs = 4
+stable_impact_retention = 0.80
+minimum_period_sign_consistency = 0.60
+adequate_cutoffs = 13
+partial_cutoffs = 5

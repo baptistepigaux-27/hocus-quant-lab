@@ -1,0 +1,2448 @@
+{
+  "contract": {
+    "contract_version": "SPEC-006T/1.0.0",
+    "target_id": "future.direction_abs.h5.v1",
+    "scope": "equity",
+    "horizon": 5,
+    "policies": [
+      "legacy_research_ready",
+      "ex_ante",
+      "clean_future"
+    ],
+    "minimum_pairs_per_cutoff": 30,
+    "minimum_discovery_pairs": 1000,
+    "minimum_discovery_cutoffs": 13,
+    "minimum_discovery_coverage": 0.6,
+    "minimum_development_cutoffs": 13,
+    "amplitude_minimum": 0.01,
+    "bootstrap_replicates": 10000,
+    "bootstrap_seed": 20261005,
+    "bootstrap_blocks": [
+      2,
+      4,
+      6
+    ],
+    "selection_order": [
+      "abs_ic_2024_desc",
+      "canonical_feature_asc"
+    ],
+    "canonical_rule": "lexicographic_feature_id",
+    "period_roles": {
+      "2024": "discovery_development",
+      "2025": "development",
+      "2026": "development_partial"
+    },
+    "tiers": {
+      "broad_candidates": "minimum observations/cutoffs, nonzero same sign 2025/2026, amplitude >=0.01 in both",
+      "strong_sign_candidates": "broad AND annual support >90% in both AND joint support >90%, all blocks",
+      "strict_candidates": "strong AND CI90 entirely on same side of zero in both years, all blocks"
+    },
+    "regime_definitions": {
+      "market_direction": "CAC AllShares trailing 20 observed-session return sign",
+      "global_volatility": "CAC AllShares trailing 20 daily log-return sample std * sqrt(252)",
+      "dispersion": "sample std of trailing 20-session equity returns on frozen eligible cohort",
+      "breadth": "fraction of eligible equity trailing 20-session returns >0",
+      "large_market_trend": "CAC AllShares close / trailing 60-session mean close -1"
+    },
+    "feature_registry_sha256": "97fc1dc4c34c54cedd41771c5dc30224db24427981639a0d46256a3a7d17f552",
+    "source_fingerprint": "6f32cb4c4fb240b63e96a3b26bf93bae4bea6d3e1fd74c3aaa58512ef30ab611",
+    "implementation_fingerprint": "eee2c6ff5a4e6956639f56a76ec3433c40707808f143b69cef95a39388fb54bb",
+    "data_observed_through": "2026-09-28",
+    "pit_grade": "reconstructed",
+    "strict_pit_claimed": false,
+    "execution_current_target": "close_T",
+    "execution_future_strategy": "next_open",
+    "confirmed_out_of_sample": false
+  },
+  "lock_sha256": "7508b6900e36c11757bd84d82c1a9f7d322a07db6ce4ff00e961e5a258432e0f",
+  "status": "candidate lock ready for independent confirmation",
+  "confirmation": {
+    "status": "pending_new_unconsulted_data",
+    "first_cutoff": "2026-10-06",
+    "lock_sha256": "7508b6900e36c11757bd84d82c1a9f7d322a07db6ce4ff00e961e5a258432e0f",
+    "feature_registry_sha256": "97fc1dc4c34c54cedd41771c5dc30224db24427981639a0d46256a3a7d17f552",
+    "target_id": "future.direction_abs.h5.v1",
+    "retuning_allowed": false,
+    "last_development_outcome_date": "2026-09-25",
+    "execution_price_for_future_strategy": "next_open",
+    "results": null
+  },
+  "sources": [
+    {
+      "path": "data/feature_cube/spec006-weekly-demo/as_of_date=2024-04-05/features.parquet",
+      "sha256": "f69aa60cfdabc64169b75d8913a05b87581fa13958f9c64bd30b832915a616bf"
+    },
+    {
+      "path": "data/targets/spec006-weekly-demo/as_of_date=2024-04-05/targets.parquet",
+      "sha256": "6ef58826342c78a339066daa042da707ea40b8c174e166eff4d98ba1d84ee10c"
+    },
+    {
+      "path": "data/feature_cube/spec006-weekly-demo/as_of_date=2024-04-05/quality_status.parquet",
+      "sha256": "56e817f3cf6d87be3d8c13dda42f6eb4cc3c3a2a653277791d6ee7d351a65f64"
+    },
+    {
+      "path": "data/feature_cube/spec006-weekly-demo/as_of_date=2024-04-13/features.parquet",
+      "sha256": "b55a76a30c80c9cb19a221628530a4a352004dca7042947c1908dd03cd26bc9d"
+    },
+    {
+      "path": "data/targets/spec006-weekly-demo/as_of_date=2024-04-13/targets.parquet",
+      "sha256": "dcc18f510bfdd0a6597f2c98f5c912bcd91bb7baaa093ae946cd796b455f417c"
+    },
+    {
+      "path": "data/feature_cube/spec006-weekly-demo/as_of_date=2024-04-13/quality_status.parquet",
+      "sha256": "3510dfdbb9cde8884f0e8a8ec86ae65dc67bbfcdd9a5b4d43edd742170031304"
+    },
+    {
+      "path": "data/feature_cube/spec006-weekly-demo/as_of_date=2024-04-19/features.parquet",
+      "sha256": "7943326fe9548c570df589be69233448d85bf98235dd9a60cbf904cfd339e982"
+    },
+    {
+      "path": "data/targets/spec006-weekly-demo/as_of_date=2024-04-19/targets.parquet",
+      "sha256": "39a087fc702370c7d55ce06f9ca4e496b116d7a0dc467b8199335811d1f821f3"
+    },
+    {
+      "path": "data/feature_cube/spec006-weekly-demo/as_of_date=2024-04-19/quality_status.parquet",
+      "sha256": "64347af16cccd33bb57798bfc08913a0205060e882714746723680dc4bf5cc91"
+    },
+    {
+      "path": "data/feature_cube/spec006-weekly-demo/as_of_date=2024-04-26/features.parquet",
+      "sha256": "951266a79630eeae32299056da944bded16363d40c4be3bd62969a651d772186"
+    },
+    {
+      "path": "data/targets/spec006-weekly-demo/as_of_date=2024-04-26/targets.parquet",
+      "sha256": "37b86fd1c300d51f12345eb8594e78518bc0b6c92c18344be0ed7dfa592c5832"
+    },
+    {
+      "path": "data/feature_cube/spec006-weekly-demo/as_of_date=2024-04-26/quality_status.parquet",
+      "sha256": "e06fe5343853f14dc61dc6cf8005ed86e9ad925b4edf49b5d7adfc5d8ce9e7b7"
+    },
+    {
+      "path": "data/feature_cube/spec006-weekly-demo/as_of_date=2024-05-03/features.parquet",
+      "sha256": "40a88d16011492c48547534a86a8025e3927c563ea81824b11cc269bcdd9a5fe"
+    },
+    {
+      "path": "data/targets/spec006-weekly-demo/as_of_date=2024-05-03/targets.parquet",
+      "sha256": "353d835e45d7509c3cd61db05ec84cf77bc2ae1bfe1aaafdeca2a355c48eb537"
+    },
+    {
+      "path": "data/feature_cube/spec006-weekly-demo/as_of_date=2024-05-03/quality_status.parquet",
+      "sha256": "36289d84e4cdffb1e093cd83872889a9065f8f089cf80ba8503b370507b6c492"
+    },
+    {
+      "path": "data/feature_cube/spec006-weekly-demo/as_of_date=2024-05-10/features.parquet",
+      "sha256": "c83e23113840f41138ed153107e90004bf09ad2f8b9783d92f7626013061eb1e"
+    },
+    {
+      "path": "data/targets/spec006-weekly-demo/as_of_date=2024-05-10/targets.parquet",
+      "sha256": "e4e74bfc0f8dbc80d0d23b8d2db7ea6858dbeeeb4099d751f7f59eb93124ed60"
+    },
+    {
+      "path": "data/feature_cube/spec006-weekly-demo/as_of_date=2024-05-10/quality_status.parquet",
+      "sha256": "9cfbe519b869ead40c10db042a1c810f26d3ce75bc657071c0efb8ddcf2a30f8"
+    },
+    {
+      "path": "data/feature_cube/spec006-weekly-demo/as_of_date=2024-05-17/features.parquet",
+      "sha256": "b0cc75d253788b0c24eb53ef977b7e1f1d9308593de1f90df9915e7dd1a7d892"
+    },
+    {
+      "path": "data/targets/spec006-weekly-demo/as_of_date=2024-05-17/targets.parquet",
+      "sha256": "849f4ee3dfb59247d6c17783558376ae39ab44cfe9188430ab9cf333717096e5"
+    },
+    {
+      "path": "data/feature_cube/spec006-weekly-demo/as_of_date=2024-05-17/quality_status.parquet",
+      "sha256": "2153dd9b81f60594124a537484e136c95621cd78b83da6155aeed0251c5df8c0"
+    },
+    {
+      "path": "data/feature_cube/spec006-weekly-demo/as_of_date=2024-05-24/features.parquet",
+      "sha256": "5e22f36c658b7b840f84a1115536bcdd1f246056e791f7fc690330245906b3a2"
+    },
+    {
+      "path": "data/targets/spec006-weekly-demo/as_of_date=2024-05-24/targets.parquet",
+      "sha256": "bfa92d11ce3697831ae9eb31a705817176d2420f2ec8782cf1449910c7c1ae83"
+    },
+    {
+      "path": "data/feature_cube/spec006-weekly-demo/as_of_date=2024-05-24/quality_status.parquet",
+      "sha256": "a56045feb908dbea813fe34b21ed5cfd80e189933bf83161d077b0294aadb3a3"
+    },
+    {
+      "path": "data/feature_cube/spec006-weekly-demo/as_of_date=2024-05-31/features.parquet",
+      "sha256": "bd9ff181f604f9b6ac405644c92e98b6ed8900ccb91739ee31cad28b48eb590e"
+    },
+    {
+      "path": "data/targets/spec006-weekly-demo/as_of_date=2024-05-31/targets.parquet",
+      "sha256": "05cbcd0401777f8f1e60a171112524172d54768d52d01ad72ec3e1e90644bfce"
+    },
+    {
+      "path": "data/feature_cube/spec006-weekly-demo/as_of_date=2024-05-31/quality_status.parquet",
+      "sha256": "2e1ccad414df466f3e79cffadc626ad66de99616aae0263f82936808dae483a6"
+    },
+    {
+      "path": "data/feature_cube/spec006-weekly-demo/as_of_date=2024-06-07/features.parquet",
+      "sha256": "7c11f8eff11619093daee8074c7a6077384672b3858f56dd4f215edf24886fa4"
+    },
+    {
+      "path": "data/targets/spec006-weekly-demo/as_of_date=2024-06-07/targets.parquet",
+      "sha256": "9ac6ba7018d7015d6c9b6f6cb69c89fbcee025bf14ad96dbb022df2a83098706"
+    },
+    {
+      "path": "data/feature_cube/spec006-weekly-demo/as_of_date=2024-06-07/quality_status.parquet",
+      "sha256": "d8e61d468ea59581676df0da4a386eb75eb51b36d40f9fcf0eb01210b6e4255d"
+    },
+    {
+      "path": "data/feature_cube/spec006-weekly-demo/as_of_date=2024-06-14/features.parquet",
+      "sha256": "54d8503e3217008889548efb247c5fa34f8fd2c3f9920eaf42ab446a959bac0c"
+    },
+    {
+      "path": "data/targets/spec006-weekly-demo/as_of_date=2024-06-14/targets.parquet",
+      "sha256": "2130e0f10839a87c3548d607541e02f57f8cea7a1d126797314370ae52ec9fb5"
+    },
+    {
+      "path": "data/feature_cube/spec006-weekly-demo/as_of_date=2024-06-14/quality_status.parquet",
+      "sha256": "07a98b538f5ea3e7384771a89250a9ff66e23385f673be90e4e0f63216386512"
+    },
+    {
+      "path": "data/feature_cube/spec006-weekly-demo/as_of_date=2024-06-21/features.parquet",
+      "sha256": "ca10cd3eb488df601288251c1498fa8acb41bad131b8a3fcd7139a0dfa636b9d"
+    },
+    {
+      "path": "data/targets/spec006-weekly-demo/as_of_date=2024-06-21/targets.parquet",
+      "sha256": "0d6801ab46cf7b42fbd0f11f6e6aa14a89aba6dff1086e8fe61eae4cbec7cd08"
+    },
+    {
+      "path": "data/feature_cube/spec006-weekly-demo/as_of_date=2024-06-21/quality_status.parquet",
+      "sha256": "0dda62ad34c40e831fc5d8c531a3714078409d664e621d1f2aec1f04966d8802"
+    },
+    {
+      "path": "data/feature_cube/spec006-weekly-demo/as_of_date=2024-06-28/features.parquet",
+      "sha256": "aac7fefb5e7261619e1a1b6f1ad18319db4b28a7eeb307ef86593a5641f6ff9e"
+    },
+    {
+      "path": "data/targets/spec006-weekly-demo/as_of_date=2024-06-28/targets.parquet",
+      "sha256": "adfada71a9217e2a171543ea51bd0b7701b78287613ae74e91c88cd20589b4d8"
+    },
+    {
+      "path": "data/feature_cube/spec006-weekly-demo/as_of_date=2024-06-28/quality_status.parquet",
+      "sha256": "a32f59655ab508067759ec6a89376c32677e6bc49bd4a0cdcb6345b4fc469fc5"
+    },
+    {
+      "path": "data/feature_cube/spec006-weekly-demo/as_of_date=2024-07-05/features.parquet",
+      "sha256": "b8f38cfb3decd3bf3688aa29de72f9c6a0cd2c32ec4101f18f7a5077df45c9cc"
+    },
+    {
+      "path": "data/targets/spec006-weekly-demo/as_of_date=2024-07-05/targets.parquet",
+      "sha256": "0f14ac33a11d71cbc2e3295d9bed40a5359f3e5099a5e8df611e92dfb5402cea"
+    },
+    {
+      "path": "data/feature_cube/spec006-weekly-demo/as_of_date=2024-07-05/quality_status.parquet",
+      "sha256": "204edad6b21f7592bb938fa54d813e1274c852050a8b6a9cff715fe73a2fd5ff"
+    },
+    {
+      "path": "data/feature_cube/spec006-weekly-demo/as_of_date=2024-07-12/features.parquet",
+      "sha256": "7b86ceafdbb2238113b91a26197810e577e1eca71495a97e97fbc174f3502e52"
+    },
+    {
+      "path": "data/targets/spec006-weekly-demo/as_of_date=2024-07-12/targets.parquet",
+      "sha256": "7725e3faee46212864cf9ff6ce7b787b2faf62185c809c1c3c015da87bf964ec"
+    },
+    {
+      "path": "data/feature_cube/spec006-weekly-demo/as_of_date=2024-07-12/quality_status.parquet",
+      "sha256": "11869b85b6cf0e9bd8d3887527f73ebe708277f63e7d68e73b33f28ffe9ea57c"
+    },
+    {
+      "path": "data/feature_cube/spec006-weekly-demo/as_of_date=2024-07-19/features.parquet",
+      "sha256": "91d98e270e122606dabdb95a6d16ddfd33ccbf07abda7c58ba4cae06b6c0e6d2"
+    },
+    {
+      "path": "data/targets/spec006-weekly-demo/as_of_date=2024-07-19/targets.parquet",
+      "sha256": "927ef0f0bb7e77db6036f9180eda5c4433a66169fa6c7612ac2aadd3ebba4877"
+    },
+    {
+      "path": "data/feature_cube/spec006-weekly-demo/as_of_date=2024-07-19/quality_status.parquet",
+      "sha256": "d16da33b98476fa70619fd16a8689da3be7342ebffdd5e37d5c1ea969eb93f89"
+    },
+    {
+      "path": "data/feature_cube/spec006-weekly-demo/as_of_date=2024-07-26/features.parquet",
+      "sha256": "08c45015e5d616011bff77a187676b2c8d89afe3aa1e3bbbe608ca98b3f1f6e6"
+    },
+    {
+      "path": "data/targets/spec006-weekly-demo/as_of_date=2024-07-26/targets.parquet",
+      "sha256": "6b79b1e86495492f9e1868d3771c619cd3aa5bb4aa93695abd0856a59bab4a77"
+    },
+    {
+      "path": "data/feature_cube/spec006-weekly-demo/as_of_date=2024-07-26/quality_status.parquet",
+      "sha256": "b34e7e11162a5d40b30430249658aba3b0e1c085caa47e4573b37d41f59fa444"
+    },
+    {
+      "path": "data/feature_cube/spec006-weekly-demo/as_of_date=2024-08-02/features.parquet",
+      "sha256": "aca82dcdce5d4e1e9c9bb815b2d6fd547202fde7c0981ca4c0103e7a77adebad"
+    },
+    {
+      "path": "data/targets/spec006-weekly-demo/as_of_date=2024-08-02/targets.parquet",
+      "sha256": "759f07c45d5980a2a81ad882c9068794659bd79f4cd830f8aabfadccd4e6ea8c"
+    },
+    {
+      "path": "data/feature_cube/spec006-weekly-demo/as_of_date=2024-08-02/quality_status.parquet",
+      "sha256": "92337a1e801c811531c598f3c44e7b4033eb838a4496eff0b44d9a326da8a45b"
+    },
+    {
+      "path": "data/feature_cube/spec006-weekly-demo/as_of_date=2024-08-09/features.parquet",
+      "sha256": "d37198498bcafad48bc1d12faf751c9cc9273288518650e23911b673b317d491"
+    },
+    {
+      "path": "data/targets/spec006-weekly-demo/as_of_date=2024-08-09/targets.parquet",
+      "sha256": "7dd3aaa6407f638edb4200138b1e5fe539a5ab23afa659aeec00985785ee9ffe"
+    },
+    {
+      "path": "data/feature_cube/spec006-weekly-demo/as_of_date=2024-08-09/quality_status.parquet",
+      "sha256": "e6fe4c549274caad750e0ccd806fe190b150ecff1e1fc9061b5dafa9b0572855"
+    },
+    {
+      "path": "data/feature_cube/spec006-weekly-demo/as_of_date=2024-08-16/features.parquet",
+      "sha256": "3317ea41250b5798d5aed105dd604c9400690564d8ec5f2b183d2a14d13a72cd"
+    },
+    {
+      "path": "data/targets/spec006-weekly-demo/as_of_date=2024-08-16/targets.parquet",
+      "sha256": "acbc88a2c5f6f982831bad8b605379c3c2f3067cc1cdff5e63f93898cd982afb"
+    },
+    {
+      "path": "data/feature_cube/spec006-weekly-demo/as_of_date=2024-08-16/quality_status.parquet",
+      "sha256": "26b096635d2fa1c554aa7019dc5fdfdd1777dc10516df93ae8f57e967288cbc9"
+    },
+    {
+      "path": "data/feature_cube/spec006-weekly-demo/as_of_date=2024-08-23/features.parquet",
+      "sha256": "64bdc85ad4cf9d3a2fbaf41035cbee9908b85891c5587e078140b2e377a321bc"
+    },
+    {
+      "path": "data/targets/spec006-weekly-demo/as_of_date=2024-08-23/targets.parquet",
+      "sha256": "9eaa930bb55e19ab65192e4cca82444127bbdce40d988014281b4f7a398a9259"
+    },
+    {
+      "path": "data/feature_cube/spec006-weekly-demo/as_of_date=2024-08-23/quality_status.parquet",
+      "sha256": "9a777d192411e36470f5e6631917387f9fdfc75b14cea620190b856e5318f675"
+    },
+    {
+      "path": "data/feature_cube/spec006-weekly-demo/as_of_date=2024-08-30/features.parquet",
+      "sha256": "46f1f52c278cec3501ebc88c5812f2ec7ecb7bc50799e9eeb10c1aeef70c60fe"
+    },
+    {
+      "path": "data/targets/spec006-weekly-demo/as_of_date=2024-08-30/targets.parquet",
+      "sha256": "73caed9ce2c605fd5645b6fdc55c576c202dea24605a2651e16e406733a9df48"
+    },
+    {
+      "path": "data/feature_cube/spec006-weekly-demo/as_of_date=2024-08-30/quality_status.parquet",
+      "sha256": "99e1dd8619744489f2101a41d92cc2c044f0b20054e6be43b6e1af3311f61a1c"
+    },
+    {
+      "path": "data/feature_cube/spec006-weekly-demo/as_of_date=2024-09-06/features.parquet",
+      "sha256": "e952bb156f80df657861c8625ef44cdc9eff2f0a3d23f0762a9bb021a8a0e975"
+    },
+    {
+      "path": "data/targets/spec006-weekly-demo/as_of_date=2024-09-06/targets.parquet",
+      "sha256": "2d286ec6eb43a8838f55e2632746dccee0c6c7a0c78038d7f9b45bf7d0128b54"
+    },
+    {
+      "path": "data/feature_cube/spec006-weekly-demo/as_of_date=2024-09-06/quality_status.parquet",
+      "sha256": "9bdf64ffe353f6f4841a8a695d7e612895d25435de623dc30deacd7d7d3c77fd"
+    },
+    {
+      "path": "data/feature_cube/spec006-weekly-demo/as_of_date=2024-09-13/features.parquet",
+      "sha256": "b18d3c23b9539abd6fd5ac613db2333784c8bf01f60731c4fd4094c44eaa633f"
+    },
+    {
+      "path": "data/targets/spec006-weekly-demo/as_of_date=2024-09-13/targets.parquet",
+      "sha256": "1737ed73a26d0a567e903a012a417182e03d36539b4b7fed86e83ea628b4fb76"
+    },
+    {
+      "path": "data/feature_cube/spec006-weekly-demo/as_of_date=2024-09-13/quality_status.parquet",
+      "sha256": "803ace1ca03782cd979972091cdc832c617c4e0534b1f77f90b715d976020e93"
+    },
+    {
+      "path": "data/feature_cube/spec006-weekly-demo/as_of_date=2024-09-20/features.parquet",
+      "sha256": "0d2ffdb4ee04c01edb5b182b7c24928e2994df472f94a945e88a4747d9f5a5c5"
+    },
+    {
+      "path": "data/targets/spec006-weekly-demo/as_of_date=2024-09-20/targets.parquet",
+      "sha256": "8e74600005bf34e43cae2ae1d050f569e33dc1ad90d6a867025f6ab390569d76"
+    },
+    {
+      "path": "data/feature_cube/spec006-weekly-demo/as_of_date=2024-09-20/quality_status.parquet",
+      "sha256": "991d6f7f8ccc66bf15a81e5efeb2d795cb848ebaad3a2f5d3ce441be27568ab9"
+    },
+    {
+      "path": "data/feature_cube/spec006-weekly-demo/as_of_date=2024-09-27/features.parquet",
+      "sha256": "5646b321971081c468e287432ae0402b55b10f4abec41b4d8c94abf7463a8cb3"
+    },
+    {
+      "path": "data/targets/spec006-weekly-demo/as_of_date=2024-09-27/targets.parquet",
+      "sha256": "81e3542d0e263b80a30ba58557e9d92c032dd6e9450576b113190174de7552c6"
+    },
+    {
+      "path": "data/feature_cube/spec006-weekly-demo/as_of_date=2024-09-27/quality_status.parquet",
+      "sha256": "ceb804ca2284c8f3ab9e6b985ef48735be13460ab553d5a9ee450cda783e1e94"
+    },
+    {
+      "path": "data/feature_cube/spec006-weekly-demo/as_of_date=2024-10-04/features.parquet",
+      "sha256": "025e4b9c0f403f2ac75cf37927a2de8c95043fc4691ba9f1819246e32718d413"
+    },
+    {
+      "path": "data/targets/spec006-weekly-demo/as_of_date=2024-10-04/targets.parquet",
+      "sha256": "38b6dd77a124d6a55c7a3438156b201cd16af8e18b3cdedc27b881e0e9ef2b21"
+    },
+    {
+      "path": "data/feature_cube/spec006-weekly-demo/as_of_date=2024-10-04/quality_status.parquet",
+      "sha256": "2495312988dc3587495da3f78d1f125541fa560bd8b99a36884f311971d97802"
+    },
+    {
+      "path": "data/feature_cube/spec006-2025-matched/as_of_date=2025-04-06/features.parquet",
+      "sha256": "5e4149020d52ffe1b7465a4b6cd4fed3048f2acbea678dde2eefed92e4825954"
+    },
+    {
+      "path": "data/targets/spec006-2025-matched/as_of_date=2025-04-06/targets.parquet",
+      "sha256": "f0d9a2d21be88428921436000435d70f5ede5bf472e9eeb0ef1e4d26b5016940"
+    },
+    {
+      "path": "data/feature_cube/spec006-2025-matched/as_of_date=2025-04-06/quality_status.parquet",
+      "sha256": "3e20e5b18b351f4e3230b296014823c644f4e806c2566b6ea1ba635dcd6cfccf"
+    },
+    {
+      "path": "data/feature_cube/spec006-2025-matched/as_of_date=2025-04-13/features.parquet",
+      "sha256": "2e76d5b45830d570b7793c7d5838ef0a843ca9c5323d150b00bb75f2d7ff08dd"
+    },
+    {
+      "path": "data/targets/spec006-2025-matched/as_of_date=2025-04-13/targets.parquet",
+      "sha256": "6cdd9d73b343ca3a53a12b73c2218c4b04f39be4b9957f7b83a227936ca99cf2"
+    },
+    {
+      "path": "data/feature_cube/spec006-2025-matched/as_of_date=2025-04-13/quality_status.parquet",
+      "sha256": "59c0aaf18b83e711f8aef9061b7bac91eb879d07067aff50b359c823166d201a"
+    },
+    {
+      "path": "data/feature_cube/spec006-2025-matched/as_of_date=2025-04-20/features.parquet",
+      "sha256": "4ce8f9d6186597da9d33d45517bd638955dfdedf8d0a32a23f4968af1add7bb2"
+    },
+    {
+      "path": "data/targets/spec006-2025-matched/as_of_date=2025-04-20/targets.parquet",
+      "sha256": "c340a1fda84296a637e539c827a96f374446d9440d1e322f209f438d4252a57f"
+    },
+    {
+      "path": "data/feature_cube/spec006-2025-matched/as_of_date=2025-04-20/quality_status.parquet",
+      "sha256": "bb607c62b3528c6fcb5ce9e6d01f38859fccd6a2d72038bd6b39e73de7cdfc70"
+    },
+    {
+      "path": "data/feature_cube/spec006-2025-matched/as_of_date=2025-04-27/features.parquet",
+      "sha256": "e9d41e8973b24956ed2daa9bf3e6b19b946504eef7622f22caf74000713c8ef4"
+    },
+    {
+      "path": "data/targets/spec006-2025-matched/as_of_date=2025-04-27/targets.parquet",
+      "sha256": "b92b5c8bf5bded5022153ec7b9832c394cc6b4a4d4f67fe48b459a084caf8be0"
+    },
+    {
+      "path": "data/feature_cube/spec006-2025-matched/as_of_date=2025-04-27/quality_status.parquet",
+      "sha256": "6305dd41137dc48ba566a7ef4adfec7bdc11fa5267c4a04fc28232199e54f6d7"
+    },
+    {
+      "path": "data/feature_cube/spec006-2025-matched/as_of_date=2025-05-04/features.parquet",
+      "sha256": "53d942e60615d3e0acdcd251306685f63c2939a63a075c2a49a8c1d7b917b643"
+    },
+    {
+      "path": "data/targets/spec006-2025-matched/as_of_date=2025-05-04/targets.parquet",
+      "sha256": "0bd48bceea890073eda8fa80d2e4841a995ecc175b2d06e7e6026e83a1d13573"
+    },
+    {
+      "path": "data/feature_cube/spec006-2025-matched/as_of_date=2025-05-04/quality_status.parquet",
+      "sha256": "c4c156cf2a2b1a14d96ead86204227e513baa7322af1027923cf25964df4b92f"
+    },
+    {
+      "path": "data/feature_cube/spec006-2025-matched/as_of_date=2025-05-11/features.parquet",
+      "sha256": "f8b4082b1c227e4560092ab20afd305abedf4278c7c9626bb600d6f1f59504ce"
+    },
+    {
+      "path": "data/targets/spec006-2025-matched/as_of_date=2025-05-11/targets.parquet",
+      "sha256": "e8c4745a1e4a45a0b2d8e8f81fe2a74fe44c4f3a86e7173ebcc27949ebf367f5"
+    },
+    {
+      "path": "data/feature_cube/spec006-2025-matched/as_of_date=2025-05-11/quality_status.parquet",
+      "sha256": "e7ea661e5e4e9193318b1ff725ebd1f0973775e44e47029285745cc93d3f9fd2"
+    },
+    {
+      "path": "data/feature_cube/spec006-2025-matched/as_of_date=2025-05-18/features.parquet",
+      "sha256": "f0d78e36bb656ba0cbf94488a69e39228b0a458dd75a5723bfbd22a002801dda"
+    },
+    {
+      "path": "data/targets/spec006-2025-matched/as_of_date=2025-05-18/targets.parquet",
+      "sha256": "21f0b286cb05c7228b6850d43f6e986a7558ce831dcd9a0b9fa6215f8c2fb20f"
+    },
+    {
+      "path": "data/feature_cube/spec006-2025-matched/as_of_date=2025-05-18/quality_status.parquet",
+      "sha256": "cdef7f149c2e56a0ebf5c2fb77f2a2e3419e10c6d292293e97d9168bcf50c4ca"
+    },
+    {
+      "path": "data/feature_cube/spec006-2025-matched/as_of_date=2025-05-25/features.parquet",
+      "sha256": "99ead3e57a52006bc65133193c554befded486a2d3fde2255f992cb7821d0961"
+    },
+    {
+      "path": "data/targets/spec006-2025-matched/as_of_date=2025-05-25/targets.parquet",
+      "sha256": "5631b01d53f74243a1fa659b1456dced56fd26c94ec9f6ff98812fce01f8fafb"
+    },
+    {
+      "path": "data/feature_cube/spec006-2025-matched/as_of_date=2025-05-25/quality_status.parquet",
+      "sha256": "13cf1b98e1d746e5e63d69e561fdee24f103137741859994ab8516e3e74149d0"
+    },
+    {
+      "path": "data/feature_cube/spec006-2025-matched/as_of_date=2025-06-01/features.parquet",
+      "sha256": "f8140f1e3f29eddafefa7a0380a45abe26d3f380fcd16611fe5360456f2879c1"
+    },
+    {
+      "path": "data/targets/spec006-2025-matched/as_of_date=2025-06-01/targets.parquet",
+      "sha256": "3778ec7d806aa767f3233a6b4eb67c189f2aaeeaf6d905009f38aca2c91392db"
+    },
+    {
+      "path": "data/feature_cube/spec006-2025-matched/as_of_date=2025-06-01/quality_status.parquet",
+      "sha256": "a5310d187149f84aaf8c58d733ba190ecf7ea0281a70534c531b3acedeec8db8"
+    },
+    {
+      "path": "data/feature_cube/spec006-2025-matched/as_of_date=2025-06-08/features.parquet",
+      "sha256": "242c4197c5428f6be902cc6a849ad5c767522ac2dfd288d6a22984b9606dd4e0"
+    },
+    {
+      "path": "data/targets/spec006-2025-matched/as_of_date=2025-06-08/targets.parquet",
+      "sha256": "3f6f3c0a827503e6529247a5b034735e2affddd8ef0878c6527cfa0c4015575e"
+    },
+    {
+      "path": "data/feature_cube/spec006-2025-matched/as_of_date=2025-06-08/quality_status.parquet",
+      "sha256": "791158ab3c45ebf5b0c5ba6acb4173e83efb30acbacc45f5a74c12bbf6d88d7f"
+    },
+    {
+      "path": "data/feature_cube/spec006-2025-matched/as_of_date=2025-06-15/features.parquet",
+      "sha256": "33d49a273fec003ad2b7272a68cd7d1744210a2973c71eca1337ca4d257f206b"
+    },
+    {
+      "path": "data/targets/spec006-2025-matched/as_of_date=2025-06-15/targets.parquet",
+      "sha256": "0018ec3a4b1c6a2504183c737b823e65c872110636628be539d5fda489624548"
+    },
+    {
+      "path": "data/feature_cube/spec006-2025-matched/as_of_date=2025-06-15/quality_status.parquet",
+      "sha256": "546793d707f3632832d3c58707d2797fe92776beebc5a48e64badab3f306aaf7"
+    },
+    {
+      "path": "data/feature_cube/spec006-2025-matched/as_of_date=2025-06-22/features.parquet",
+      "sha256": "518967f8fb576acfc3f68767609457db6203aa3aabd64db57bf5dbda98822472"
+    },
+    {
+      "path": "data/targets/spec006-2025-matched/as_of_date=2025-06-22/targets.parquet",
+      "sha256": "3e3ab47ade1cff790b22b9446da41d98a44af49b59492083d0b96a3b42d95d64"
+    },
+    {
+      "path": "data/feature_cube/spec006-2025-matched/as_of_date=2025-06-22/quality_status.parquet",
+      "sha256": "988b5133ab8b0d9b8368e533800912cd08e134d9c18096252317d86ef1a40d59"
+    },
+    {
+      "path": "data/feature_cube/spec006-2025-matched/as_of_date=2025-06-29/features.parquet",
+      "sha256": "15003abeba166af8a889c16bb975603a751207217632376fd3d17ab3327fb67d"
+    },
+    {
+      "path": "data/targets/spec006-2025-matched/as_of_date=2025-06-29/targets.parquet",
+      "sha256": "b66fecaa15b2e5397c971a0074f645cc5665c79acefd90bc821d567f88c6b23c"
+    },
+    {
+      "path": "data/feature_cube/spec006-2025-matched/as_of_date=2025-06-29/quality_status.parquet",
+      "sha256": "dfa6b80fe6f004f01b94b6b8362def29ccd44feb64772a1eb85238ad433ea845"
+    },
+    {
+      "path": "data/feature_cube/spec006-2025-matched/as_of_date=2025-07-06/features.parquet",
+      "sha256": "faf30028e0c6b37a695ebb941c42623c7141794da3a0314896147d75358870bb"
+    },
+    {
+      "path": "data/targets/spec006-2025-matched/as_of_date=2025-07-06/targets.parquet",
+      "sha256": "274abf33d7af0dc6f6f56f37b8a4f59b625d20dbed9ce338649f1b4c04547a32"
+    },
+    {
+      "path": "data/feature_cube/spec006-2025-matched/as_of_date=2025-07-06/quality_status.parquet",
+      "sha256": "5abc9fd2eb0a767b4960b154d3906c199e7f950b5d6aac1a0c30864dab563a6f"
+    },
+    {
+      "path": "data/feature_cube/spec006-2025-matched/as_of_date=2025-07-13/features.parquet",
+      "sha256": "003f03a431f6b04e5dfdd45b3c74ff412ff012ea6a2d1b45f0d1ea38bf21d983"
+    },
+    {
+      "path": "data/targets/spec006-2025-matched/as_of_date=2025-07-13/targets.parquet",
+      "sha256": "d1186d869ca82ee4ac959fd50fb7a88d5c7a598d8566a0eb4a600bea74a055c8"
+    },
+    {
+      "path": "data/feature_cube/spec006-2025-matched/as_of_date=2025-07-13/quality_status.parquet",
+      "sha256": "d146ac85042aecd1d6080286642d4f0ab444a635a90cc60662660f6ff35cca8d"
+    },
+    {
+      "path": "data/feature_cube/spec006-2025-matched/as_of_date=2025-07-20/features.parquet",
+      "sha256": "dc1cb5ed610e44d75f7a897633e2614e20bcd79e3eeeb2e3ced743e55ff49b5f"
+    },
+    {
+      "path": "data/targets/spec006-2025-matched/as_of_date=2025-07-20/targets.parquet",
+      "sha256": "3fc4919920041e5fa2d7baecd869f2235c0573edf851572804520f0bc4a1d945"
+    },
+    {
+      "path": "data/feature_cube/spec006-2025-matched/as_of_date=2025-07-20/quality_status.parquet",
+      "sha256": "445ba35f98f8fc34e77f97bbe26e28f8f08868ce576d9c5625da290c1e20ea04"
+    },
+    {
+      "path": "data/feature_cube/spec006-2025-matched/as_of_date=2025-07-27/features.parquet",
+      "sha256": "0b56453c1aed4a1c87c08eafec7322a30c3a3a7fa37e5a61865ceabca5edadbb"
+    },
+    {
+      "path": "data/targets/spec006-2025-matched/as_of_date=2025-07-27/targets.parquet",
+      "sha256": "08d41d079a9b5725fd1dbd958606b14cbe859c0902491cc26f0d2fe80c1d775d"
+    },
+    {
+      "path": "data/feature_cube/spec006-2025-matched/as_of_date=2025-07-27/quality_status.parquet",
+      "sha256": "406cf16914b38c78221084b95b7bb094a35fda20a605890ae60e7e77385ece86"
+    },
+    {
+      "path": "data/feature_cube/spec006-2025-matched/as_of_date=2025-08-03/features.parquet",
+      "sha256": "746a145229b380ac0d67cf6df4b4dbfcd9a8420cf4dcf1bc56ba5261538b7499"
+    },
+    {
+      "path": "data/targets/spec006-2025-matched/as_of_date=2025-08-03/targets.parquet",
+      "sha256": "f6abce4ceb73432d5c396a94a5fc3d7b343e67e479244c260a4c0cf28c1012c0"
+    },
+    {
+      "path": "data/feature_cube/spec006-2025-matched/as_of_date=2025-08-03/quality_status.parquet",
+      "sha256": "a60c92ecf1a2add0758d5cc50417162f04cc2c116231177c4ece6e50d06d3f1b"
+    },
+    {
+      "path": "data/feature_cube/spec006-2025-matched/as_of_date=2025-08-10/features.parquet",
+      "sha256": "4997fbf6693d486e55a6eb6e67cf9d683436bbb1365e1570f96be0d361ca2966"
+    },
+    {
+      "path": "data/targets/spec006-2025-matched/as_of_date=2025-08-10/targets.parquet",
+      "sha256": "e26593333d2e18cc2d5c2948cfa4c72143b070cd20aa028e163c9ceb04941439"
+    },
+    {
+      "path": "data/feature_cube/spec006-2025-matched/as_of_date=2025-08-10/quality_status.parquet",
+      "sha256": "0aff7f1819cbe34b0e0acc2525844b697d0d45e6b1c97b72761fa52e5fcce602"
+    },
+    {
+      "path": "data/feature_cube/spec006-2025-matched/as_of_date=2025-08-17/features.parquet",
+      "sha256": "917b0698f63e5085738ca44ef44db3860a4ddf388d45a79b2f4c385c6628ca82"
+    },
+    {
+      "path": "data/targets/spec006-2025-matched/as_of_date=2025-08-17/targets.parquet",
+      "sha256": "6e1ec9b5a975849ea4c87dec0fc12776add50a322814d481f2b8769220291ae0"
+    },
+    {
+      "path": "data/feature_cube/spec006-2025-matched/as_of_date=2025-08-17/quality_status.parquet",
+      "sha256": "f14cf875f398b99c02b03d341ba376019f9efd19063389b1d4b37cec8c509c15"
+    },
+    {
+      "path": "data/feature_cube/spec006-2025-matched/as_of_date=2025-08-24/features.parquet",
+      "sha256": "ded432b441768dc0daa6d10fa84ef891eb21294727d3dbb01386860eec354372"
+    },
+    {
+      "path": "data/targets/spec006-2025-matched/as_of_date=2025-08-24/targets.parquet",
+      "sha256": "9e3baf11d14f3b5f91df6914b05a6948a6222683be84d106d881dd70dcf28d83"
+    },
+    {
+      "path": "data/feature_cube/spec006-2025-matched/as_of_date=2025-08-24/quality_status.parquet",
+      "sha256": "aa4bd53bed8861e63c4244c76f58d5318f8980cefadb362a8a9290d85664c1f5"
+    },
+    {
+      "path": "data/feature_cube/spec006-2025-matched/as_of_date=2025-08-31/features.parquet",
+      "sha256": "a4202499929c2a88a41a600aca201f52770b8225e18c917c89106b9be409dd78"
+    },
+    {
+      "path": "data/targets/spec006-2025-matched/as_of_date=2025-08-31/targets.parquet",
+      "sha256": "db5fb12c97f6880b28aa3687d30fabb54f7cca87900b6e89275945407f4eaee6"
+    },
+    {
+      "path": "data/feature_cube/spec006-2025-matched/as_of_date=2025-08-31/quality_status.parquet",
+      "sha256": "f2b67486d2bdaaa2e19f02b3f2e24aca340561cbb50c10ce33a5291b93bdc9ae"
+    },
+    {
+      "path": "data/feature_cube/spec006-2025-matched/as_of_date=2025-09-07/features.parquet",
+      "sha256": "9609610bcc503fbc2931646247808a67918e01bd149dfc582c9af972302273b9"
+    },
+    {
+      "path": "data/targets/spec006-2025-matched/as_of_date=2025-09-07/targets.parquet",
+      "sha256": "662fdfb98ee97289c1547eea163b057e6c44e96ef9fd2d1574abc48ec589f9dd"
+    },
+    {
+      "path": "data/feature_cube/spec006-2025-matched/as_of_date=2025-09-07/quality_status.parquet",
+      "sha256": "c06d5c6bf952138a84f1fee250be3d9937453f66cb820fd0c3dc8891023ad9da"
+    },
+    {
+      "path": "data/feature_cube/spec006-2025-matched/as_of_date=2025-09-14/features.parquet",
+      "sha256": "b4c2efa0e94cd8f622b96caa4c2ab9c7b5e5d56d2f8555b271166b4fa6371c33"
+    },
+    {
+      "path": "data/targets/spec006-2025-matched/as_of_date=2025-09-14/targets.parquet",
+      "sha256": "5827dcb95ad263291dd15eb633874e3e028ec49a4b9abe6e921dbf5bbd2e4025"
+    },
+    {
+      "path": "data/feature_cube/spec006-2025-matched/as_of_date=2025-09-14/quality_status.parquet",
+      "sha256": "e41a85b377455514e719c48286ff3b52cf2fe2a47c78525a022664eefd402990"
+    },
+    {
+      "path": "data/feature_cube/spec006-2025-matched/as_of_date=2025-09-21/features.parquet",
+      "sha256": "230b1e6e2fb838b12cc6ce393c185729f5d066384a5ac9cf3e0e08dcecd955cb"
+    },
+    {
+      "path": "data/targets/spec006-2025-matched/as_of_date=2025-09-21/targets.parquet",
+      "sha256": "5eff03d0bd5998c1a7fb92cb7d539207bd093a7d5aba6fcbbe822566ff902399"
+    },
+    {
+      "path": "data/feature_cube/spec006-2025-matched/as_of_date=2025-09-21/quality_status.parquet",
+      "sha256": "efe9fbee8fe0f6a8c3d8a4361c975500da6fc2c5ee3f30ffa13c7c07086187d9"
+    },
+    {
+      "path": "data/feature_cube/spec006-2025-matched/as_of_date=2025-09-28/features.parquet",
+      "sha256": "16261ded66f8cbe617e26de327d14d82394225befbb6bf1943df813306e6c1f7"
+    },
+    {
+      "path": "data/targets/spec006-2025-matched/as_of_date=2025-09-28/targets.parquet",
+      "sha256": "ba0287e18cc93e97ff336ca7dd9649fb9610d2a49d17f65bf00c41854ab11905"
+    },
+    {
+      "path": "data/feature_cube/spec006-2025-matched/as_of_date=2025-09-28/quality_status.parquet",
+      "sha256": "efe9fbee8fe0f6a8c3d8a4361c975500da6fc2c5ee3f30ffa13c7c07086187d9"
+    },
+    {
+      "path": "data/feature_cube/spec006-2025-matched/as_of_date=2025-10-04/features.parquet",
+      "sha256": "83bd2025a80638ae1bcff37159ebd061fe97edd8e9aeb84ee99db0059e2286dd"
+    },
+    {
+      "path": "data/targets/spec006-2025-matched/as_of_date=2025-10-04/targets.parquet",
+      "sha256": "4f63b99d0a7597af2f92d65364568867d5fa1e9ed33e383c406b27a58f80972c"
+    },
+    {
+      "path": "data/feature_cube/spec006-2025-matched/as_of_date=2025-10-04/quality_status.parquet",
+      "sha256": "959762b1eec7b240a208ccad1c8abfc4de441df1d3dbf5bbee689a8b7053cd61"
+    },
+    {
+      "path": "data/feature_cube/spec006-2026-matched/as_of_date=2026-04-05/features.parquet",
+      "sha256": "169b340fa3ca01926fe6c1f407fef4771d30cfaa5acde7cdfe90cb478b8db5a6"
+    },
+    {
+      "path": "data/targets/spec006-2026-matched/as_of_date=2026-04-05/targets.parquet",
+      "sha256": "e16d59df3ebe0646420e999e1afdd04c45d19ffe6935eef609de2e6808439a0b"
+    },
+    {
+      "path": "data/feature_cube/spec006-2026-matched/as_of_date=2026-04-05/quality_status.parquet",
+      "sha256": "250c46040f60f129432078f1f67d70c195685825d0a0ecc04e07dddd2ffaf504"
+    },
+    {
+      "path": "data/feature_cube/spec006-2026-matched/as_of_date=2026-04-12/features.parquet",
+      "sha256": "48b394a84ea2e2797e1f14de85847d0d0cc480191cb8abb3a17589fc11e9918b"
+    },
+    {
+      "path": "data/targets/spec006-2026-matched/as_of_date=2026-04-12/targets.parquet",
+      "sha256": "13157da827dbd20f7ce56fae4a8c36e54143a613c61f883afa185e175d4f2fcf"
+    },
+    {
+      "path": "data/feature_cube/spec006-2026-matched/as_of_date=2026-04-12/quality_status.parquet",
+      "sha256": "4358960c7857166966e462650f2481aa7f334ec7b4b166c6d195021aeb3042d3"
+    },
+    {
+      "path": "data/feature_cube/spec006-2026-matched/as_of_date=2026-04-19/features.parquet",
+      "sha256": "56e252f5d61cf9f53703190fba670f8ae583bbb7040b197b3bd8ea845ad0c069"
+    },
+    {
+      "path": "data/targets/spec006-2026-matched/as_of_date=2026-04-19/targets.parquet",
+      "sha256": "0c4dadbbc12531ab0705c37fdcf7623eee4fc6b902cc9d9a916fa54f85c16ede"
+    },
+    {
+      "path": "data/feature_cube/spec006-2026-matched/as_of_date=2026-04-19/quality_status.parquet",
+      "sha256": "7063b8211d93d6572251067f35cb015696e853e74ce5fa7e292c99ddc7e6eb33"
+    },
+    {
+      "path": "data/feature_cube/spec006-2026-matched/as_of_date=2026-04-26/features.parquet",
+      "sha256": "daad87b4ed3d3805c552f7af2172fb5ee3bdee5ac8f8daeeeab038ad98d7d78a"
+    },
+    {
+      "path": "data/targets/spec006-2026-matched/as_of_date=2026-04-26/targets.parquet",
+      "sha256": "2dd937727f80ffe5027f96f7e2df29634f6783236a17aac49a115043a56a6998"
+    },
+    {
+      "path": "data/feature_cube/spec006-2026-matched/as_of_date=2026-04-26/quality_status.parquet",
+      "sha256": "726c3898ce840552dac2536de5efd87da0b0c9d41629a2d1118e21eeb9e090a5"
+    },
+    {
+      "path": "data/feature_cube/spec006-2026-matched/as_of_date=2026-05-03/features.parquet",
+      "sha256": "043fa5732c11e797f8026240be19736675991cbbbc8467567249ca366f874e50"
+    },
+    {
+      "path": "data/targets/spec006-2026-matched/as_of_date=2026-05-03/targets.parquet",
+      "sha256": "c9295956f6a7a77e4f0f5451ad321df7192ce44ada39a30f935901c05903dee0"
+    },
+    {
+      "path": "data/feature_cube/spec006-2026-matched/as_of_date=2026-05-03/quality_status.parquet",
+      "sha256": "06293c1a07e167c5e09dc632a028886e168472e384450597e9d4d8f75389ce4f"
+    },
+    {
+      "path": "data/feature_cube/spec006-2026-matched/as_of_date=2026-05-10/features.parquet",
+      "sha256": "174c18c1687b5499d5fd8a9f445d967d05bca70e5bd8dee458bc5222d6f50a62"
+    },
+    {
+      "path": "data/targets/spec006-2026-matched/as_of_date=2026-05-10/targets.parquet",
+      "sha256": "b1733bd6bd60c9d3b507a69f40fec2d6e15504fd898cf32f47de69f3e9668118"
+    },
+    {
+      "path": "data/feature_cube/spec006-2026-matched/as_of_date=2026-05-10/quality_status.parquet",
+      "sha256": "fb5861b9b1504c06b9f6043d68d019fa0a5b94818fd7e883e960835315f6c522"
+    },
+    {
+      "path": "data/feature_cube/spec006-2026-matched/as_of_date=2026-05-17/features.parquet",
+      "sha256": "628cd7504ce9c04024f870fed735dcc840097130ab6535ec773c4a818d5b43e5"
+    },
+    {
+      "path": "data/targets/spec006-2026-matched/as_of_date=2026-05-17/targets.parquet",
+      "sha256": "ac763e6897226d098cf98bc67d6c2c0214bd07c7556b12e289bc14a10256b456"
+    },
+    {
+      "path": "data/feature_cube/spec006-2026-matched/as_of_date=2026-05-17/quality_status.parquet",
+      "sha256": "5cd35de44585b05ad7c01788f6b1a761c7f0f02cbd5509f8415745817b8a43fb"
+    },
+    {
+      "path": "data/feature_cube/spec006-2026-matched/as_of_date=2026-05-24/features.parquet",
+      "sha256": "c1e067691a90d790d75f00ac6cd2ad87588442e92c9b1c68e81e46037d3826cc"
+    },
+    {
+      "path": "data/targets/spec006-2026-matched/as_of_date=2026-05-24/targets.parquet",
+      "sha256": "8f051801b9e3805b7483148ffaf3f69e684a2940cae3adb403e46833c8cfb9dc"
+    },
+    {
+      "path": "data/feature_cube/spec006-2026-matched/as_of_date=2026-05-24/quality_status.parquet",
+      "sha256": "532a1be9e34c5aa466fab78aea897aa555f93cd2ea156bae2deae8bca3903cbc"
+    },
+    {
+      "path": "data/feature_cube/spec006-2026-matched/as_of_date=2026-05-31/features.parquet",
+      "sha256": "775f96aa77984e4931ed77ca9854363ce967d19297a71e73912c190a42ba0723"
+    },
+    {
+      "path": "data/targets/spec006-2026-matched/as_of_date=2026-05-31/targets.parquet",
+      "sha256": "6293be4e5c0b2aac82805e583fd48fc88a6dfc21c47b79ce7dc07800f08c5e58"
+    },
+    {
+      "path": "data/feature_cube/spec006-2026-matched/as_of_date=2026-05-31/quality_status.parquet",
+      "sha256": "a741cf145b3fe1d7968dab0e014519f7c56961b37acaa48fb43ec5522706e2b4"
+    },
+    {
+      "path": "data/feature_cube/spec006-2026-matched/as_of_date=2026-06-07/features.parquet",
+      "sha256": "74baad2814b1fef2a4318aae3f61d2ab831cf5dd8dd80f0f1dcec64bfdf3c6a2"
+    },
+    {
+      "path": "data/targets/spec006-2026-matched/as_of_date=2026-06-07/targets.parquet",
+      "sha256": "98ff6cf12fd9b3059d19ebc30fb727b0751d34a6bf197e44c524799000f0b689"
+    },
+    {
+      "path": "data/feature_cube/spec006-2026-matched/as_of_date=2026-06-07/quality_status.parquet",
+      "sha256": "f6a08e38a6cba003055c6d8a9b9492fbf1ae4270bb6e88bdb2c599a38a8788be"
+    },
+    {
+      "path": "data/feature_cube/spec006-2026-matched/as_of_date=2026-06-14/features.parquet",
+      "sha256": "d862bbc1daa48270a7e961921280aa91d629793d478f2a8e3d1d4ca8a036b153"
+    },
+    {
+      "path": "data/targets/spec006-2026-matched/as_of_date=2026-06-14/targets.parquet",
+      "sha256": "e903a4bda12b5a52bbd2d1ac5cf74af29b125bc4fdbba24c497e52c0220821c0"
+    },
+    {
+      "path": "data/feature_cube/spec006-2026-matched/as_of_date=2026-06-14/quality_status.parquet",
+      "sha256": "3023a515995c17df7476001ad446d4bed2be3293d493eed2a7b1a43ebfa0c4a8"
+    },
+    {
+      "path": "data/feature_cube/spec006-2026-matched/as_of_date=2026-06-21/features.parquet",
+      "sha256": "9e1dac840811284e08ad14d0fb98b5caf359cd6afb1cb9734affeb88bfa25a17"
+    },
+    {
+      "path": "data/targets/spec006-2026-matched/as_of_date=2026-06-21/targets.parquet",
+      "sha256": "6e01ca6f54d5777ee609e167d1c6c37a7f871b38d17d178e6384d90ebfae568f"
+    },
+    {
+      "path": "data/feature_cube/spec006-2026-matched/as_of_date=2026-06-21/quality_status.parquet",
+      "sha256": "b50cce00115f05a395ff6063a16bea8070df0d1203976a45bebb4fd043247fe9"
+    },
+    {
+      "path": "data/feature_cube/spec006-2026-matched/as_of_date=2026-06-28/features.parquet",
+      "sha256": "f5ba66a042e72867c5741e986476ff3d5f42667446ca509103e3a86e1bf6e9a3"
+    },
+    {
+      "path": "data/targets/spec006-2026-matched/as_of_date=2026-06-28/targets.parquet",
+      "sha256": "ae7e247ebe172df997e5b2f0584a91293ea723b44503f8fe1103c3f8615d1ddd"
+    },
+    {
+      "path": "data/feature_cube/spec006-2026-matched/as_of_date=2026-06-28/quality_status.parquet",
+      "sha256": "c856fdee17a0b70bc0780920c248f464d7d0e43bcd508dce06d21e1391c0ac2a"
+    },
+    {
+      "path": "data/feature_cube/spec006-2026-matched/as_of_date=2026-07-05/features.parquet",
+      "sha256": "81bc43f12d423a40b2baa96fa0bad7fcd4d40637485454a7352399465fb0f208"
+    },
+    {
+      "path": "data/targets/spec006-2026-matched/as_of_date=2026-07-05/targets.parquet",
+      "sha256": "72b3a0d12b04a3148f96aa341ec9fec44f69ee44a486468083b638d1b953e80d"
+    },
+    {
+      "path": "data/feature_cube/spec006-2026-matched/as_of_date=2026-07-05/quality_status.parquet",
+      "sha256": "d6d2dbf24e37e1cd0bf704787767441c4412b6532440e2803b054fd6ded55674"
+    },
+    {
+      "path": "data/feature_cube/spec006-2026-matched/as_of_date=2026-07-12/features.parquet",
+      "sha256": "68315949a75f6f981f2916b57a4907bd4f9310ffe60adee38c789b1f37c6fbd4"
+    },
+    {
+      "path": "data/targets/spec006-2026-matched/as_of_date=2026-07-12/targets.parquet",
+      "sha256": "4c4f717414418a224392db03bec759cfec40f407369007b24957fb264d6cc08a"
+    },
+    {
+      "path": "data/feature_cube/spec006-2026-matched/as_of_date=2026-07-12/quality_status.parquet",
+      "sha256": "795c719fb8f18b503aab11f1d66d4fdc70f73f128bcbb1b51019be9b94d7e136"
+    },
+    {
+      "path": "data/feature_cube/spec006-2026-matched/as_of_date=2026-07-17/features.parquet",
+      "sha256": "a69d41e66cddb9e9587650d09a70f95ae6c2909566e9fd979eaa8abaaf4cb37d"
+    },
+    {
+      "path": "data/targets/spec006-2026-matched/as_of_date=2026-07-17/targets.parquet",
+      "sha256": "c1f81e1b1a1706b49f65a497472847187ed8c95631562460d5bc08d5387eb56b"
+    },
+    {
+      "path": "data/feature_cube/spec006-2026-matched/as_of_date=2026-07-17/quality_status.parquet",
+      "sha256": "3684587f283441fc1068c9e0a342f33d1ed70bf17dfbeecf88633a68cb5ebcca"
+    },
+    {
+      "path": "data/feature_cube/spec006-2026-matched/as_of_date=2026-07-24/features.parquet",
+      "sha256": "7d7fb76684483bee5577590f1ad10013dc17d71a85538be44ee7264d2e745fd5"
+    },
+    {
+      "path": "data/targets/spec006-2026-matched/as_of_date=2026-07-24/targets.parquet",
+      "sha256": "1672db1376c7f73fd023800abf99b92fd02ce21f76382445752a7f0ac8ccc57a"
+    },
+    {
+      "path": "data/feature_cube/spec006-2026-matched/as_of_date=2026-07-24/quality_status.parquet",
+      "sha256": "cb01e48d49fd5c87c29eba8b834cbf5c30ff82f8a5e15fc6070c1896425e32bd"
+    },
+    {
+      "path": "data/feature_cube/spec006-2026-matched/as_of_date=2026-07-31/features.parquet",
+      "sha256": "2de0e6998c788a8b7c1dfa7098a0024bd058bc4f62201f428dda8601634efe92"
+    },
+    {
+      "path": "data/targets/spec006-2026-matched/as_of_date=2026-07-31/targets.parquet",
+      "sha256": "cebbb4dd06edb7442b6e884b96cd0325661f788419bf0653cf888e247e6f0900"
+    },
+    {
+      "path": "data/feature_cube/spec006-2026-matched/as_of_date=2026-07-31/quality_status.parquet",
+      "sha256": "0306114ad2329001db368780608d4c95dcfa1d11ad957779add94dfa6b6252a4"
+    },
+    {
+      "path": "data/feature_cube/spec006-2026-matched/as_of_date=2026-08-07/features.parquet",
+      "sha256": "b29b30ae06c64f307a9bdb7829bf2d08b573118d34cc3f2c8f9c06396aeeec7a"
+    },
+    {
+      "path": "data/targets/spec006-2026-matched/as_of_date=2026-08-07/targets.parquet",
+      "sha256": "5f7f409ef37d3dd90315c07b8d863083621b30f86e7c855e887a3521a9b3eb84"
+    },
+    {
+      "path": "data/feature_cube/spec006-2026-matched/as_of_date=2026-08-07/quality_status.parquet",
+      "sha256": "f9ac92a8bb6ee2aa0128188c29927820335ca471b30ee397259f45a324ac298a"
+    },
+    {
+      "path": "data/feature_cube/spec006-2026-matched/as_of_date=2026-08-14/features.parquet",
+      "sha256": "69a7b243c8f28b03c3e20e8f90120ca7ba504c1284513c6df2c8895e912943b9"
+    },
+    {
+      "path": "data/targets/spec006-2026-matched/as_of_date=2026-08-14/targets.parquet",
+      "sha256": "a035c229d6c650e6ce62270a5e170266a7312812eae0b655a611d840225aa176"
+    },
+    {
+      "path": "data/feature_cube/spec006-2026-matched/as_of_date=2026-08-14/quality_status.parquet",
+      "sha256": "4e52697e564788b66a86d574e3407e22d1fe83a48b4a92b186ec68c026fea84b"
+    },
+    {
+      "path": "data/feature_cube/spec006-2026-matched/as_of_date=2026-08-21/features.parquet",
+      "sha256": "3b99296beae2c8c4e77054367a8d46d8714373818c151850d3e1041af33cc523"
+    },
+    {
+      "path": "data/targets/spec006-2026-matched/as_of_date=2026-08-21/targets.parquet",
+      "sha256": "4833ff667993f098b4bcd714b42847705da65a6f235f344539b2d3ccc690df3f"
+    },
+    {
+      "path": "data/feature_cube/spec006-2026-matched/as_of_date=2026-08-21/quality_status.parquet",
+      "sha256": "c7722fe865193d23ff5a4e9fe41dcd24fb39768beffd1aa197332b57c60bfe70"
+    },
+    {
+      "path": "data/feature_cube/spec006-2026-matched/as_of_date=2026-08-28/features.parquet",
+      "sha256": "5cd9ed21e2157c37fb5743625c9567d258ee3625f0dab1e35c03554c84660a0d"
+    },
+    {
+      "path": "data/targets/spec006-2026-matched/as_of_date=2026-08-28/targets.parquet",
+      "sha256": "8dee1c7c79983055bd5f8a699741f3eafab15bee55d0d4565e37b36a3eb39c18"
+    },
+    {
+      "path": "data/feature_cube/spec006-2026-matched/as_of_date=2026-08-28/quality_status.parquet",
+      "sha256": "f4d0b5283297fb9f6c456fb00fb06ff24e9cad033ba2c9c66e9d8cb64956a629"
+    },
+    {
+      "path": "data/feature_cube/spec006-2026-matched/as_of_date=2026-09-04/features.parquet",
+      "sha256": "149c740f9c8d6d5595b798568ad2e55f7f6b3b71924230b7a1853bb729e528f4"
+    },
+    {
+      "path": "data/targets/spec006-2026-matched/as_of_date=2026-09-04/targets.parquet",
+      "sha256": "294c9112e0560b75c4d52c652b392d5719ffcc4caa72f0affa727d1713f90e7b"
+    },
+    {
+      "path": "data/feature_cube/spec006-2026-matched/as_of_date=2026-09-04/quality_status.parquet",
+      "sha256": "400ab1ca0a83fbef0b515553687313c54e312b20ccaf9211043a60acc9c7f8d7"
+    },
+    {
+      "path": "data/feature_cube/spec006-2026-matched/as_of_date=2026-09-11/features.parquet",
+      "sha256": "579385e57db6794a998d5b241b39165b5837d7cffa85e63fa7e85d20eca8224c"
+    },
+    {
+      "path": "data/targets/spec006-2026-matched/as_of_date=2026-09-11/targets.parquet",
+      "sha256": "3df7a75cdbb6c80c3baed5e079313f2becb11062db13e341629080ad0b0a8ea5"
+    },
+    {
+      "path": "data/feature_cube/spec006-2026-matched/as_of_date=2026-09-11/quality_status.parquet",
+      "sha256": "400ab1ca0a83fbef0b515553687313c54e312b20ccaf9211043a60acc9c7f8d7"
+    },
+    {
+      "path": "data/feature_cube/spec006-2026-matched/as_of_date=2026-09-18/features.parquet",
+      "sha256": "aa63684868d2b7787fdf098c4fe44e60db99cbec797a4d058d74df394da64dd0"
+    },
+    {
+      "path": "data/targets/spec006-2026-matched/as_of_date=2026-09-18/targets.parquet",
+      "sha256": "02855903e950e3d1a14a73feeadce9d8b2f9b0e6bf9f59839d7f5d6616d22d3e"
+    },
+    {
+      "path": "data/feature_cube/spec006-2026-matched/as_of_date=2026-09-18/quality_status.parquet",
+      "sha256": "400ab1ca0a83fbef0b515553687313c54e312b20ccaf9211043a60acc9c7f8d7"
+    },
+    {
+      "path": "data/feature_cube/spec006-2026-matched/as_of_date=2026-09-25/features.parquet",
+      "sha256": "7078c52bbf8a1cea005b925f5cd19216afe184b29e3c1282899a8d8b8c96fbdd"
+    },
+    {
+      "path": "data/targets/spec006-2026-matched/as_of_date=2026-09-25/targets.parquet",
+      "sha256": "40fed93b80a3f3afea2683def0fc9c877898da0a3c73b5ee4160f4695b769bf8"
+    },
+    {
+      "path": "data/feature_cube/spec006-2026-matched/as_of_date=2026-09-25/quality_status.parquet",
+      "sha256": "400ab1ca0a83fbef0b515553687313c54e312b20ccaf9211043a60acc9c7f8d7"
+    },
+    {
+      "path": "data/feature_cube/spec006-2026-matched/as_of_date=2026-09-28/features.parquet",
+      "sha256": "70112bc80e8fe83c7c3fbf2ca88f17248132bd60db863634d58a7b658507a954"
+    },
+    {
+      "path": "data/targets/spec006-2026-matched/as_of_date=2026-09-28/targets.parquet",
+      "sha256": "62df2ba00b1c8a1013bf083acec7d29700b2f37778fcbd6b6920308368b81e03"
+    },
+    {
+      "path": "data/feature_cube/spec006-2026-matched/as_of_date=2026-09-28/quality_status.parquet",
+      "sha256": "ddc89c78e9238ddc3f0d7517e190ab85c2e2ea8fab2f26218ca344e355b2dfa5"
+    }
+  ],
+  "discovery_features_with_data": 1042,
+  "rank_signatures_unique": 937,
+  "duplicate_features_removed": 105,
+  "legacy_reproduction": [
+    {
+      "year": 2024,
+      "relations": 815,
+      "max_abs_ic_error": 2.7755575615628914e-17
+    },
+    {
+      "year": 2025,
+      "relations": 815,
+      "max_abs_ic_error": 2.7755575615628914e-17
+    },
+    {
+      "year": 2026,
+      "relations": 815,
+      "max_abs_ic_error": 0.0
+    }
+  ],
+  "period_metrics": [
+    {
+      "cohort": "old_top500",
+      "policy": "legacy_research_ready",
+      "year": 2024,
+      "relations": 500,
+      "mean_ic": -0.016568990579704176,
+      "median_abs_ic": 0.028067146172631993,
+      "minimum_cutoffs": 27,
+      "observations": 2439978
+    },
+    {
+      "cohort": "old_top500",
+      "policy": "legacy_research_ready",
+      "year": 2025,
+      "relations": 500,
+      "mean_ic": 0.011251991458883418,
+      "median_abs_ic": 0.022962133830357768,
+      "minimum_cutoffs": 27,
+      "observations": 2289261
+    },
+    {
+      "cohort": "old_top500",
+      "policy": "legacy_research_ready",
+      "year": 2026,
+      "relations": 500,
+      "mean_ic": 0.008478060271843014,
+      "median_abs_ic": 0.02296844842558643,
+      "minimum_cutoffs": 25,
+      "observations": 1990976
+    },
+    {
+      "cohort": "old_top500",
+      "policy": "ex_ante",
+      "year": 2024,
+      "relations": 500,
+      "mean_ic": -0.016288440240565482,
+      "median_abs_ic": 0.027695904421020365,
+      "minimum_cutoffs": 27,
+      "observations": 2441974
+    },
+    {
+      "cohort": "old_top500",
+      "policy": "ex_ante",
+      "year": 2025,
+      "relations": 500,
+      "mean_ic": 0.011904387338064766,
+      "median_abs_ic": 0.023296295544830217,
+      "minimum_cutoffs": 27,
+      "observations": 2291261
+    },
+    {
+      "cohort": "old_top500",
+      "policy": "ex_ante",
+      "year": 2026,
+      "relations": 500,
+      "mean_ic": 0.008368008444047403,
+      "median_abs_ic": 0.02268512462895857,
+      "minimum_cutoffs": 25,
+      "observations": 1992975
+    },
+    {
+      "cohort": "old_top500",
+      "policy": "clean_future",
+      "year": 2024,
+      "relations": 500,
+      "mean_ic": -0.016568990579704176,
+      "median_abs_ic": 0.028067146172631993,
+      "minimum_cutoffs": 27,
+      "observations": 2439978
+    },
+    {
+      "cohort": "old_top500",
+      "policy": "clean_future",
+      "year": 2025,
+      "relations": 500,
+      "mean_ic": 0.011251991458883417,
+      "median_abs_ic": 0.022962133830357768,
+      "minimum_cutoffs": 27,
+      "observations": 2289261
+    },
+    {
+      "cohort": "old_top500",
+      "policy": "clean_future",
+      "year": 2026,
+      "relations": 500,
+      "mean_ic": 0.008478060271843014,
+      "median_abs_ic": 0.02296844842558643,
+      "minimum_cutoffs": 25,
+      "observations": 1990976
+    },
+    {
+      "cohort": "old_top100_by_window_815",
+      "policy": "legacy_research_ready",
+      "year": 2024,
+      "relations": 815,
+      "mean_ic": -0.010456469155422707,
+      "median_abs_ic": 0.018803359275024252,
+      "minimum_cutoffs": 27,
+      "observations": 3981647
+    },
+    {
+      "cohort": "old_top100_by_window_815",
+      "policy": "legacy_research_ready",
+      "year": 2025,
+      "relations": 815,
+      "mean_ic": 0.009362647221654676,
+      "median_abs_ic": 0.02163133021958136,
+      "minimum_cutoffs": 27,
+      "observations": 3731880
+    },
+    {
+      "cohort": "old_top100_by_window_815",
+      "policy": "legacy_research_ready",
+      "year": 2026,
+      "relations": 815,
+      "mean_ic": 0.008532772530304933,
+      "median_abs_ic": 0.0235519183591929,
+      "minimum_cutoffs": 25,
+      "observations": 3245057
+    },
+    {
+      "cohort": "old_top100_by_window_815",
+      "policy": "ex_ante",
+      "year": 2024,
+      "relations": 815,
+      "mean_ic": -0.010201621434533185,
+      "median_abs_ic": 0.018417470194724853,
+      "minimum_cutoffs": 27,
+      "observations": 3984900
+    },
+    {
+      "cohort": "old_top100_by_window_815",
+      "policy": "ex_ante",
+      "year": 2025,
+      "relations": 815,
+      "mean_ic": 0.009729272238970748,
+      "median_abs_ic": 0.021632469935706503,
+      "minimum_cutoffs": 27,
+      "observations": 3735140
+    },
+    {
+      "cohort": "old_top100_by_window_815",
+      "policy": "ex_ante",
+      "year": 2026,
+      "relations": 815,
+      "mean_ic": 0.008444577728327567,
+      "median_abs_ic": 0.023178599481693346,
+      "minimum_cutoffs": 25,
+      "observations": 3248316
+    },
+    {
+      "cohort": "old_top100_by_window_815",
+      "policy": "clean_future",
+      "year": 2024,
+      "relations": 815,
+      "mean_ic": -0.010456469155422705,
+      "median_abs_ic": 0.018803359275024252,
+      "minimum_cutoffs": 27,
+      "observations": 3981647
+    },
+    {
+      "cohort": "old_top100_by_window_815",
+      "policy": "clean_future",
+      "year": 2025,
+      "relations": 815,
+      "mean_ic": 0.009362647221654676,
+      "median_abs_ic": 0.02163133021958136,
+      "minimum_cutoffs": 27,
+      "observations": 3731880
+    },
+    {
+      "cohort": "old_top100_by_window_815",
+      "policy": "clean_future",
+      "year": 2026,
+      "relations": 815,
+      "mean_ic": 0.008532772530304933,
+      "median_abs_ic": 0.0235519183591929,
+      "minimum_cutoffs": 25,
+      "observations": 3245057
+    },
+    {
+      "cohort": "corrected_unique_discovery",
+      "policy": "legacy_research_ready",
+      "year": 2024,
+      "relations": 838,
+      "mean_ic": -0.0073241249172442775,
+      "median_abs_ic": 0.015505592210914167,
+      "minimum_cutoffs": 23,
+      "observations": 4083359
+    },
+    {
+      "cohort": "corrected_unique_discovery",
+      "policy": "legacy_research_ready",
+      "year": 2025,
+      "relations": 838,
+      "mean_ic": 0.007609926327379873,
+      "median_abs_ic": 0.019723448178080374,
+      "minimum_cutoffs": 25,
+      "observations": 3833187
+    },
+    {
+      "cohort": "corrected_unique_discovery",
+      "policy": "legacy_research_ready",
+      "year": 2026,
+      "relations": 838,
+      "mean_ic": 0.007130687111351901,
+      "median_abs_ic": 0.023731244417085403,
+      "minimum_cutoffs": 20,
+      "observations": 3323940
+    },
+    {
+      "cohort": "corrected_unique_discovery",
+      "policy": "ex_ante",
+      "year": 2024,
+      "relations": 838,
+      "mean_ic": -0.007130088312424316,
+      "median_abs_ic": 0.015429293066072049,
+      "minimum_cutoffs": 23,
+      "observations": 4086703
+    },
+    {
+      "cohort": "corrected_unique_discovery",
+      "policy": "ex_ante",
+      "year": 2025,
+      "relations": 838,
+      "mean_ic": 0.007804812070784789,
+      "median_abs_ic": 0.0195584955289526,
+      "minimum_cutoffs": 25,
+      "observations": 3836539
+    },
+    {
+      "cohort": "corrected_unique_discovery",
+      "policy": "ex_ante",
+      "year": 2026,
+      "relations": 838,
+      "mean_ic": 0.007061204521424916,
+      "median_abs_ic": 0.023528407537979596,
+      "minimum_cutoffs": 20,
+      "observations": 3327283
+    },
+    {
+      "cohort": "corrected_unique_discovery",
+      "policy": "clean_future",
+      "year": 2024,
+      "relations": 838,
+      "mean_ic": -0.007324124917244278,
+      "median_abs_ic": 0.015505592210914167,
+      "minimum_cutoffs": 23,
+      "observations": 4083359
+    },
+    {
+      "cohort": "corrected_unique_discovery",
+      "policy": "clean_future",
+      "year": 2025,
+      "relations": 838,
+      "mean_ic": 0.007609926327379874,
+      "median_abs_ic": 0.019723448178080374,
+      "minimum_cutoffs": 25,
+      "observations": 3833187
+    },
+    {
+      "cohort": "corrected_unique_discovery",
+      "policy": "clean_future",
+      "year": 2026,
+      "relations": 838,
+      "mean_ic": 0.007130687111351901,
+      "median_abs_ic": 0.023731244417085403,
+      "minimum_cutoffs": 20,
+      "observations": 3323940
+    },
+    {
+      "cohort": "broad_candidates",
+      "policy": "legacy_research_ready",
+      "year": 2024,
+      "relations": 504,
+      "mean_ic": -0.00904908649377781,
+      "median_abs_ic": 0.017482444055087733,
+      "minimum_cutoffs": 27,
+      "observations": 2464953
+    },
+    {
+      "cohort": "broad_candidates",
+      "policy": "legacy_research_ready",
+      "year": 2025,
+      "relations": 504,
+      "mean_ic": 0.010647038330121468,
+      "median_abs_ic": 0.025690259087588332,
+      "minimum_cutoffs": 27,
+      "observations": 2308805
+    },
+    {
+      "cohort": "broad_candidates",
+      "policy": "legacy_research_ready",
+      "year": 2026,
+      "relations": 504,
+      "mean_ic": 0.012114257210869048,
+      "median_abs_ic": 0.03222076839056703,
+      "minimum_cutoffs": 25,
+      "observations": 2007622
+    },
+    {
+      "cohort": "broad_candidates",
+      "policy": "ex_ante",
+      "year": 2024,
+      "relations": 504,
+      "mean_ic": -0.00882742569394431,
+      "median_abs_ic": 0.017306269395168637,
+      "minimum_cutoffs": 27,
+      "observations": 2466965
+    },
+    {
+      "cohort": "broad_candidates",
+      "policy": "ex_ante",
+      "year": 2025,
+      "relations": 504,
+      "mean_ic": 0.010796848920892096,
+      "median_abs_ic": 0.025479853005535114,
+      "minimum_cutoffs": 27,
+      "observations": 2310821
+    },
+    {
+      "cohort": "broad_candidates",
+      "policy": "ex_ante",
+      "year": 2026,
+      "relations": 504,
+      "mean_ic": 0.011999278990438724,
+      "median_abs_ic": 0.03194161436831166,
+      "minimum_cutoffs": 25,
+      "observations": 2009638
+    },
+    {
+      "cohort": "broad_candidates",
+      "policy": "clean_future",
+      "year": 2024,
+      "relations": 504,
+      "mean_ic": -0.009049086493777808,
+      "median_abs_ic": 0.017482444055087733,
+      "minimum_cutoffs": 27,
+      "observations": 2464953
+    },
+    {
+      "cohort": "broad_candidates",
+      "policy": "clean_future",
+      "year": 2025,
+      "relations": 504,
+      "mean_ic": 0.010647038330121468,
+      "median_abs_ic": 0.025690259087588332,
+      "minimum_cutoffs": 27,
+      "observations": 2308805
+    },
+    {
+      "cohort": "broad_candidates",
+      "policy": "clean_future",
+      "year": 2026,
+      "relations": 504,
+      "mean_ic": 0.012114257210869048,
+      "median_abs_ic": 0.03222076839056703,
+      "minimum_cutoffs": 25,
+      "observations": 2007622
+    },
+    {
+      "cohort": "strong_sign_candidates",
+      "policy": "legacy_research_ready",
+      "year": 2024,
+      "relations": 138,
+      "mean_ic": -0.004009626177546516,
+      "median_abs_ic": 0.011648145741581021,
+      "minimum_cutoffs": 27,
+      "observations": 676619
+    },
+    {
+      "cohort": "strong_sign_candidates",
+      "policy": "legacy_research_ready",
+      "year": 2025,
+      "relations": 138,
+      "mean_ic": 0.018078248879251337,
+      "median_abs_ic": 0.03576722810774274,
+      "minimum_cutoffs": 27,
+      "observations": 632361
+    },
+    {
+      "cohort": "strong_sign_candidates",
+      "policy": "legacy_research_ready",
+      "year": 2026,
+      "relations": 138,
+      "mean_ic": 0.023387411888041762,
+      "median_abs_ic": 0.04513264790346351,
+      "minimum_cutoffs": 25,
+      "observations": 549739
+    },
+    {
+      "cohort": "strong_sign_candidates",
+      "policy": "ex_ante",
+      "year": 2024,
+      "relations": 138,
+      "mean_ic": -0.003562197379592295,
+      "median_abs_ic": 0.01211208734348504,
+      "minimum_cutoffs": 27,
+      "observations": 677170
+    },
+    {
+      "cohort": "strong_sign_candidates",
+      "policy": "ex_ante",
+      "year": 2025,
+      "relations": 138,
+      "mean_ic": 0.01754201694121571,
+      "median_abs_ic": 0.03418679417505675,
+      "minimum_cutoffs": 27,
+      "observations": 632913
+    },
+    {
+      "cohort": "strong_sign_candidates",
+      "policy": "ex_ante",
+      "year": 2026,
+      "relations": 138,
+      "mean_ic": 0.023299489845150317,
+      "median_abs_ic": 0.044977084441212664,
+      "minimum_cutoffs": 25,
+      "observations": 550291
+    },
+    {
+      "cohort": "strong_sign_candidates",
+      "policy": "clean_future",
+      "year": 2024,
+      "relations": 138,
+      "mean_ic": -0.004009626177546516,
+      "median_abs_ic": 0.011648145741581021,
+      "minimum_cutoffs": 27,
+      "observations": 676619
+    },
+    {
+      "cohort": "strong_sign_candidates",
+      "policy": "clean_future",
+      "year": 2025,
+      "relations": 138,
+      "mean_ic": 0.018078248879251333,
+      "median_abs_ic": 0.03576722810774274,
+      "minimum_cutoffs": 27,
+      "observations": 632361
+    },
+    {
+      "cohort": "strong_sign_candidates",
+      "policy": "clean_future",
+      "year": 2026,
+      "relations": 138,
+      "mean_ic": 0.023387411888041762,
+      "median_abs_ic": 0.04513264790346351,
+      "minimum_cutoffs": 25,
+      "observations": 549739
+    },
+    {
+      "cohort": "strict_candidates",
+      "policy": "legacy_research_ready",
+      "year": 2024,
+      "relations": 85,
+      "mean_ic": -0.00414401492723186,
+      "median_abs_ic": 0.011561405915417116,
+      "minimum_cutoffs": 27,
+      "observations": 416789
+    },
+    {
+      "cohort": "strict_candidates",
+      "policy": "legacy_research_ready",
+      "year": 2025,
+      "relations": 85,
+      "mean_ic": 0.02237516078307571,
+      "median_abs_ic": 0.03661855269984203,
+      "minimum_cutoffs": 27,
+      "observations": 389545
+    },
+    {
+      "cohort": "strict_candidates",
+      "policy": "legacy_research_ready",
+      "year": 2026,
+      "relations": 85,
+      "mean_ic": 0.029045153068772117,
+      "median_abs_ic": 0.046028664848807875,
+      "minimum_cutoffs": 25,
+      "observations": 338640
+    },
+    {
+      "cohort": "strict_candidates",
+      "policy": "ex_ante",
+      "year": 2024,
+      "relations": 85,
+      "mean_ic": -0.003571922239291247,
+      "median_abs_ic": 0.012231352359083136,
+      "minimum_cutoffs": 27,
+      "observations": 417129
+    },
+    {
+      "cohort": "strict_candidates",
+      "policy": "ex_ante",
+      "year": 2025,
+      "relations": 85,
+      "mean_ic": 0.021642324814913006,
+      "median_abs_ic": 0.035852803532492,
+      "minimum_cutoffs": 27,
+      "observations": 389885
+    },
+    {
+      "cohort": "strict_candidates",
+      "policy": "ex_ante",
+      "year": 2026,
+      "relations": 85,
+      "mean_ic": 0.028961549735759113,
+      "median_abs_ic": 0.045727092546630516,
+      "minimum_cutoffs": 25,
+      "observations": 338980
+    },
+    {
+      "cohort": "strict_candidates",
+      "policy": "clean_future",
+      "year": 2024,
+      "relations": 85,
+      "mean_ic": -0.00414401492723186,
+      "median_abs_ic": 0.011561405915417116,
+      "minimum_cutoffs": 27,
+      "observations": 416789
+    },
+    {
+      "cohort": "strict_candidates",
+      "policy": "clean_future",
+      "year": 2025,
+      "relations": 85,
+      "mean_ic": 0.022375160783075707,
+      "median_abs_ic": 0.03661855269984203,
+      "minimum_cutoffs": 27,
+      "observations": 389545
+    },
+    {
+      "cohort": "strict_candidates",
+      "policy": "clean_future",
+      "year": 2026,
+      "relations": 85,
+      "mean_ic": 0.029045153068772117,
+      "median_abs_ic": 0.046028664848807875,
+      "minimum_cutoffs": 25,
+      "observations": 338640
+    }
+  ],
+  "period_stability": [
+    {
+      "cohort": "old_top500",
+      "policy": "legacy_research_ready",
+      "first_year": 2024,
+      "second_year": 2025,
+      "evaluable": 500,
+      "inverted": 330,
+      "retained": 170,
+      "inversion_rate": 0.66,
+      "median_amplitude_retention": 0.6592587670819412
+    },
+    {
+      "cohort": "old_top500",
+      "policy": "legacy_research_ready",
+      "first_year": 2024,
+      "second_year": 2026,
+      "evaluable": 500,
+      "inverted": 321,
+      "retained": 179,
+      "inversion_rate": 0.642,
+      "median_amplitude_retention": 0.705503947486318
+    },
+    {
+      "cohort": "old_top500",
+      "policy": "legacy_research_ready",
+      "first_year": 2025,
+      "second_year": 2026,
+      "evaluable": 500,
+      "inverted": 91,
+      "retained": 409,
+      "inversion_rate": 0.182,
+      "median_amplitude_retention": 1.0157305670906243
+    },
+    {
+      "cohort": "old_top500",
+      "policy": "ex_ante",
+      "first_year": 2024,
+      "second_year": 2025,
+      "evaluable": 500,
+      "inverted": 329,
+      "retained": 171,
+      "inversion_rate": 0.658,
+      "median_amplitude_retention": 0.7106684046876344
+    },
+    {
+      "cohort": "old_top500",
+      "policy": "ex_ante",
+      "first_year": 2024,
+      "second_year": 2026,
+      "evaluable": 500,
+      "inverted": 320,
+      "retained": 180,
+      "inversion_rate": 0.64,
+      "median_amplitude_retention": 0.716367088272339
+    },
+    {
+      "cohort": "old_top500",
+      "policy": "ex_ante",
+      "first_year": 2025,
+      "second_year": 2026,
+      "evaluable": 500,
+      "inverted": 91,
+      "retained": 409,
+      "inversion_rate": 0.182,
+      "median_amplitude_retention": 0.9784268348319183
+    },
+    {
+      "cohort": "old_top500",
+      "policy": "clean_future",
+      "first_year": 2024,
+      "second_year": 2025,
+      "evaluable": 500,
+      "inverted": 330,
+      "retained": 170,
+      "inversion_rate": 0.66,
+      "median_amplitude_retention": 0.6592587670819412
+    },
+    {
+      "cohort": "old_top500",
+      "policy": "clean_future",
+      "first_year": 2024,
+      "second_year": 2026,
+      "evaluable": 500,
+      "inverted": 321,
+      "retained": 179,
+      "inversion_rate": 0.642,
+      "median_amplitude_retention": 0.705503947486318
+    },
+    {
+      "cohort": "old_top500",
+      "policy": "clean_future",
+      "first_year": 2025,
+      "second_year": 2026,
+      "evaluable": 500,
+      "inverted": 91,
+      "retained": 409,
+      "inversion_rate": 0.182,
+      "median_amplitude_retention": 1.0157305670906243
+    },
+    {
+      "cohort": "old_top100_by_window_815",
+      "policy": "legacy_research_ready",
+      "first_year": 2024,
+      "second_year": 2025,
+      "evaluable": 815,
+      "inverted": 492,
+      "retained": 323,
+      "inversion_rate": 0.603680981595092,
+      "median_amplitude_retention": 0.9511198928944942
+    },
+    {
+      "cohort": "old_top100_by_window_815",
+      "policy": "legacy_research_ready",
+      "first_year": 2024,
+      "second_year": 2026,
+      "evaluable": 815,
+      "inverted": 473,
+      "retained": 342,
+      "inversion_rate": 0.5803680981595092,
+      "median_amplitude_retention": 1.027388362538067
+    },
+    {
+      "cohort": "old_top100_by_window_815",
+      "policy": "legacy_research_ready",
+      "first_year": 2025,
+      "second_year": 2026,
+      "evaluable": 815,
+      "inverted": 153,
+      "retained": 662,
+      "inversion_rate": 0.18773006134969325,
+      "median_amplitude_retention": 1.1616049607819263
+    },
+    {
+      "cohort": "old_top100_by_window_815",
+      "policy": "ex_ante",
+      "first_year": 2024,
+      "second_year": 2025,
+      "evaluable": 815,
+      "inverted": 492,
+      "retained": 323,
+      "inversion_rate": 0.603680981595092,
+      "median_amplitude_retention": 0.9808426516104789
+    },
+    {
+      "cohort": "old_top100_by_window_815",
+      "policy": "ex_ante",
+      "first_year": 2024,
+      "second_year": 2026,
+      "evaluable": 815,
+      "inverted": 473,
+      "retained": 342,
+      "inversion_rate": 0.5803680981595092,
+      "median_amplitude_retention": 1.0478054323120947
+    },
+    {
+      "cohort": "old_top100_by_window_815",
+      "policy": "ex_ante",
+      "first_year": 2025,
+      "second_year": 2026,
+      "evaluable": 815,
+      "inverted": 153,
+      "retained": 662,
+      "inversion_rate": 0.18773006134969325,
+      "median_amplitude_retention": 1.1445820152767145
+    },
+    {
+      "cohort": "old_top100_by_window_815",
+      "policy": "clean_future",
+      "first_year": 2024,
+      "second_year": 2025,
+      "evaluable": 815,
+      "inverted": 492,
+      "retained": 323,
+      "inversion_rate": 0.603680981595092,
+      "median_amplitude_retention": 0.9511198928944942
+    },
+    {
+      "cohort": "old_top100_by_window_815",
+      "policy": "clean_future",
+      "first_year": 2024,
+      "second_year": 2026,
+      "evaluable": 815,
+      "inverted": 473,
+      "retained": 342,
+      "inversion_rate": 0.5803680981595092,
+      "median_amplitude_retention": 1.027388362538067
+    },
+    {
+      "cohort": "old_top100_by_window_815",
+      "policy": "clean_future",
+      "first_year": 2025,
+      "second_year": 2026,
+      "evaluable": 815,
+      "inverted": 153,
+      "retained": 662,
+      "inversion_rate": 0.18773006134969325,
+      "median_amplitude_retention": 1.1616049607819263
+    },
+    {
+      "cohort": "corrected_unique_discovery",
+      "policy": "legacy_research_ready",
+      "first_year": 2024,
+      "second_year": 2025,
+      "evaluable": 838,
+      "inverted": 462,
+      "retained": 376,
+      "inversion_rate": 0.5513126491646778,
+      "median_amplitude_retention": 1.0787773142547457
+    },
+    {
+      "cohort": "corrected_unique_discovery",
+      "policy": "legacy_research_ready",
+      "first_year": 2024,
+      "second_year": 2026,
+      "evaluable": 838,
+      "inverted": 457,
+      "retained": 381,
+      "inversion_rate": 0.545346062052506,
+      "median_amplitude_retention": 1.372330530575705
+    },
+    {
+      "cohort": "corrected_unique_discovery",
+      "policy": "legacy_research_ready",
+      "first_year": 2025,
+      "second_year": 2026,
+      "evaluable": 838,
+      "inverted": 173,
+      "retained": 665,
+      "inversion_rate": 0.2064439140811456,
+      "median_amplitude_retention": 1.2534936693553076
+    },
+    {
+      "cohort": "corrected_unique_discovery",
+      "policy": "ex_ante",
+      "first_year": 2024,
+      "second_year": 2025,
+      "evaluable": 838,
+      "inverted": 457,
+      "retained": 381,
+      "inversion_rate": 0.545346062052506,
+      "median_amplitude_retention": 1.0882743147557945
+    },
+    {
+      "cohort": "corrected_unique_discovery",
+      "policy": "ex_ante",
+      "first_year": 2024,
+      "second_year": 2026,
+      "evaluable": 838,
+      "inverted": 453,
+      "retained": 385,
+      "inversion_rate": 0.5405727923627685,
+      "median_amplitude_retention": 1.3946411245970083
+    },
+    {
+      "cohort": "corrected_unique_discovery",
+      "policy": "ex_ante",
+      "first_year": 2025,
+      "second_year": 2026,
+      "evaluable": 838,
+      "inverted": 172,
+      "retained": 666,
+      "inversion_rate": 0.2052505966587112,
+      "median_amplitude_retention": 1.2610825665351824
+    },
+    {
+      "cohort": "corrected_unique_discovery",
+      "policy": "clean_future",
+      "first_year": 2024,
+      "second_year": 2025,
+      "evaluable": 838,
+      "inverted": 462,
+      "retained": 376,
+      "inversion_rate": 0.5513126491646778,
+      "median_amplitude_retention": 1.0787773142547457
+    },
+    {
+      "cohort": "corrected_unique_discovery",
+      "policy": "clean_future",
+      "first_year": 2024,
+      "second_year": 2026,
+      "evaluable": 838,
+      "inverted": 457,
+      "retained": 381,
+      "inversion_rate": 0.545346062052506,
+      "median_amplitude_retention": 1.372330530575705
+    },
+    {
+      "cohort": "corrected_unique_discovery",
+      "policy": "clean_future",
+      "first_year": 2025,
+      "second_year": 2026,
+      "evaluable": 838,
+      "inverted": 173,
+      "retained": 665,
+      "inversion_rate": 0.2064439140811456,
+      "median_amplitude_retention": 1.2534936693553076
+    },
+    {
+      "cohort": "broad_candidates",
+      "policy": "legacy_research_ready",
+      "first_year": 2024,
+      "second_year": 2025,
+      "evaluable": 504,
+      "inverted": 285,
+      "retained": 219,
+      "inversion_rate": 0.5654761904761905,
+      "median_amplitude_retention": 1.4156540486590434
+    },
+    {
+      "cohort": "broad_candidates",
+      "policy": "legacy_research_ready",
+      "first_year": 2024,
+      "second_year": 2026,
+      "evaluable": 504,
+      "inverted": 285,
+      "retained": 219,
+      "inversion_rate": 0.5654761904761905,
+      "median_amplitude_retention": 1.8951998469340479
+    },
+    {
+      "cohort": "broad_candidates",
+      "policy": "legacy_research_ready",
+      "first_year": 2025,
+      "second_year": 2026,
+      "evaluable": 504,
+      "inverted": 0,
+      "retained": 504,
+      "inversion_rate": 0.0,
+      "median_amplitude_retention": 1.2188575304812947
+    },
+    {
+      "cohort": "broad_candidates",
+      "policy": "ex_ante",
+      "first_year": 2024,
+      "second_year": 2025,
+      "evaluable": 504,
+      "inverted": 282,
+      "retained": 222,
+      "inversion_rate": 0.5595238095238095,
+      "median_amplitude_retention": 1.3738917450275674
+    },
+    {
+      "cohort": "broad_candidates",
+      "policy": "ex_ante",
+      "first_year": 2024,
+      "second_year": 2026,
+      "evaluable": 504,
+      "inverted": 282,
+      "retained": 222,
+      "inversion_rate": 0.5595238095238095,
+      "median_amplitude_retention": 1.8909905895729233
+    },
+    {
+      "cohort": "broad_candidates",
+      "policy": "ex_ante",
+      "first_year": 2025,
+      "second_year": 2026,
+      "evaluable": 504,
+      "inverted": 0,
+      "retained": 504,
+      "inversion_rate": 0.0,
+      "median_amplitude_retention": 1.2113175852777
+    },
+    {
+      "cohort": "broad_candidates",
+      "policy": "clean_future",
+      "first_year": 2024,
+      "second_year": 2025,
+      "evaluable": 504,
+      "inverted": 285,
+      "retained": 219,
+      "inversion_rate": 0.5654761904761905,
+      "median_amplitude_retention": 1.4156540486590434
+    },
+    {
+      "cohort": "broad_candidates",
+      "policy": "clean_future",
+      "first_year": 2024,
+      "second_year": 2026,
+      "evaluable": 504,
+      "inverted": 285,
+      "retained": 219,
+      "inversion_rate": 0.5654761904761905,
+      "median_amplitude_retention": 1.8951998469340479
+    },
+    {
+      "cohort": "broad_candidates",
+      "policy": "clean_future",
+      "first_year": 2025,
+      "second_year": 2026,
+      "evaluable": 504,
+      "inverted": 0,
+      "retained": 504,
+      "inversion_rate": 0.0,
+      "median_amplitude_retention": 1.2188575304812947
+    },
+    {
+      "cohort": "strong_sign_candidates",
+      "policy": "legacy_research_ready",
+      "first_year": 2024,
+      "second_year": 2025,
+      "evaluable": 138,
+      "inverted": 59,
+      "retained": 79,
+      "inversion_rate": 0.427536231884058,
+      "median_amplitude_retention": 2.8472694078804404
+    },
+    {
+      "cohort": "strong_sign_candidates",
+      "policy": "legacy_research_ready",
+      "first_year": 2024,
+      "second_year": 2026,
+      "evaluable": 138,
+      "inverted": 59,
+      "retained": 79,
+      "inversion_rate": 0.427536231884058,
+      "median_amplitude_retention": 3.572651478376571
+    },
+    {
+      "cohort": "strong_sign_candidates",
+      "policy": "legacy_research_ready",
+      "first_year": 2025,
+      "second_year": 2026,
+      "evaluable": 138,
+      "inverted": 0,
+      "retained": 138,
+      "inversion_rate": 0.0,
+      "median_amplitude_retention": 1.3091818896436522
+    },
+    {
+      "cohort": "strong_sign_candidates",
+      "policy": "ex_ante",
+      "first_year": 2024,
+      "second_year": 2025,
+      "evaluable": 138,
+      "inverted": 55,
+      "retained": 83,
+      "inversion_rate": 0.39855072463768115,
+      "median_amplitude_retention": 2.675583100286539
+    },
+    {
+      "cohort": "strong_sign_candidates",
+      "policy": "ex_ante",
+      "first_year": 2024,
+      "second_year": 2026,
+      "evaluable": 138,
+      "inverted": 55,
+      "retained": 83,
+      "inversion_rate": 0.39855072463768115,
+      "median_amplitude_retention": 3.495927949634157
+    },
+    {
+      "cohort": "strong_sign_candidates",
+      "policy": "ex_ante",
+      "first_year": 2025,
+      "second_year": 2026,
+      "evaluable": 138,
+      "inverted": 0,
+      "retained": 138,
+      "inversion_rate": 0.0,
+      "median_amplitude_retention": 1.3386252137207226
+    },
+    {
+      "cohort": "strong_sign_candidates",
+      "policy": "clean_future",
+      "first_year": 2024,
+      "second_year": 2025,
+      "evaluable": 138,
+      "inverted": 59,
+      "retained": 79,
+      "inversion_rate": 0.427536231884058,
+      "median_amplitude_retention": 2.8472694078804404
+    },
+    {
+      "cohort": "strong_sign_candidates",
+      "policy": "clean_future",
+      "first_year": 2024,
+      "second_year": 2026,
+      "evaluable": 138,
+      "inverted": 59,
+      "retained": 79,
+      "inversion_rate": 0.427536231884058,
+      "median_amplitude_retention": 3.572651478376571
+    },
+    {
+      "cohort": "strong_sign_candidates",
+      "policy": "clean_future",
+      "first_year": 2025,
+      "second_year": 2026,
+      "evaluable": 138,
+      "inverted": 0,
+      "retained": 138,
+      "inversion_rate": 0.0,
+      "median_amplitude_retention": 1.3091818896436522
+    },
+    {
+      "cohort": "strict_candidates",
+      "policy": "legacy_research_ready",
+      "first_year": 2024,
+      "second_year": 2025,
+      "evaluable": 85,
+      "inverted": 40,
+      "retained": 45,
+      "inversion_rate": 0.47058823529411764,
+      "median_amplitude_retention": 3.0686571509442637
+    },
+    {
+      "cohort": "strict_candidates",
+      "policy": "legacy_research_ready",
+      "first_year": 2024,
+      "second_year": 2026,
+      "evaluable": 85,
+      "inverted": 40,
+      "retained": 45,
+      "inversion_rate": 0.47058823529411764,
+      "median_amplitude_retention": 3.694548886882222
+    },
+    {
+      "cohort": "strict_candidates",
+      "policy": "legacy_research_ready",
+      "first_year": 2025,
+      "second_year": 2026,
+      "evaluable": 85,
+      "inverted": 0,
+      "retained": 85,
+      "inversion_rate": 0.0,
+      "median_amplitude_retention": 1.2988480234602156
+    },
+    {
+      "cohort": "strict_candidates",
+      "policy": "ex_ante",
+      "first_year": 2024,
+      "second_year": 2025,
+      "evaluable": 85,
+      "inverted": 37,
+      "retained": 48,
+      "inversion_rate": 0.43529411764705883,
+      "median_amplitude_retention": 2.7884876688893736
+    },
+    {
+      "cohort": "strict_candidates",
+      "policy": "ex_ante",
+      "first_year": 2024,
+      "second_year": 2026,
+      "evaluable": 85,
+      "inverted": 37,
+      "retained": 48,
+      "inversion_rate": 0.43529411764705883,
+      "median_amplitude_retention": 3.581551429943727
+    },
+    {
+      "cohort": "strict_candidates",
+      "policy": "ex_ante",
+      "first_year": 2025,
+      "second_year": 2026,
+      "evaluable": 85,
+      "inverted": 0,
+      "retained": 85,
+      "inversion_rate": 0.0,
+      "median_amplitude_retention": 1.3310664508811527
+    },
+    {
+      "cohort": "strict_candidates",
+      "policy": "clean_future",
+      "first_year": 2024,
+      "second_year": 2025,
+      "evaluable": 85,
+      "inverted": 40,
+      "retained": 45,
+      "inversion_rate": 0.47058823529411764,
+      "median_amplitude_retention": 3.0686571509442637
+    },
+    {
+      "cohort": "strict_candidates",
+      "policy": "clean_future",
+      "first_year": 2024,
+      "second_year": 2026,
+      "evaluable": 85,
+      "inverted": 40,
+      "retained": 45,
+      "inversion_rate": 0.47058823529411764,
+      "median_amplitude_retention": 3.694548886882222
+    },
+    {
+      "cohort": "strict_candidates",
+      "policy": "clean_future",
+      "first_year": 2025,
+      "second_year": 2026,
+      "evaluable": 85,
+      "inverted": 0,
+      "retained": 85,
+      "inversion_rate": 0.0,
+      "median_amplitude_retention": 1.2988480234602156
+    }
+  ],
+  "discovery_eligible_canonical_features": 838,
+  "candidate_counts_nested": {
+    "broad_candidates": 504,
+    "strong_sign_candidates": 138,
+    "strict_candidates": 85
+  },
+  "cohort_by_period": [
+    {
+      "year": 2024,
+      "eligible_at_cutoff_sum": 4918,
+      "target_observable_sum": 4918,
+      "ex_ante_sum": 4918,
+      "clean_future_sum": 4914,
+      "uninterpretable_sum": 0,
+      "eligible_min": 180,
+      "eligible_max": 183,
+      "cutoffs": 27
+    },
+    {
+      "year": 2025,
+      "eligible_at_cutoff_sum": 4589,
+      "target_observable_sum": 4589,
+      "ex_ante_sum": 4587,
+      "clean_future_sum": 4583,
+      "uninterpretable_sum": 2,
+      "eligible_min": 167,
+      "eligible_max": 173,
+      "cutoffs": 27
+    },
+    {
+      "year": 2026,
+      "eligible_at_cutoff_sum": 4304,
+      "target_observable_sum": 3988,
+      "ex_ante_sum": 3988,
+      "clean_future_sum": 3984,
+      "uninterpretable_sum": 0,
+      "eligible_min": 158,
+      "eligible_max": 162,
+      "cutoffs": 27
+    }
+  ],
+  "sensitivity": [
+    {
+      "year": 2024,
+      "mean_abs_delta_vs_legacy": 0.001180339669170327,
+      "max_abs_delta_vs_legacy": 0.00875131828850433,
+      "mean_ic_sign_changes": 25,
+      "mean_abs_delta_vs_clean": 0.001180339669170327
+    },
+    {
+      "year": 2025,
+      "mean_abs_delta_vs_legacy": 0.0010834899126424757,
+      "max_abs_delta_vs_legacy": 0.002496882339889128,
+      "mean_ic_sign_changes": 2,
+      "mean_abs_delta_vs_clean": 0.0010834899126424757
+    },
+    {
+      "year": 2026,
+      "mean_abs_delta_vs_legacy": 0.0003012845108645856,
+      "max_abs_delta_vs_legacy": 0.001380225975195798,
+      "mean_ic_sign_changes": 1,
+      "mean_abs_delta_vs_clean": 0.0003012845108645856
+    }
+  ],
+  "regime_by_period": [
+    {
+      "year": 2024,
+      "market_return_20": -0.013127557882260084,
+      "global_volatility_20": 0.13744863393299142,
+      "dispersion_20": 0.08830198035107861,
+      "breadth_20": 0.4789040123193632,
+      "large_market_trend_60": -0.016500133447983466,
+      "up_cutoffs": 9
+    },
+    {
+      "year": 2025,
+      "market_return_20": -0.006151914949920656,
+      "global_volatility_20": 0.16005805753880395,
+      "dispersion_20": 0.0907128407126479,
+      "breadth_20": 0.5048272058289954,
+      "large_market_trend_60": -0.009927572625445125,
+      "up_cutoffs": 12
+    },
+    {
+      "year": 2026,
+      "market_return_20": 0.0001369420464028075,
+      "global_volatility_20": 0.14515090313326778,
+      "dispersion_20": 0.08091434777405286,
+      "breadth_20": 0.48556718849533553,
+      "large_market_trend_60": -0.0007198884280236019,
+      "up_cutoffs": 13
+    }
+  ],
+  "regime_candidate_summary": [
+    {
+      "year": 2024,
+      "market_state": "down",
+      "mean_oriented_ic": -0.006024673508788542,
+      "cutoffs": 18,
+      "features": 504,
+      "candidate_tier": "broad_candidates"
+    },
+    {
+      "year": 2024,
+      "market_state": "up",
+      "mean_oriented_ic": -0.008249389865652573,
+      "cutoffs": 9,
+      "features": 504,
+      "candidate_tier": "broad_candidates"
+    },
+    {
+      "year": 2025,
+      "market_state": "down",
+      "mean_oriented_ic": 0.03757601418266933,
+      "cutoffs": 15,
+      "features": 504,
+      "candidate_tier": "broad_candidates"
+    },
+    {
+      "year": 2025,
+      "market_state": "up",
+      "mean_oriented_ic": 0.01171391827949783,
+      "cutoffs": 12,
+      "features": 504,
+      "candidate_tier": "broad_candidates"
+    },
+    {
+      "year": 2026,
+      "market_state": "down",
+      "mean_oriented_ic": 0.02331470623324098,
+      "cutoffs": 12,
+      "features": 504,
+      "candidate_tier": "broad_candidates"
+    },
+    {
+      "year": 2026,
+      "market_state": "up",
+      "mean_oriented_ic": 0.04026744423102443,
+      "cutoffs": 13,
+      "features": 504,
+      "candidate_tier": "broad_candidates"
+    },
+    {
+      "year": 2024,
+      "market_state": "down",
+      "mean_oriented_ic": 0.004593732313466655,
+      "cutoffs": 18,
+      "features": 85,
+      "candidate_tier": "strict_candidates"
+    },
+    {
+      "year": 2024,
+      "market_state": "up",
+      "mean_oriented_ic": -0.007167017279782968,
+      "cutoffs": 9,
+      "features": 85,
+      "candidate_tier": "strict_candidates"
+    },
+    {
+      "year": 2025,
+      "market_state": "down",
+      "mean_oriented_ic": 0.04262167226821471,
+      "cutoffs": 15,
+      "features": 85,
+      "candidate_tier": "strict_candidates"
+    },
+    {
+      "year": 2025,
+      "market_state": "up",
+      "mean_oriented_ic": 0.02706867290904757,
+      "cutoffs": 12,
+      "features": 85,
+      "candidate_tier": "strict_candidates"
+    },
+    {
+      "year": 2026,
+      "market_state": "down",
+      "mean_oriented_ic": 0.03133296123768676,
+      "cutoffs": 12,
+      "features": 85,
+      "candidate_tier": "strict_candidates"
+    },
+    {
+      "year": 2026,
+      "market_state": "up",
+      "mean_oriented_ic": 0.059894698402534086,
+      "cutoffs": 13,
+      "features": 85,
+      "candidate_tier": "strict_candidates"
+    },
+    {
+      "year": 2024,
+      "market_state": "down",
+      "mean_oriented_ic": 0.004473098112950182,
+      "cutoffs": 18,
+      "features": 138,
+      "candidate_tier": "strong_sign_candidates"
+    },
+    {
+      "year": 2024,
+      "market_state": "up",
+      "mean_oriented_ic": -0.0037946797889824332,
+      "cutoffs": 9,
+      "features": 138,
+      "candidate_tier": "strong_sign_candidates"
+    },
+    {
+      "year": 2025,
+      "market_state": "down",
+      "mean_oriented_ic": 0.041035488169808426,
+      "cutoffs": 15,
+      "features": 138,
+      "candidate_tier": "strong_sign_candidates"
+    },
+    {
+      "year": 2025,
+      "market_state": "up",
+      "mean_oriented_ic": 0.02619163639632856,
+      "cutoffs": 12,
+      "features": 138,
+      "candidate_tier": "strong_sign_candidates"
+    },
+    {
+      "year": 2026,
+      "market_state": "down",
+      "mean_oriented_ic": 0.03029374264602701,
+      "cutoffs": 12,
+      "features": 138,
+      "candidate_tier": "strong_sign_candidates"
+    },
+    {
+      "year": 2026,
+      "market_state": "up",
+      "mean_oriented_ic": 0.0579754742403812,
+      "cutoffs": 13,
+      "features": 138,
+      "candidate_tier": "strong_sign_candidates"
+    }
+  ],
+  "limitations": [
+    "Reconstructed PIT and delivered SRD universe",
+    "Hard future source errors excluded from numerical IC, never from frozen cohort",
+    "Pointwise bootstrap, no multiple-comparison correction",
+    "Development periods reused; lock is exploratory, not confirmation or alpha",
+    "Current close_T target is not an executable next_open strategy"
+  ]
+}

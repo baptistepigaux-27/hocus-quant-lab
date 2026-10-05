@@ -9,11 +9,19 @@ import os
 from collections import Counter, defaultdict
 from datetime import date
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import duckdb
+import polars as pl
 import pyarrow as pa
 import pyarrow.parquet as pq
+
+from hocus_quant.targets.research_contract import (
+    PRIMARY_TARGET,
+    annotate_outcomes,
+    refresh_contract_views,
+    select_targets,
+)
 
 EXTREME_RETURN_ABS = 0.9
 SPLIT_FACTORS = (2.0, 3.0, 4.0, 5.0, 10.0)
@@ -86,6 +94,21 @@ def harden_target_set(*, output_dir: Path, data_dir: Path = Path("data")) -> dic
         ):
             index = table.schema.get_field_index(name)
             table = table.set_column(index, name, pa.array(values, type=arrow_type))
+        eligibility_path = target_path.parent / "eligibility_at_cutoff.parquet"
+        if eligibility_path.exists():
+            annotated = annotate_outcomes(
+                cast(pl.DataFrame, pl.from_arrow(table)), pl.read_parquet(eligibility_path)
+            )
+            table = annotated.to_arrow()
+            annotated.filter(
+                pl.col("eligible_at_cutoff")
+                & pl.col("target_observable")
+                & (pl.col("target_id") == PRIMARY_TARGET)
+                & (pl.col("entity_family") == "equity")
+            ).write_parquet(target_path.parent / "targets_ex_ante.parquet")
+            select_targets(annotated, "clean_future").write_parquet(
+                target_path.parent / "targets_clean_future.parquet"
+            )
         temporary = target_path.with_suffix(".parquet.tmp")
         pq.write_table(table, temporary, compression="zstd")
         os.replace(temporary, target_path)
@@ -687,6 +710,10 @@ def _refresh_catalog(root: Path, raw_path: Path, ready_path: Path) -> None:
             "CREATE OR REPLACE VIEW targets_research_ready AS SELECT * FROM "
             f"read_parquet('{ready}')"
         )
+        if "eligible_at_cutoff" in {
+            row[0] for row in connection.execute("DESCRIBE targets").fetchall()
+        }:
+            refresh_contract_views(connection)
 
 
 def _refresh_root_catalog(root: Path) -> None:
@@ -704,6 +731,9 @@ def _refresh_root_catalog(root: Path) -> None:
                 "CREATE OR REPLACE VIEW targets_research_ready AS SELECT * FROM "
                 f"read_parquet('{ready}', union_by_name=true)"
             )
+            columns = {row[0] for row in connection.execute("DESCRIBE targets").fetchall()}
+            if "eligible_at_cutoff" in columns:
+                refresh_contract_views(connection)
 
 
 def _write_json(path: Path, value: Any) -> None:
