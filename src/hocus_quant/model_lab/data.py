@@ -128,6 +128,10 @@ def split_assignment(
 
 
 def build_dataset(root: Path, output: Path, config: dict[str, Any]) -> dict[str, Any]:
+    if config.get("feature_sets") == ["all"]:
+        from hocus_quant.model_lab.all_features import expand_dataset
+
+        return expand_dataset(root, output, config)
     output.mkdir(parents=True, exist_ok=True)
     lock = json.loads((root / config["lock_path"]).read_text())
     sets = feature_sets(lock)

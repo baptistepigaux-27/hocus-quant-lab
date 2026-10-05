@@ -14,9 +14,32 @@ def _():
     import pandas as pd
     import plotly.express as px
 
+    baseline_root = Path(os.environ.get("HOCUS_MODEL_LAB_DATA", "data/analysis/spec008-model-lab"))
+    all_features_root = Path(
+        os.environ.get("HOCUS_MODEL_LAB_ALL_DATA", str(baseline_root) + "-all-features")
+    )
+    return mo, pd, px, json, Path, baseline_root, all_features_root
+
+
+@app.cell
+def _(mo, baseline_root, all_features_root):
+    _options = {"Strict 85 / Strong 138": str(baseline_root)}
+    if (all_features_root / "summary.json").exists():
+        _options["Toutes les variables · 1 048 features"] = str(all_features_root)
+    experiment_choice = mo.ui.dropdown(
+        options=_options,
+        value=list(_options)[-1],
+        label="Expérience · mêmes périodes et même univers",
+    )
+    mo.output.replace(experiment_choice)
+    return (experiment_choice,)
+
+
+@app.cell
+def _(mo, pd, json, Path, experiment_choice):
     from hocus_quant.model_lab.report import validation_winners
 
-    model_root = Path(os.environ.get("HOCUS_MODEL_LAB_DATA", "data/analysis/spec008-model-lab"))
+    model_root = Path(experiment_choice.value)
     mo.stop(
         not (model_root / "summary.json").exists(),
         mo.md("# Model Lab\nBenchmark SPEC-008 en cours de calcul."),
@@ -47,12 +70,13 @@ def _():
     equity = pd.read_parquet(model_root / "backtest_equity.parquet")
     backtest = pd.read_parquet(model_root / "backtest_summary.parquet")
     coverage = pd.read_parquet(model_root / "label_coverage.parquet")
+    _comparison_file = model_root / "comparison_validation_winners.parquet"
+    feature_comparison = (
+        pd.read_parquet(_comparison_file) if _comparison_file.exists() else pd.DataFrame()
+    )
     calibration = pd.read_parquet(model_root / "calibration.parquet")
     winners = validation_winners(model_root)
     return (
-        mo,
-        pd,
-        px,
         summary,
         registry,
         metrics,
@@ -62,6 +86,7 @@ def _():
         equity,
         backtest,
         coverage,
+        feature_comparison,
         calibration,
         winners,
     )
@@ -76,7 +101,9 @@ def _(mo, summary):
     Train 2024 · validation S1 2025 · retrain 2024 + S1 2025 · test S1 2026.
     **Le lock a déjà utilisé des outcomes de 2025 et 2026 :
     ces résultats restent du développement.**
-    12 tâches H5/H10 · Strict 85 / Strong 138 · {summary["model_count"]} modèles.
+    12 tâches H5/H10 · {summary.get("feature_sets", {"strict": 85, "strong": 138})}
+    · {summary["model_count"]} modèles.
+    Le set « all » utilise les 1 048 entrées du registre, sans sélection par les outcomes.
     PIT reconstruit · aucune donnée ni modification de
     [SPEC-007](https://sandbox.hocus.works/quant-lab-srd/?v=spec007).
     """)
@@ -84,7 +111,7 @@ def _(mo, summary):
 
 
 @app.cell
-def _(mo):
+def _(mo, registry):
     target_choice = mo.ui.dropdown(
         options=[
             "direction_abs",
@@ -98,9 +125,8 @@ def _(mo):
         label="Target",
     )
     horizon_choice = mo.ui.dropdown(options={"H5": 5, "H10": 10}, value="H5", label="Horizon futur")
-    feature_choice = mo.ui.dropdown(
-        options=["strict", "strong"], value="strict", label="Features verrouillées"
-    )
+    _sets = list(dict.fromkeys(r["feature_set"] for r in registry))
+    feature_choice = mo.ui.dropdown(options=_sets, value=_sets[0], label="Set de features")
     cost_choice = mo.ui.dropdown(
         options={"0 bp": 0, "10 bp": 10, "25 bp": 25, "50 bp": 50},
         value="25 bp",
@@ -140,6 +166,7 @@ def _(
     equity,
     backtest,
     coverage,
+    feature_comparison,
     calibration,
     winners,
     target_choice,
@@ -268,10 +295,18 @@ def _(
                     ),
                     mo.ui.table(
                         coverage[
-                            (coverage.feature_set == "strict") & (coverage.target == "return_abs")
+                            (coverage.feature_set == feature_choice.value)
+                            & (coverage.target == "return_abs")
                         ],
                         selection=None,
                     ),
+                    mo.ui.table(
+                        feature_comparison.drop(columns=["model_id"], errors="ignore"),
+                        selection=None,
+                        page_size=12,
+                    )
+                    if not feature_comparison.empty
+                    else mo.md("Comparaison complète des sets disponible dans les rapports."),
                 ]
             ),
             "Model Benchmark": mo.vstack(

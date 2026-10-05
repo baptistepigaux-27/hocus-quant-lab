@@ -11,6 +11,7 @@ Environment=PYTHONUNBUFFERED=1
 Environment=HOME=/var/lib/hocus-quant-model-lab
 Environment=OMP_NUM_THREADS=4
 Environment=HOCUS_MODEL_LAB_DATA=__ROOT__/data/analysis/spec008-model-lab
+Environment=HOCUS_MODEL_LAB_ALL_DATA=__ROOT__/data/analysis/spec008-model-lab-all-features
 ExecStart=__ROOT__/.venv/bin/marimo run notebooks/model_lab.py --host 127.0.0.1 --port 8069 --headless --no-token --no-sandbox --base-url /quant-model-lab
 Restart=on-failure
 RestartSec=5
@@ -23,6 +24,7 @@ BindReadOnlyPaths=__ROOT__/.venv
 BindReadOnlyPaths=__ROOT__/src
 BindReadOnlyPaths=__ROOT__/notebooks
 BindReadOnlyPaths=__ROOT__/data/analysis/spec008-model-lab
+BindReadOnlyPaths=__ROOT__/data/analysis/spec008-model-lab-all-features
 StateDirectory=hocus-quant-model-lab
 PrivateTmp=true
 PrivateDevices=true

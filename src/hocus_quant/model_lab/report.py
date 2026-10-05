@@ -117,7 +117,8 @@ def render_report(root: Path, output: Path) -> dict[str, Any]:
             "n",
         ]
     ]
-    split_table = coverage[(coverage.feature_set == "strict") & (coverage.target == "return_abs")][
+    first_set = "strict" if "strict" in set(coverage.feature_set) else coverage.feature_set.iloc[0]
+    split_table = coverage[(coverage.feature_set == first_set) & (coverage.target == "return_abs")][
         [
             "horizon",
             "split",
@@ -202,6 +203,10 @@ def render_report(root: Path, output: Path) -> dict[str, Any]:
         "XGBoost CPU est la référence principale.\n",
         f"Lock `{summary['lock_sha256']}` ; "
         f"registry additif `{summary['target_registry_sha256']}`.\n",
+        f"Feature sets : `{summary.get('feature_sets', {'strict': 85, 'strong': 138})}`. "
+        "Le set `all`, lorsqu'il est présent, conserve toutes les entrées du registre, "
+        "sans sélection fondée sur leurs outcomes. L'univers et les labels sont "
+        "identiques au benchmark initial.\n",
         "**Contamination de sélection :** strict/strong ont été choisis avec des "
         "outcomes de 2025 **et 2026**. L'absence de tuning sur 2026 dans ce code ne"
         " supprime pas cette connaissance préalable. Aucun chiffre ci-dessous n'est"
@@ -222,7 +227,7 @@ def render_report(root: Path, output: Path) -> dict[str, Any]:
         table(comparison),
         "\nLes moyennes regroupant des targets différentes résument les expériences,"
         " sans test de significativité ni classement scientifique universel. Voir "
-        "les 112 lignes de métriques test pour les comparaisons tâche par tâche.\n",
+        f"les {len(test)} lignes de métriques test pour les comparaisons tâche par tâche.\n",
         "## 4. Backtests des mêmes gagnants de validation\n",
         table(backselected[backcols]),
         "\nFrais all-in **aller-retour**, moitié à l'entrée et moitié à la sortie. "
@@ -357,7 +362,10 @@ def render_report(root: Path, output: Path) -> dict[str, Any]:
             ]
         ),
     ]
-    report = root / "docs/SPEC_008_RESULTS.md"
+    report_stem = summary.get("report_stem", "SPEC_008_RESULTS")
+    if not report_stem.replace("_", "").isalnum():
+        raise ValueError("invalid report stem")
+    report = root / "docs" / f"{report_stem}.md"
     report.write_text("\n".join(sections) + "\n")
     receipt = {
         "report_sha256": file_sha(report),
@@ -370,7 +378,7 @@ def render_report(root: Path, output: Path) -> dict[str, Any]:
         "summary_sha256": file_sha(output / "summary.json"),
         "verdict": verdict,
     }
-    (root / "docs/SPEC_008_RESULTS.sources.json").write_text(json.dumps(receipt, indent=2) + "\n")
+    (root / "docs" / f"{report_stem}.sources.json").write_text(json.dumps(receipt, indent=2) + "\n")
     return receipt
 
 

@@ -12,6 +12,11 @@ Templates: [`model-lab-sandbox.service`](../deploy/model-lab-sandbox.service) an
 service template with the absolute checkout path. The service sees only its venv,
 source/notebooks and precomputed SPEC-008 artefacts through read-only binds.
 
+The full-registry experiment lives in `data/analysis/spec008-model-lab-all-features`,
+with a second explicit read-only bind and `HOCUS_MODEL_LAB_ALL_DATA`. The experience
+selector exposes both the original Strict/Strong run and the 1,048-feature run when
+its completion summary is present. Neither run performs fitting in the UI.
+
 Notebook: [`model_lab.py`](../notebooks/model_lab.py). No fitting or portfolio replay
 runs in the UI. Navigation includes Overview, Model Benchmark, Target Comparison,
 Score Deciles, Backtest, Feature Importance and Methodology; all results are labelled

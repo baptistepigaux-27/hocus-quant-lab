@@ -206,6 +206,11 @@ def run_benchmark(
                                 if baseline is not None and value is not None
                                 else None
                             )
+                            if len(ids) > 138 and (feature_i + 1) % 256 == 0:
+                                print(
+                                    f"PERMUTATION {task} {kind}: {feature_i + 1}/{len(ids)}",
+                                    flush=True,
+                                )
                         for name, g, p in zip(ids, gain, permutations, strict=True):
                             importance_rows.append(
                                 {
@@ -293,6 +298,7 @@ def run_benchmark(
                             "test_dates": sorted(map(str, test.cutoff.unique())),
                             "feature_ids": ids,
                             "lock_sha256": fs["lock_sha256"],
+                            "feature_registry_sha256": fs.get("feature_registry_sha256"),
                             "data_fingerprints": dataset["source_sha256"],
                             "config_sha256": config_sha,
                             "model_sha256": file_sha(model_path),
@@ -374,6 +380,8 @@ def run_benchmark(
         "target_registry_sha256": dataset["target_registry_sha256"],
         "tasks": len(all_task_ids),
         "target_horizon_tasks": 12,
+        "feature_sets": {name: len(ids) for name, ids in sets.items()},
+        "report_stem": config.get("report_stem", "SPEC_008_RESULTS"),
         "model_count": len(registry),
         "tuning_fits": len(trials),
         "final_retrain_fits": len(registry),
