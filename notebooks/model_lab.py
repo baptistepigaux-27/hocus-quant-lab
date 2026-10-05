@@ -1,0 +1,382 @@
+import marimo
+
+__generated_with = "0.25.0"
+app = marimo.App(width="full", app_title="Hocus Quant · Model Lab")
+
+
+@app.cell
+def _():
+    import json
+    import os
+    from pathlib import Path
+
+    import marimo as mo
+    import pandas as pd
+    import plotly.express as px
+
+    from hocus_quant.model_lab.report import validation_winners
+
+    model_root = Path(os.environ.get("HOCUS_MODEL_LAB_DATA", "data/analysis/spec008-model-lab"))
+    mo.stop(
+        not (model_root / "summary.json").exists(),
+        mo.md("# Model Lab\nBenchmark SPEC-008 en cours de calcul."),
+    )
+    summary = json.loads((model_root / "summary.json").read_text())
+    registry = json.loads((model_root / "model_registry.json").read_text())
+    metrics = pd.read_parquet(model_root / "metrics.parquet")
+    _periods = pd.DataFrame(
+        [
+            {
+                "model_id": r["model_id"],
+                "train_period": f"{r['training_dates'][0]} → {r['training_dates'][-1]}",
+                "validation_period": f"{r['validation_dates'][0]} → {r['validation_dates'][-1]}",
+                "test_period": f"{r['test_dates'][0]} → {r['test_dates'][-1]}",
+                "status": "development_only",
+            }
+            for r in registry
+        ]
+    )
+    metrics = metrics.merge(_periods, on="model_id", validate="many_to_one")
+    metrics["main_metric"] = [
+        r.roc_auc if r.target in {"direction_abs", "direction_rel"} else r.mean_ic
+        for r in metrics.itertuples()
+    ]
+    cutoff_metrics = pd.read_parquet(model_root / "cutoff_metrics.parquet")
+    deciles = pd.read_parquet(model_root / "decile_metrics.parquet")
+    importances = pd.read_parquet(model_root / "feature_importances.parquet")
+    equity = pd.read_parquet(model_root / "backtest_equity.parquet")
+    backtest = pd.read_parquet(model_root / "backtest_summary.parquet")
+    coverage = pd.read_parquet(model_root / "label_coverage.parquet")
+    calibration = pd.read_parquet(model_root / "calibration.parquet")
+    winners = validation_winners(model_root)
+    return (
+        mo,
+        pd,
+        px,
+        summary,
+        registry,
+        metrics,
+        cutoff_metrics,
+        deciles,
+        importances,
+        equity,
+        backtest,
+        coverage,
+        calibration,
+        winners,
+    )
+
+
+@app.cell
+def _(mo, summary):
+    mo.md(f"""
+    # Model Lab · SPEC-008
+    **Development backtest — not independent confirmation.**
+
+    Train 2024 · validation S1 2025 · retrain 2024 + S1 2025 · test S1 2026.
+    **Le lock a déjà utilisé des outcomes de 2025 et 2026 :
+    ces résultats restent du développement.**
+    12 tâches H5/H10 · Strict 85 / Strong 138 · {summary["model_count"]} modèles.
+    PIT reconstruit · aucune donnée ni modification de
+    [SPEC-007](https://sandbox.hocus.works/quant-lab-srd/?v=spec007).
+    """)
+    return
+
+
+@app.cell
+def _(mo):
+    target_choice = mo.ui.dropdown(
+        options=[
+            "direction_abs",
+            "return_abs",
+            "direction_rel",
+            "rank_pct",
+            "excursion_balance",
+            "trend_tstat",
+        ],
+        value="direction_abs",
+        label="Target",
+    )
+    horizon_choice = mo.ui.dropdown(options={"H5": 5, "H10": 10}, value="H5", label="Horizon futur")
+    feature_choice = mo.ui.dropdown(
+        options=["strict", "strong"], value="strict", label="Features verrouillées"
+    )
+    cost_choice = mo.ui.dropdown(
+        options={"0 bp": 0, "10 bp": 10, "25 bp": 25, "50 bp": 50},
+        value="25 bp",
+        label="Frais aller-retour",
+    )
+    mo.hstack([target_choice, horizon_choice, feature_choice, cost_choice], justify="start")
+    return target_choice, horizon_choice, feature_choice, cost_choice
+
+
+@app.cell
+def _(mo, registry, target_choice, horizon_choice, feature_choice):
+    available_models = {
+        r["model"]: r["model_id"]
+        for r in registry
+        if r["target"] == target_choice.value
+        and r["horizon"] == horizon_choice.value
+        and r["feature_set"] == feature_choice.value
+    }
+    model_choice = mo.ui.dropdown(
+        options=available_models, value="xgb", label="Modèle · XGB référence par défaut"
+    )
+    mo.output.replace(model_choice)
+    return model_choice
+
+
+@app.cell
+def _(
+    mo,
+    pd,
+    px,
+    summary,
+    registry,
+    metrics,
+    cutoff_metrics,
+    deciles,
+    importances,
+    equity,
+    backtest,
+    coverage,
+    calibration,
+    winners,
+    target_choice,
+    horizon_choice,
+    feature_choice,
+    cost_choice,
+    model_choice,
+):
+    _mid = model_choice.value
+    _row = next(r for r in registry if r["model_id"] == _mid)
+    _metrics = metrics[
+        (metrics.target == target_choice.value)
+        & (metrics.horizon == horizon_choice.value)
+        & (metrics.feature_set == feature_choice.value)
+    ]
+    _test = metrics[metrics.split == "test"]
+    _winner_table = winners.merge(
+        _test, on=["model_id", "target", "horizon", "model", "feature_set"]
+    )
+    _winner_table = _winner_table.merge(
+        backtest[backtest.cost_bp == cost_choice.value][
+            ["model_id", "cumulative_return", "turnover", "max_drawdown"]
+        ],
+        on="model_id",
+        validate="one_to_one",
+    )
+    _bt = backtest[(backtest.model_id == _mid) & (backtest.cost_bp == cost_choice.value)]
+    _eq = (
+        equity[(equity.model_id == _mid) & (equity.cost_bp == cost_choice.value)]
+        .sort_values("session_date")
+        .copy()
+    )
+    _eq["drawdown"] = _eq.equity / _eq.equity.cummax().clip(lower=1) - 1
+    _cs = cutoff_metrics[(cutoff_metrics.model_id == _mid) & (cutoff_metrics.split == "test")]
+    _ds = deciles[(deciles.model_id == _mid) & (deciles.split == "test")]
+    _dd = _ds.groupby("decile", as_index=False).agg(
+        mean_target=("mean_target", "mean"),
+        positive_rate=("positive_rate", "mean"),
+        mean_return_abs=("mean_return_abs", "mean"),
+        n=("n", "sum"),
+    )
+    _imp = importances[importances.model_id == _mid]
+    _cal = (
+        calibration[(calibration.model_id == _mid) & (calibration.split == "test")]
+        if "model_id" in calibration
+        else pd.DataFrame()
+    )
+    _importance_view = (
+        mo.md("Baseline : pas d’importance de feature.")
+        if _imp.empty
+        else mo.vstack(
+            [
+                mo.ui.plotly(
+                    px.bar(
+                        _imp.sort_values("validation_permutation_drop", ascending=False).head(20),
+                        x="validation_permutation_drop",
+                        y="feature_id",
+                        orientation="h",
+                        title="Permutation validation · 2024 fit uniquement",
+                    )
+                ),
+                mo.ui.table(_imp, selection=None, page_size=15),
+                mo.md(
+                    "RF impurity / XGB gain et permutation marginale, sans causalité "
+                    "ni nouvelle sélection. Une réplication ; variables corrélées."
+                ),
+            ]
+        )
+    )
+    _method = mo.md(f"""
+    ## Methodology
+    **Development backtest — not independent confirmation.**
+    Hyperparamètres choisis uniquement en validation 2025 : AUC directions, IC moyen régressions.
+    Naïf train prior / mean / median ; Logistic C=1 / Ridge α=10 ; RF 2 configurations ; XGB 2.
+    Imputation médiane et indicateurs + scaler fit sur train uniquement,
+    puis refit sur retrain final.
+    XGB conserve les NaN natifs. Zéro direction exclu des fits/métriques binaires ;
+    conservé dans le ledger.
+
+    **Dates modèle choisi :** train {_row["training_dates"][0]} → {_row["training_dates"][-1]} ;
+    validation {_row["validation_dates"][0]} → {_row["validation_dates"][-1]} ;
+    test {_row["test_dates"][0]} → {_row["test_dates"][-1]}.
+    Purge H5/H10 sessions minimum et aucun label franchissant les frontières.
+
+    `excursion_balance = max(P_h/P_T−1) + min(P_h/P_T−1)` sur h=1..H.
+    `trend_tstat = b/SE(b)` OLS sur H closes futurs base 100, plate=0, linéaire parfaite=±1e6.
+
+    **Simulation :** long-only, top 10 %, next_open après feature cutoff,
+    close H-ième séance commune,
+    compartiments fixes 2 H5 / 3 H10, equipondération au sein du nouveau compartiment, cash à 0 %.
+    Frais all-in aller-retour appliqués moitié par jambe, sans levier.
+    Prix manquant : pas de fill inventé.
+    Corporate actions/anomalies restent annotées ; séries raw non certifiées, univers survivant.
+    **Lock utilisé :** `{summary["lock_sha256"]}`.
+    Les périodes de 2025/2026 avaient déjà participé à la sélection du lock.
+    Les différences entre modèles et les Sharpe S1 sont descriptifs.
+    """)
+    mo.ui.tabs(
+        {
+            "Overview": mo.vstack(
+                [
+                    mo.md(
+                        "## Overview\nGagnants choisis sur validation uniquement ; "
+                        "leurs résultats test sont lus ensuite."
+                    ),
+                    mo.ui.table(
+                        _winner_table[
+                            [
+                                "target",
+                                "horizon",
+                                "model",
+                                "feature_set",
+                                "validation_metric",
+                                "roc_auc",
+                                "r2",
+                                "mean_ic",
+                                "median_ic",
+                                "top10_lift",
+                                "cumulative_return",
+                                "turnover",
+                                "max_drawdown",
+                                "n",
+                            ]
+                        ],
+                        selection=None,
+                    ),
+                    mo.ui.table(
+                        coverage[
+                            (coverage.feature_set == "strict") & (coverage.target == "return_abs")
+                        ],
+                        selection=None,
+                    ),
+                ]
+            ),
+            "Model Benchmark": mo.vstack(
+                [
+                    mo.md(
+                        "## Model Benchmark\nFiltres ci-dessus. "
+                        "Métriques par modèle, validation et test."
+                    ),
+                    mo.ui.table(_metrics, selection=None, page_size=20),
+                    mo.ui.plotly(
+                        px.line(
+                            _cs,
+                            x="cutoff",
+                            y="ic",
+                            markers=True,
+                            title="IC test par cutoff · aucune moyenne pooled substituée",
+                        )
+                    ),
+                    mo.ui.table(_cal, selection=None)
+                    if not _cal.empty
+                    else mo.md("Calibration applicable aux directions."),
+                ]
+            ),
+            "Target Comparison": mo.vstack(
+                [
+                    mo.md(
+                        "## Target Comparison\nSix définitions, H5 et H10, "
+                        "modèle/set choisi en validation."
+                    ),
+                    mo.ui.table(
+                        _winner_table[
+                            [
+                                "target",
+                                "horizon",
+                                "model",
+                                "feature_set",
+                                "validation_metric",
+                                "roc_auc",
+                                "r2",
+                                "mean_ic",
+                                "top10_lift",
+                                "cumulative_return",
+                                "turnover",
+                                "max_drawdown",
+                                "n",
+                            ]
+                        ],
+                        selection=None,
+                    ),
+                ]
+            ),
+            "Score Deciles": mo.vstack(
+                [
+                    mo.md(
+                        "## Score Deciles\nMoyennes par cutoff puis moyenne temporelle ; "
+                        "ex æquo non séparés artificiellement."
+                    ),
+                    mo.ui.plotly(
+                        px.bar(
+                            _dd,
+                            x="decile",
+                            y="mean_target",
+                            title="D1 → D10 · target moyenne S1 2026",
+                        )
+                    ),
+                    mo.ui.table(_dd, selection=None),
+                    mo.ui.table(_ds, selection=None, page_size=10),
+                ]
+            ),
+            "Backtest": mo.vstack(
+                [
+                    mo.md("## Backtest\n**Development backtest — not independent confirmation.**"),
+                    mo.ui.table(_bt, selection=None),
+                    mo.ui.plotly(
+                        px.line(
+                            _eq,
+                            x="session_date",
+                            y=["equity", "benchmark_equity"],
+                            title="Equity · portefeuille et CAC AllShares",
+                        )
+                    ),
+                    mo.ui.plotly(px.line(_eq, x="session_date", y="drawdown", title="Drawdown")),
+                    mo.ui.plotly(
+                        px.line(
+                            _eq,
+                            x="session_date",
+                            y=["turnover", "holding_count"],
+                            title="Turnover et positions en cours",
+                        )
+                    ),
+                    mo.ui.table(
+                        backtest[
+                            (backtest.model == "universe")
+                            & (backtest.horizon == horizon_choice.value)
+                        ],
+                        selection=None,
+                    ),
+                ]
+            ),
+            "Feature Importance": _importance_view,
+            "Methodology": _method,
+        }
+    )
+    return
+
+
+if __name__ == "__main__":
+    app.run()

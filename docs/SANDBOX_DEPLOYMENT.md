@@ -1,5 +1,27 @@
 # Quant Lab hosted services
 
+## SPEC-008 Model Lab
+
+The separate [Model Lab](https://sandbox.hocus.works/quant-model-lab/) is served by
+`hocus-quant-model-lab-sandbox` on loopback port **8069**, from the isolated
+`/home/ubuntu/worktrees/hocus-quant-spec008` worktree. It does not restart or modify
+the SPEC-007 service on 8068. Existing sandbox authentication is inherited.
+
+Templates: [`model-lab-sandbox.service`](../deploy/model-lab-sandbox.service) and
+[`model-lab-nginx.conf`](../deploy/model-lab-nginx.conf). Replace `__ROOT__` in the
+service template with the absolute checkout path. The service sees only its venv,
+source/notebooks and precomputed SPEC-008 artefacts through read-only binds.
+
+Notebook: [`model_lab.py`](../notebooks/model_lab.py). No fitting or portfolio replay
+runs in the UI. Navigation includes Overview, Model Benchmark, Target Comparison,
+Score Deciles, Backtest, Feature Importance and Methodology; all results are labelled
+**development backtest — not independent confirmation**.
+
+The local datasets/model files are not versioned. They must be generated with the
+[documented CLI](SPEC_008_MULTIVARIATE_MODEL_BACKTEST.md) before starting this service.
+
+## Existing research and confirmation services
+
 The hosted notebook has separate staging and sandbox processes. Both run under
 the dedicated `hocus-quant-lab` account with a read-only view of the project
 virtualenv and local research data. Nginx keeps the existing host-specific

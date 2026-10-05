@@ -1,6 +1,8 @@
 # hocus-quant-lab
 
-Reproducible research sandbox for point-in-time scoring experiments. Data ingestion and exploration are underway; there is not yet an end-to-end predictive experiment (features, target, model and backtest).
+Reproducible research sandbox for scoring experiments. SPEC-008 adds a first end-to-end
+development benchmark (features, targets, models and next-open long-only simulation).
+Independent confirmation and economically certified alpha remain unestablished.
 
 ## Current state (2026-10-05)
 
@@ -19,13 +21,21 @@ is frozen for those same candidates. Strict is the primary cohort, with checkpoi
 starts on 2026-10-06; no independent observations are present yet. The sandbox adds a
 **Confirmation Monitor**, currently `awaiting_new_data`, with no development data recycled.
 
+**SPEC-008:** [multivariate H5/H10 development benchmark](docs/SPEC_008_MULTIVARIATE_MODEL_BACKTEST.md)
+and [generated results](docs/SPEC_008_RESULTS.md). Six target families, strict 85 / strong 138,
+naive/linear/RF/XGBoost, train 2024, validation S1 2025, final retrain, test S1 2026 with
+purging and train-only preprocessing. The [Model Lab](https://sandbox.hocus.works/quant-model-lab/)
+shows metrics, deciles, importances and long-only backtests at 0/10/25/50 bp round-trip.
+The candidate sets had already used 2025/2026 outcomes; this is **development, not independent
+confirmation**. An additive 49-entry target registry and separate DuckDB leave SPEC-007 frozen.
+
 - **AMF short positions:** Gremlin acquisition and the Quant Lab offline adapter are implemented; see [AMF rules](docs/AMF_SHORT_POSITIONS.md).
 - **Market prices:** real ABC Bourse files supplied manually have been imported. The full SRD archive has 199,416 observations across 197 provider identifiers; eight additional universes have 1,745,030 observations. Coverage is 2022-09-29 to 2026-09-28. These files are local and ignored by Git.
 - **Instrument reference:** the companion workbook has been ingested: 2,135 codes, including 2,067 with labels and 68 unresolved. Labels are a current snapshot, not historical point-in-time names.
 - **Cross-sectional measurements:** SPEC-003 v1 is implemented with an additive RSI `v2` contract. The local 2026-04-01 slice has 2,194 entities × 1,048 features (2,299,312 cells; about 96.1% available). Its long/wide Parquet and audit files are local under `data/features/2026-04-01/` and are ignored by Git. The ABC history is reconstructed PIT; SPEC-004 evaluates quality at each historical cutoff and preserves that PIT grade.
 - **Historical feature cube:** SPEC-004 adds sparse, weekly and daily grids over the frozen SPEC-003 engine. Its research scope is `approved`; this does not make the source strict observed-PIT or turn the delivered SRD sample into a historical SBF 120 universe. See [the cube guide](docs/SPEC_004_HISTORICAL_FEATURE_CUBE.md).
 - **Targets and exploratory correlations:** nine target families across H5/H10/H20/H60/H120 are implemented. SPEC-006T repairs eligibility for the sole primary experiment, equity absolute direction H5, and exposes explicit ex-ante/future-clean policies. Prior scans retain their legacy filters as audit references. Reconstructed-PIT, price, universe and individual-inference limitations remain.
-- **Research still to build:** establish a historically valid universe and price-adjustment conventions, define execution rules, then acquire new unconsulted confirmation data for a predictive experiment and walk-forward backtest. Admission for other target families remains a separate research task. Do not describe the SRD sample as a historical SBF 120 universe.
+- **Research still to build:** certify corporate actions, price vintages and a historical investable universe; acquire unconsulted confirmation data and improve the stylized SPEC-008 execution/cost model. AMF incremental value and a realistic walk-forward portfolio remain separate steps. Do not describe the delivered SRD sample as a historical SBF 120 universe.
 
 ABC Bourse ingestion is manual and intended for this personal sandbox. The 2026-04-01 historical slice uses the source contract's session-date + one day `available_at` rule even though the archive was retrieved in September 2026; the audit reports this backfill. Historical vintages and split/corporate-action adjustment history are unverified, so this is not proof of fully versioned point-in-time prices and is not cleared for split-sensitive backtests. See [the feature formulas and caveats](docs/FEATURES.md) and [the ABC Bourse delivery note](docs/ABC_BOURSE_DELIVERY.md).
 
