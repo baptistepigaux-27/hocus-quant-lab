@@ -1,0 +1,49 @@
+protocol_version = "SPEC-007/1.0.0"
+lock_path = "configs/research/candidate_lock_v1.json"
+candidate_lock_sha256 = "7508b6900e36c11757bd84d82c1a9f7d322a07db6ce4ff00e961e5a258432e0f"
+frozen_on = "2026-10-05"
+target_id = "future.direction_abs.h5.v1"
+scope = "equity"
+primary_cohort = "strict_candidates"
+cadence = "friday_equity_session_no_holiday_backfill"
+target_mature_cutoffs = 26
+checkpoints = [8, 13, 26]
+descriptive_milestones = [1, 2, 4, 8, 13, 26]
+minimum_pairs = 30
+decile_minimum_pairs = 100
+rolling_cutoffs = 8
+bootstrap_replicates = 10000
+bootstrap_seed = 20261005
+bootstrap_blocks = [2, 4, 6]
+bootstrap_method = "circular_temporal_blocks_shared_dates_pointwise_percentile"
+cohort_minimum_candidate_fraction = 1.0
+strong_inversion_ic = 0.01
+supportive_fraction_exclusive = 0.60
+unsupportive_fraction_exclusive = 0.40
+aggregate_methods = ["equal_weight_oriented_rank", "strict_consensus"]
+aggregate_minimum_feature_fraction = 0.50
+binary_prediction_threshold_exclusive = 0.50
+neutral_targets = "kept_for_IC_excluded_for_binary_metrics"
+feature_percentile = "(average_rank(oriented_feature)-0.5)/available_entity_count"
+universe_change_warning = 0.20
+feature_coverage_warning = 0.60
+outcome_closure = "first_snapshot_with_5_common_equity_sessions_missing_local_horizons_annotated"
+eligibility = "approved_at_T_and_any_registered_feature_available_per_feature_missingness_retained"
+execution_current_target = "close_T"
+execution_future_strategy = "next_open_not_backtested"
+pit_grade = "reconstructed"
+retuning_allowed = false
+
+
+# Source definitions inherited unchanged from af0af57.
+[development_source_sha256]
+"features/factory.py" = "924d7ed40be18e68dc48d90c185497feef203caac7d6cec9d68e0303a2b94864"
+"features/registry.py" = "13c9d5f5479a5f24798130c8a09b50bed86f209641af5510ba20a0c838b9ec3a"
+"features/snapshot.py" = "1f54104438d3e8b8f86662ae95e0af96d76c2fc2fe92138a0cc04ed5aa4de68f"
+"targets/registry.py" = "2b4cbc9c46e1f9fa0c988c415e4a357e6bf5c45a6291a07fd4520d3efc768610"
+"targets/factory.py" = "091cceb6f85e8552b20727510343a7c02f663dc10ce400219815e18f6f081075"
+"targets/hardening.py" = "4331622d5fae92cf66eae1aa7008194d31f9b79f73ed0505ad972131dd26fbc5"
+"targets/research_contract.py" = "62138a925aadd9508600b9dfb0f2cd0b6f0bd9e4e534299e67b1ad15ea056b4d"
+"validation/market_quality.py" = "7287d709b078e0799bf70e1f832d71fbee85ff484ebb7e315b88312a92f4e160"
+"analysis/candidate_lock.py" = "d6e4f4d251df13864c72ca4fecde6deb248fe8c69c82935f2a74c7472ea386a3"
+"analysis/ex_ante.py" = "9b6b534e7a66a91f598fe2758ffe6cf32bb17ad596fdf7c8664086c9bd086e9a"

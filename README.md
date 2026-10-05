@@ -13,6 +13,12 @@ The [immutable candidate lock](configs/research/candidate_lock_v1.json) contains
 independent confirmation is pending new unconsulted data. The sandbox provides both
 cohort policies and a precomputed Candidate Explorer.
 
+**SPEC-007:** the [Independent Confirmation Protocol](docs/SPEC_007_INDEPENDENT_CONFIRMATION.md)
+is frozen for those same candidates. Strict is the primary cohort, with checkpoints at
+8/13/26 prospectively registered H5 cutoffs. The [protocol](configs/research/confirmation_protocol_v1.toml)
+starts on 2026-10-06; no independent observations are present yet. The sandbox adds a
+**Confirmation Monitor**, currently `awaiting_new_data`, with no development data recycled.
+
 - **AMF short positions:** Gremlin acquisition and the Quant Lab offline adapter are implemented; see [AMF rules](docs/AMF_SHORT_POSITIONS.md).
 - **Market prices:** real ABC Bourse files supplied manually have been imported. The full SRD archive has 199,416 observations across 197 provider identifiers; eight additional universes have 1,745,030 observations. Coverage is 2022-09-29 to 2026-09-28. These files are local and ignored by Git.
 - **Instrument reference:** the companion workbook has been ingested: 2,135 codes, including 2,067 with labels and 68 unresolved. Labels are a current snapshot, not historical point-in-time names.

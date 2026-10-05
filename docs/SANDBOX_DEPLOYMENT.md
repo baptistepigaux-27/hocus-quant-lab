@@ -25,6 +25,13 @@ The immutable lock is also tracked at `configs/research/candidate_lock_v1.json`.
 The SRD service mounts `src/` read-only to import the typed artifact loader.
 Development periods 2025/2026 are explicitly labelled; independent confirmation is pending.
 
+SPEC-007 adds **Confirmation Monitor** and a separate candidate confirmation detail.
+Its local projections live in `data/analysis/spec007-confirmation/`. Initialize them with
+`uv run python scripts/confirmation_spec007.py init` before restarting the service.
+The service reads the frozen contract from the mounted data directory; it does not register,
+advance, fit, or write confirmation results. All scientific collection uses the separate CLI.
+The initial state is `awaiting_new_data`; there are no fabricated confirmation ICs.
+
 ```sh
 sudo systemctl status hocus-quant-lab-staging hocus-quant-lab-sandbox
 sudo systemctl status hocus-quant-lab-srd-sandbox

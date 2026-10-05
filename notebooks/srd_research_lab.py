@@ -263,6 +263,199 @@ def _(contract_artifacts, mo, pl):
 
 
 @app.cell
+def _(Path, mo):
+    from hocus_quant.analysis.confirmation import load_monitor
+
+    confirmation_directory = (
+        Path(__file__).resolve().parents[1] / "data/analysis/spec007-confirmation"
+    )
+    mo.stop(
+        not (confirmation_directory / "confirmation_manifest.json").exists(),
+        mo.md("Confirmation Monitor · SPEC-007 : protocole local en attente."),
+    )
+    confirmation_monitor = load_monitor(confirmation_directory)
+    return (confirmation_monitor,)
+
+
+@app.cell
+def _(confirmation_monitor, contract_artifacts, mo, pl, px):
+    confirmation_manifest = confirmation_monitor["manifest"]
+    mo.stop(
+        confirmation_manifest["candidate_lock_sha256"] != contract_artifacts.lock["lock_sha256"],
+        mo.callout(
+            mo.md("Confirmation et développement référencent des locks différents."), kind="danger"
+        ),
+    )
+    _mature = confirmation_manifest["mature_cutoffs"]
+    _strict_summary = (
+        confirmation_monitor["cohorts"]
+        .filter(
+            (pl.col("tier") == "strict_candidates")
+            & (pl.col("policy") == "ex_ante")
+            & (pl.col("mature_cutoffs") == _mature)
+        )
+        .to_dicts()
+        if _mature
+        else []
+    )
+    _strict_row = _strict_summary[0] if _strict_summary else {}
+    _conforming = _strict_row.get("positive_fraction")
+    _mean = _strict_row.get("mean_oriented_ic")
+    _median = _strict_row.get("median_oriented_ic")
+    _conforming_text = f"{_conforming:.1%}" if _conforming is not None else "en attente"
+    _mean_text = f"{_mean:+.5f}" if _mean is not None else "en attente"
+    _median_text = f"{_median:+.5f}" if _median is not None else "en attente"
+    _lock_text = (
+        confirmation_manifest["candidate_lock_version"]
+        + " · "
+        + confirmation_manifest["candidate_lock_sha256"][:16]
+        + "…"
+    )
+    _next_maturity = (
+        confirmation_manifest["next_target_maturity"] or "inconnue : nouvelles séances nécessaires"
+    )
+    confirmation_header = mo.md(f"""
+    ## Confirmation Monitor · SPEC-007
+
+    **Development — 2024–2026 :** périodes déjà consultées et utilisées pour le lock.
+    **Independent confirmation :** nouvelles observations uniquement, aucun mélange des moyennes.
+
+    | Contrat / suivi | Valeur |
+    |:--|:--|
+    | État mécanique | `{confirmation_manifest["status"]}` |
+    | Candidate lock | `{_lock_text}` |
+    | Début de confirmation | {confirmation_manifest["confirmation_start_date"]} |
+    | Cutoffs enregistrés / matures | {confirmation_manifest["registered_cutoffs"]} / {_mature} |
+    | Broad / Strong / Strict | 504 / 138 / **85 (test principal)** |
+    | Strict : signe conforme | {_conforming_text} |
+    | Strict : IC orienté moyen / médian | {_mean_text} / {_median_text} |
+    | Checkpoint | `{confirmation_manifest["checkpoint"]}` ; étapes 8 / 13 / 26 |
+    | Verdict descriptif | `{_strict_row.get("verdict", "insufficient_data")}` |
+    | Prochaine maturité | {_next_maturity} |
+    | PIT | reconstructed ; jamais strict PIT |
+
+    **oriented IC = IC × signe attendu figé.** Positif : conforme ; négatif : inversion.
+    Supportive : >60 % conformes, moyenne et médiane positives. Unsupportive : <40 %,
+    moyenne et médiane négatives. Aucune conclusion avant 8 cutoffs ni arrêt selon les résultats.
+    Profondeur cible : 26. Les intervalles aux checkpoints restent individuels/descriptifs,
+    sans contrôle d'erreur séquentielle ni indépendance présumée des candidats.
+    """)
+    if _mature:
+        _curve = confirmation_monitor["cohorts"].filter(pl.col("policy") == "ex_ante")
+        confirmation_plot = mo.ui.plotly(
+            px.line(
+                _curve.to_pandas(),
+                x="mature_cutoffs",
+                y="mean_oriented_ic",
+                color="tier",
+                markers=True,
+                title="Independent confirmation · IC orienté cumulatif par cohorte",
+            )
+        )
+    else:
+        confirmation_plot = mo.callout(
+            mo.md(
+                "**SPEC-007 ready — awaiting independent data.** Aucun résultat scientifique "
+                "de confirmation n'est calculé avec les années de développement."
+            ),
+            kind="info",
+        )
+    _monitor_outputs = [confirmation_header, confirmation_plot]
+    if _mature:
+        _monitor_outputs.extend(
+            [
+                mo.md("### Cohortes et groupes · dernier cutoff mature"),
+                mo.ui.table(
+                    confirmation_monitor["cohorts"].filter(pl.col("mature_cutoffs") == _mature),
+                    selection=None,
+                ),
+                mo.ui.table(
+                    confirmation_monitor["groups"].filter(pl.col("mature_cutoffs") == _mature),
+                    selection=None,
+                    page_size=10,
+                ),
+            ]
+        )
+    mo.vstack(_monitor_outputs)
+    return
+
+
+@app.cell
+def _(confirmation_monitor, contract_artifacts, contract_feature_choice, mo, pl, px):
+    from hocus_quant.features.registry import FEATURE_REGISTRY
+
+    _feature_id = contract_feature_choice.value
+    _locked = next(
+        (r for r in contract_artifacts.lock["candidates"] if r["canonical_feature"] == _feature_id),
+        None,
+    )
+    mo.stop(_locked is None, mo.md("Choisir un candidat du lock pour le détail de confirmation."))
+    _metadata = next(r for r in FEATURE_REGISTRY if r.feature_id == _feature_id)
+    _correlation_group = confirmation_monitor["protocol"]["known_groups"]["correlation_group"][
+        _feature_id
+    ]
+    _dev = contract_artifacts.history.filter(
+        (pl.col("feature_id") == _feature_id) & (pl.col("policy") == "ex_ante")
+    ).sort("as_of_date")
+    _dev_chart = px.line(
+        _dev.to_pandas(),
+        x="as_of_date",
+        y="spearman_ic",
+        title="Development seulement · historique 2024–2026",
+    )
+    _dev_chart.update_traces(line_color="#9ca3af")
+    _detail_outputs = [
+        mo.md(f"""
+        ### Candidate detail · confirmation indépendante
+
+        Feature : `{_feature_id}` · fenêtre {_locked["feature_window"]} ·
+        **signe attendu : {_locked["locked_direction"]:+d}**, jamais réestimé sur confirmation.
+        Famille : `{_metadata.family}` · série : `{_metadata.source_series}` ·
+        métrique : `{_metadata.metric}` · formule : `{_metadata.formula_version}` ·
+        historique minimum : {_metadata.minimum_observations} observations.
+        Groupe de rang : `{_locked["rank_signature"][:16]}…` · aliases : {_locked["aliases"]}.
+        Groupe de corrélation connu : `{_correlation_group}`.
+        Le choix du candidat suit l'ordre de discovery figé ; aucun classement de confirmation.
+        """),
+        mo.ui.plotly(_dev_chart),
+    ]
+    if confirmation_monitor["manifest"]["mature_cutoffs"]:
+        _confirmation_detail = (
+            confirmation_monitor["history"]
+            .filter((pl.col("feature_id") == _feature_id) & (pl.col("policy") == "ex_ante"))
+            .sort("cutoff")
+        )
+        _progress_detail = (
+            confirmation_monitor["candidates"]
+            .filter((pl.col("feature_id") == _feature_id) & (pl.col("policy") == "ex_ante"))
+            .sort("cutoff")
+        )
+        _detail_outputs.extend(
+            [
+                mo.ui.plotly(
+                    px.line(
+                        _confirmation_detail.to_pandas(),
+                        x="cutoff",
+                        y="oriented_ic",
+                        markers=True,
+                        title="Independent confirmation seulement",
+                    )
+                ),
+                mo.ui.table(_progress_detail, selection=None),
+            ]
+        )
+    else:
+        _detail_outputs.append(
+            mo.md(
+                "**Independent confirmation : en attente.** Maturité, IC et moyenne cumulative "
+                "seront ajoutés uniquement après enregistrement prospectif et maturation H5."
+            )
+        )
+    mo.vstack(_detail_outputs)
+    return
+
+
+@app.cell
 def _(candidate_tier_filter, contract_artifacts, contract_policy, mo, pl):
     contract_explorer = contract_artifacts.candidates
     if candidate_tier_filter.value != "all":
