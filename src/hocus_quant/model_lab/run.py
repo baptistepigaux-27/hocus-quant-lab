@@ -99,8 +99,13 @@ def run_benchmark(
                 task = f"{family}-h{horizon}-{tier}"
                 all_task_ids.append(task)
                 print(f"START {task}", flush=True)
+                scoped = (
+                    joined[joined.research_group == tier]
+                    if config.get("research_groups")
+                    else joined
+                )
                 data = {
-                    split: joined[joined.split == split].sort_values(["cutoff", "entity_id"]).copy()
+                    split: scoped[scoped.split == split].sort_values(["cutoff", "entity_id"]).copy()
                     for split in ["train", "validation", "test"]
                 }
                 for split, df in data.items():
@@ -121,7 +126,9 @@ def run_benchmark(
                             "uninterpretable_n": int((~df.interpretable).sum()),
                             "first_cutoff": str(df.cutoff.min()),
                             "last_cutoff": str(df.cutoff.max()),
-                            "last_outcome": str(df.target_end.max()),
+                            "last_outcome": str(df.target_end.dropna().max())
+                            if df.target_end.notna().any()
+                            else None,
                             "cutoff_n": df.cutoff.nunique(),
                             "feature_missing_fraction": float(df[ids].isna().mean().mean()),
                         }
@@ -190,7 +197,8 @@ def run_benchmark(
                         baseline = best.get(key)
                         rng = np.random.default_rng(config["seed"])
                         permutations = []
-                        for feature_i in range(len(ids)):
+                        permutation_enabled = config.get("permutation_enabled", True)
+                        for feature_i in range(len(ids) if permutation_enabled else 0):
                             changed = x_val.copy()
                             changed[:, feature_i] = changed[
                                 rng.permutation(len(changed)), feature_i
@@ -211,6 +219,8 @@ def run_benchmark(
                                     f"PERMUTATION {task} {kind}: {feature_i + 1}/{len(ids)}",
                                     flush=True,
                                 )
+                        if not permutation_enabled:
+                            permutations = [None] * len(ids)
                         for name, g, p in zip(ids, gain, permutations, strict=True):
                             importance_rows.append(
                                 {
@@ -220,7 +230,7 @@ def run_benchmark(
                                     "importance_type": "gain" if kind == "xgb" else "impurity",
                                     "validation_permutation_drop": p,
                                     "permutation_metric": key,
-                                    "permutation_repeats": 1,
+                                    "permutation_repeats": 1 if permutation_enabled else 0,
                                     "importance_fit": "2024_train_only",
                                 }
                             )
@@ -370,7 +380,11 @@ def run_benchmark(
             row[f"truth_vs_{col}"] = correlation(df.target_value, df[col])
         trajectory.append(row)
     write_table(output / "trajectory_diagnostics.parquet", trajectory)
-    backtests = run_backtests(output, test_preds, config)
+    backtests = (
+        run_backtests(output, test_preds, config)
+        if config.get("backtest_enabled", True)
+        else []
+    )
     summary = {
         "version": config["version"],
         "status": "development_complete",
@@ -394,6 +408,7 @@ def run_benchmark(
         "pit_grade": "reconstructed",
         "strict_pit_claimed": False,
         "independent_confirmation": False,
+        "diagnostic_only": not config.get("backtest_enabled", True),
         "selection_contamination": dataset["selection_contamination"],
         **metadata,
     }

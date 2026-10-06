@@ -18,7 +18,158 @@ def _():
     all_features_root = Path(
         os.environ.get("HOCUS_MODEL_LAB_ALL_DATA", str(baseline_root) + "-all-features")
     )
-    return mo, pd, px, json, Path, baseline_root, all_features_root
+    index_root = Path(
+        os.environ.get(
+            "HOCUS_INDEX_MODEL_LAB_DATA", str(baseline_root.parent / "spec008-index-model-lab")
+        )
+    )
+    return mo, pd, px, json, Path, baseline_root, all_features_root, index_root
+
+
+@app.cell
+def _(mo):
+    index_group = mo.ui.dropdown(
+        options={"Indices de marché": "market", "Indices sectoriels": "sector"},
+        value="Indices de marché",
+        label="Groupe d'indices",
+    )
+    index_target = mo.ui.dropdown(
+        options=[
+            "rank_pct",
+            "direction_abs",
+            "return_abs",
+            "direction_rel",
+            "excursion_balance",
+            "trend_tstat",
+        ],
+        value="rank_pct",
+        label="Target indices",
+    )
+    index_horizon = mo.ui.dropdown(
+        options={"H5": 5, "H10": 10}, value="H5", label="Horizon indices"
+    )
+    return index_group, index_target, index_horizon
+
+
+@app.cell
+def _(mo, pd, px, index_root, index_group, index_target, index_horizon):
+    if not (index_root / "index_report_complete.json").exists():
+        index_panel = mo.md("## Indices\nPremière phase de performance en cours de calcul.")
+    else:
+        _overview = pd.read_parquet(index_root / "index_overview.parquet")
+        _metric = pd.read_parquet(index_root / "metrics.parquet")
+        _profiles = pd.read_parquet(index_root / "index_feature_profiles.parquet")
+        _label_profiles = pd.read_parquet(index_root / "index_label_profiles.parquet")
+        _history = pd.read_parquet(index_root / "cutoff_metrics.parquet")
+        _picks = pd.read_parquet(index_root / "index_selected_picks.parquet")
+        _selection = _overview[
+            (_overview.feature_set == index_group.value)
+            & (_overview.target == index_target.value)
+            & (_overview.horizon == index_horizon.value)
+        ]
+        _mid = _selection.model_id.iloc[0]
+        _history = _history[(_history.model_id == _mid) & (_history.split == "test")]
+        index_panel = mo.vstack(
+            [
+                mo.md("""
+            ## Indices · futurs facteurs de contexte SRD
+            **Développement rétrospectif : train 2024, validation S1 2025, test S1 2026.**
+            Expérience indices : 112 modèles finaux sur 24 tâches, 160 essais de validation.
+            65 indices de marché et 27 sectoriels candidats, éligibilité recalculée à T.
+            Deux groupes classés séparément, 1 048 IDs de features avec masques de disponibilité.
+            Les performances des paniers sont des moyennes de rendements futurs par cutoff,
+            exprimées en quote native. Elles ne sont ni composées ni converties en euros.
+            Les dates peuvent se chevaucher et les indices partager des constituants.
+            """),
+                mo.hstack([index_group, index_target, index_horizon], justify="start"),
+                mo.md("### Gagnant choisi sur validation · performance test"),
+                mo.ui.table(
+                    _selection[
+                        [
+                            "feature_set",
+                            "target",
+                            "horizon",
+                            "model",
+                            "validation_mean_ic",
+                            "mean_ic",
+                            "roc_auc",
+                            "r2",
+                            "ic_lo90",
+                            "ic_hi90",
+                            "top3_mean_future_return",
+                            "universe_mean_future_return",
+                            "universe_mean_on_top_observed_cutoffs",
+                            "top_minus_universe",
+                            "minimum_selected",
+                            "maximum_selected",
+                            "top3_observed_cutoffs",
+                            "top3_complete_cutoffs",
+                        ]
+                    ],
+                    selection=None,
+                ),
+                mo.ui.plotly(
+                    px.line(
+                        _history,
+                        x="cutoff",
+                        y="ic",
+                        markers=True,
+                        title="IC test par cutoff · gagnant de validation",
+                    )
+                ),
+                mo.md("### Comparaison de tous les modèles · validation et test"),
+                mo.ui.table(
+                    _metric[
+                        (_metric.feature_set == index_group.value)
+                        & (_metric.target == index_target.value)
+                        & (_metric.horizon == index_horizon.value)
+                    ],
+                    selection=None,
+                    page_size=12,
+                ),
+                mo.md("### Indices du panier top 3 % · résultats futurs observés"),
+                mo.ui.table(
+                    _picks[_picks.model_id == _mid][
+                        [
+                            "cutoff",
+                            "display_name",
+                            "entity_id",
+                            "score",
+                            "future_return",
+                            "target_end",
+                            "reference_quote_date",
+                            "index_quote_end",
+                            "future_quality",
+                            "purge_reason",
+                        ]
+                    ],
+                    selection=None,
+                    page_size=12,
+                ),
+                mo.md("### Panel et disponibilité des variables"),
+                mo.ui.table(_profiles[_profiles.group == index_group.value], selection=None),
+                mo.md("### Couverture des labels et durée calendaire réelle"),
+                mo.ui.table(
+                    _label_profiles[
+                        (_label_profiles.group == index_group.value)
+                        & (_label_profiles.horizon == index_horizon.value)
+                    ],
+                    selection=None,
+                ),
+                mo.md("""
+            Les intervalles à 90 % présentés utilisent un bootstrap par blocs de 4 cutoffs ;
+            les blocs 2/6 sont aussi conservés. Ils sont individuels, sans correction multiple.
+            Un modèle naïf constant donne un panier arbitraire par identifiant.
+            Les exports de scores pour la suite SRD concernent seulement le test 2026,
+            avec dates de disponibilité modélisées et grade PIT reconstruit.
+            Le raccordement historique 2024/2025 demandera des scores OOF et une jointure as-of.
+            La version corrigée utilise minuit UTC D+1 et des horizons sur le calendrier CAC40.
+            Les trous source rendent les labels indisponibles, sans remplacer l'indice choisi.
+            Les snapshots SRD portent déjà minuit Paris ; leur coupe historique est cohérente.
+            """),
+            ]
+        )
+    return (index_panel,)
 
 
 @app.cell
@@ -211,6 +362,7 @@ def _(
     feature_choice,
     cost_choice,
     model_choice,
+    index_panel,
 ):
     _mid = model_choice.value
     _row = next(r for r in registry if r["model_id"] == _mid)
@@ -343,14 +495,16 @@ def _(
                         ],
                         selection=None,
                     ),
-                    mo.vstack([
-                        mo.md("### Comparaison des registres · référence top 10 %"),
-                        mo.ui.table(
-                            feature_comparison.drop(columns=["model_id"], errors="ignore"),
-                            selection=None,
-                            page_size=12,
-                        ),
-                    ])
+                    mo.vstack(
+                        [
+                            mo.md("### Comparaison des registres · référence top 10 %"),
+                            mo.ui.table(
+                                feature_comparison.drop(columns=["model_id"], errors="ignore"),
+                                selection=None,
+                                page_size=12,
+                            ),
+                        ]
+                    )
                     if not feature_comparison.empty
                     else mo.md("Comparaison complète des sets disponible dans les rapports."),
                 ]
@@ -429,22 +583,33 @@ def _(
                         "**Development backtest — not independent confirmation.**"
                     ),
                     mo.ui.table(_bt, selection=None),
-                    mo.vstack([
-                        mo.md("### Top 3 % versus top 10 % · mêmes gagnants de validation"),
-                        mo.ui.table(
-                            concentration_comparison[
-                                concentration_comparison.cost_bp == cost_choice.value
-                            ][[
-                                "target", "horizon", "model", "cumulative_return_top3",
-                                "cumulative_return_top10", "delta_cumulative_return",
-                                "max_drawdown_top3", "max_drawdown_top10",
-                            ]],
-                            selection=None,
-                        ),
-                    ]) if (
+                    mo.vstack(
+                        [
+                            mo.md("### Top 3 % versus top 10 % · mêmes gagnants de validation"),
+                            mo.ui.table(
+                                concentration_comparison[
+                                    concentration_comparison.cost_bp == cost_choice.value
+                                ][
+                                    [
+                                        "target",
+                                        "horizon",
+                                        "model",
+                                        "cumulative_return_top3",
+                                        "cumulative_return_top10",
+                                        "delta_cumulative_return",
+                                        "max_drawdown_top3",
+                                        "max_drawdown_top10",
+                                    ]
+                                ],
+                                selection=None,
+                            ),
+                        ]
+                    )
+                    if (
                         not concentration_comparison.empty
                         and (concentration_comparison.cost_bp == cost_choice.value).any()
-                    ) else mo.md(""),
+                    )
+                    else mo.md(""),
                     mo.ui.plotly(
                         px.line(
                             _eq,
@@ -473,6 +638,7 @@ def _(
             ),
             "Feature Importance": _importance_view,
             "Methodology": _method,
+            "Indices": index_panel,
         }
     )
     return

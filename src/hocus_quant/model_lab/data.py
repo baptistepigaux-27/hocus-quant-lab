@@ -128,6 +128,10 @@ def split_assignment(
 
 
 def build_dataset(root: Path, output: Path, config: dict[str, Any]) -> dict[str, Any]:
+    if config.get("dataset_kind") == "indices":
+        from hocus_quant.model_lab.indices import build_index_dataset
+
+        return build_index_dataset(root, output, config)
     if config.get("feature_sets") == ["all"]:
         from hocus_quant.model_lab.all_features import expand_dataset
 

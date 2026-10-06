@@ -1,0 +1,71 @@
+version = "SPEC-008-INDICES/2.0.0"
+report_stem = "SPEC_008_INDICES_RESULTS"
+seed = 20261005
+lock_path = "configs/research/candidate_lock_v1.json"
+lock_sha256 = "7508b6900e36c11757bd84d82c1a9f7d322a07db6ce4ff00e961e5a258432e0f"
+feature_sets = ["market", "sector"]
+dataset_kind = "indices"
+research_groups = ["market", "sector"]
+backtest_enabled = false
+permutation_enabled = false
+maximum_stale_calendar_days = 3
+close_only_flat_fraction = 0.9
+cutoff_availability_timezone = "UTC"
+target_calendar = "CAC40 common sessions; native last quote as-of each session, maximum age 3 calendar days"
+horizons = [5, 10]
+families = ["direction_abs", "return_abs", "direction_rel", "rank_pct", "excursion_balance", "trend_tstat"]
+train_start = "2024-01-01"
+train_end = "2024-12-31"
+validation_start = "2025-01-01"
+validation_end = "2025-06-30"
+test_start = "2026-01-01"
+test_end = "2026-06-30"
+cutoff_weekday = 4
+classification_zero = "exclude from binary fit/metrics; retain original -1/0/+1 ledger and predictions"
+classification_threshold = 0.5
+selection_metric_classification = "roc_auc"
+selection_metric_regression = "mean_ic"
+regression_baselines = ["mean", "median"]
+imputation = "train median; keep empty columns; missing indicators for every feature"
+xgboost_missing = "native NaN"
+minimum_ic_pairs = 10
+permutation_repeats = 1
+permutation_scope = "gain/impurity only in initial performance phase; no marginal permutation"
+costs_round_trip_bp = []
+portfolio_top_fraction = 0.03
+portfolio_sleeves_h5 = 2
+portfolio_sleeves_h10 = 3
+execution = "next observed common session open; exit Hth common session close"
+threads = 4
+
+[[rf_grid]]
+n_estimators = 80
+max_depth = 4
+min_samples_leaf = 30
+max_features = 0.5
+
+[[rf_grid]]
+n_estimators = 120
+max_depth = 7
+min_samples_leaf = 50
+max_features = 0.7
+
+[[xgb_grid]]
+n_estimators = 100
+max_depth = 2
+learning_rate = 0.04
+subsample = 0.8
+colsample_bytree = 0.7
+min_child_weight = 30
+reg_alpha = 0.1
+reg_lambda = 10.0
+
+[[xgb_grid]]
+n_estimators = 160
+max_depth = 3
+learning_rate = 0.03
+subsample = 0.8
+colsample_bytree = 0.8
+min_child_weight = 50
+reg_alpha = 0.5
+reg_lambda = 20.0

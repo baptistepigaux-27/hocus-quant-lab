@@ -4,7 +4,7 @@ Reproducible research sandbox for scoring experiments. SPEC-008 adds a first end
 development benchmark (features, targets, models and next-open long-only simulation).
 Independent confirmation and economically certified alpha remain unestablished.
 
-## Current state (2026-10-05)
+## Current state (2026-10-06)
 
 The complete correlation exploration is documented in the [French synthesis](docs/EXPLORATION_CORRELATIONS_SYNTHESE.md) ([PDF](docs/EXPLORATION_CORRELATIONS_SYNTHESE.pdf)): data, features, targets, 2024–2026 comparisons, reversal audit, H5 results by historical window, bootstrap intervals and remaining methodological limitations.
 
@@ -37,6 +37,18 @@ The [Model Lab](https://sandbox.hocus.works/quant-model-lab/)
 shows metrics, deciles, importances and long-only backtests at 0/10/25/50 bp round-trip.
 The candidate sets had already used 2025/2026 outcomes; this is **development, not independent
 confirmation**. An additive 49-entry target registry and separate DuckDB leave SPEC-007 frozen.
+
+**Index context research:** the [index contract](docs/SPEC_008_INDICES_CONTRACT.md)
+duplicates the H5/H10 benchmark on separate market and sector cohorts, using the
+full feature registry with explicit volume and close-only masks. The
+[index results](docs/SPEC_008_INDICES_RESULTS.md) measure predictive performance and
+synthetic top3 future-return diagnostics. These indices are intended as future SRD
+context features. The Model Lab's **Indices** tab exposes the precomputed results;
+the score export is restricted to test 2026, with reconstructed availability.
+The published v2 uses the index source's midnight UTC clock and a common CAC40
+target calendar, reconciled independently before fitting. The initial index run
+with a mismatched Paris clock is archived locally and excluded from publication.
+Historical OOF scores and an as-of SRD join remain a subsequent research step.
 
 - **AMF short positions:** Gremlin acquisition and the Quant Lab offline adapter are implemented; see [AMF rules](docs/AMF_SHORT_POSITIONS.md).
 - **Market prices:** real ABC Bourse files supplied manually have been imported. The full SRD archive has 199,416 observations across 197 provider identifiers; eight additional universes have 1,745,030 observations. Coverage is 2022-09-29 to 2026-09-28. These files are local and ignored by Git.

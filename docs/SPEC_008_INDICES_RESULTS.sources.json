@@ -1,0 +1,35 @@
+{
+  "run_summary_sha256": "37999fed6ced13e82ef5f1597068d6ff78f545c3cd9ec270d3a060686ee33894",
+  "dataset_manifest_sha256": "f4394d01114760ba3182c00ae0910f68f8599ce77188fe173ed76a6362d04089",
+  "generator_sha256": "90f357e95efae6e3ac2dc03932d36c43b1d17a844cbaf97e258f93a6612c6c7e",
+  "audit_generator_sha256": "3b06096e089ca3533e621b09b01b3c0b14f33c75d1f592bdc2489fe98fef6525",
+  "report_sha256": "b08c304292a2b88429f4ab087a9099bb8de4c7fa3448dd29627b988e2e8fd6ea",
+  "artifacts": {
+    "index_selected_picks.parquet": "65cc40f4f1b0618d960e0f0dee54eb41413a9bce53644bcc4d2e227b2c76a405",
+    "index_feature_profiles.parquet": "91e5f92622ebaffe69f91e9eb6f0e80fe027c5ca9c0a3fc7ba34428fb4bd2884",
+    "index_label_profiles.parquet": "b62f2271e410ac04eeba35c5eb7ef062e7c710e28efb88557403aa5340aebdcc",
+    "index_top3_summary.parquet": "48fe224e08d441772673e145d1691542caf1609e92887ffb8aeca98b12b680e6",
+    "index_ic_confidence.parquet": "cf096989fcd601a9627379c4932e2338683a636ebb6b4ee7c734f3ddfd3479fb",
+    "index_top3_cutoffs.parquet": "e099026c28fd2e6e33bfb1fbb4df6cc34256b74dd0cac6b9c357b1effad90a3f",
+    "index_overview.parquet": "863d5ff9b2a37521205d141706781d574d78b28fd9d1ef085564d74cd7bdf454",
+    "index_calendar_review.parquet": "434d864ab97a5724e8fad664922421e10f97d63c5ba6b95daf7abfc53b6c955d"
+  },
+  "score_export_sha256": "5921a834f2ef97a320a81fa196cefeb446be1507c4dba5a291739b8cc5e172c9",
+  "model_engine_sha256": {
+    "src/hocus_quant/model_lab/__init__.py": "b9507a6fbf988b9f0a5fd778b794fd78f9db5d13157fe78dae3ded690a1c20d2",
+    "src/hocus_quant/model_lab/all_features.py": "cbdd504406fb586015ce5f5bcfc1a16dc8d59f38b3757e9cc682fb0cd4e4121d",
+    "src/hocus_quant/model_lab/backtest.py": "30e913a0ee671a21a5e0b855642433f9c524a6cc8d44670a0bfbb6fe315b74d2",
+    "src/hocus_quant/model_lab/data.py": "e034554c66b9cda9a2fb97d78288cce3bdd0a880b5b0f882536caa6af83df612",
+    "src/hocus_quant/model_lab/indices.py": "c5435ad44cb120fe554f4b3dcb9656f19150b7a6a556005a4aee8a904b5c78fd",
+    "src/hocus_quant/model_lab/metrics.py": "d84d6bb3e0cf54c26d884fc4328897fec096b03a3dc87db5c2d3edeb19b09bfe",
+    "src/hocus_quant/model_lab/models.py": "e1bbc3de7545e692b79508a21a493335f2df955759dd4ec706210da7e52ae6e5",
+    "src/hocus_quant/model_lab/report.py": "0b2c7a0bd3f61b96f515067ca7b63bc570e5bb07a344f8e97a4bbdd1028b1108",
+    "src/hocus_quant/model_lab/run.py": "eb384aa0c68950441aeddb32b574b66dfc7b234050a1668acfa2d07ee52d0a4a",
+    "src/hocus_quant/model_lab/targets.py": "98cbe7a88abafe538e7a9c6aa58e0aebb4830047a6be8f40301892727805d9d4"
+  },
+  "supporting_source_sha256": {
+    "src/hocus_quant/features/factory.py": "924d7ed40be18e68dc48d90c185497feef203caac7d6cec9d68e0303a2b94864",
+    "src/hocus_quant/features/registry.py": "13c9d5f5479a5f24798130c8a09b50bed86f209641af5510ba20a0c838b9ec3a",
+    "src/hocus_quant/validation/market_quality.py": "7287d709b078e0799bf70e1f832d71fbee85ff484ebb7e315b88312a92f4e160"
+  }
+}

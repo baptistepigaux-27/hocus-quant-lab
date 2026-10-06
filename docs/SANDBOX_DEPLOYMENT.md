@@ -23,9 +23,20 @@ When `portfolio-top03/costs-25-45/summary.json` is present, the same bind also e
 the **45 bp · mixte** scenario for all full-registry top3 models. This is a flat
 round-trip cost assumption; it does not apply TTF per instrument.
 
+The **Indices** tab reads `data/analysis/spec008-index-model-lab` through its own
+read-only bind and `HOCUS_INDEX_MODEL_LAB_DATA`. It appears with performance tables
+only after `index_report_complete.json` is present. Group (market/sector), target
+and horizon controls are independent of the SRD selectors. Its baskets are mean
+future-return diagnostics, with no trading backtest or transaction costs. See the
+[index contract](SPEC_008_INDICES_CONTRACT.md) and
+[generated index results](SPEC_008_INDICES_RESULTS.md). Generate data/run and then
+execute `uv run python scripts/report_index_models.py` and
+`uv run python scripts/audit_index_dataset.py --include-models` before deploying
+this tab. Only a successful independent reconciliation writes the completion marker.
+
 Notebook: [`model_lab.py`](../notebooks/model_lab.py). No fitting or portfolio replay
 runs in the UI. Navigation includes Overview, Model Benchmark, Target Comparison,
-Score Deciles, Backtest, Feature Importance and Methodology; all results are labelled
+Score Deciles, Backtest, Feature Importance, Methodology and Indices; all results are labelled
 **development backtest — not independent confirmation**.
 
 The local datasets/model files are not versioned. They must be generated with the
