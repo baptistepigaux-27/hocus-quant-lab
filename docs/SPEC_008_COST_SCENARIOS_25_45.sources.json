@@ -1,0 +1,48 @@
+{
+  "manifest": {
+    "status": "development_complete",
+    "development_only": true,
+    "version": "SPEC-008-TOP03-COSTS-25-45/1.0.0",
+    "costs_round_trip_bp": [
+      25,
+      45
+    ],
+    "new_replay_cost_bp": 45,
+    "portfolio_top_fraction": 0.03,
+    "backtest_count": 58,
+    "refits": 0,
+    "input_sha256": {
+      "data/analysis/spec008-model-lab-all-features/predictions.parquet": "04b6e043f09fdea6cc5b7be082d342cb71b3ce2edabc61ff9812a2e45cda4485",
+      "data/analysis/spec008-model-lab-all-features/model_registry.json": "9b048da1a7335ebfafdba50f4ae19382e8611fbb6471d7919f6e35696fd7cda7",
+      "data/analysis/spec008-model-lab-all-features/portfolio-top03/experiment_config.json": "149d2d33e692c6e1c57c10fd9ae3d9de216bdbf39972e0fcc0c2b55a688a69c2",
+      "data/analysis/spec008-model-lab-all-features/portfolio-top03/backtest_summary.parquet": "72ffe83ce5ac554ae1adf717bec3038499ee14aea0e1ed1e5eab63b2ff77e5b3",
+      "data/analysis/spec008-model-lab-all-features/portfolio-top03/source_market.parquet": "5e81dde4fb4b0cd50ee2cd71d4c5945736a952c1a9640912eee185190605e1d1",
+      "data/analysis/spec008-model-lab-all-features/portfolio-top03/source_benchmark.parquet": "7f7efa8dd8dbc10f653cb463e439384143bdf9d3cf583eaabb8d3727ccc1b4c2"
+    },
+    "artifact_sha256": {
+      "backtest_summary.parquet": "648d5ceebdaf74cc580976ac2fd372d7b97377f2a6767f7d7aae197d2bbe5d1b",
+      "backtest_equity.parquet": "c9e1d80ae6233267172df925bb49aa8ce0b150b0ebc95b37c5da454dced13e26",
+      "backtest_trades.parquet": "872b70a7b7c74fa97af4afb0df892831d00bb95d614984dc3ad10bca9b281956",
+      "source_benchmark.parquet": "7f7efa8dd8dbc10f653cb463e439384143bdf9d3cf583eaabb8d3727ccc1b4c2",
+      "comparison_all_models.parquet": "9454861b4902402baa9fc393d171d12c503fb8190e4c957e862163c098954820",
+      "source_market.parquet": "5e81dde4fb4b0cd50ee2cd71d4c5945736a952c1a9640912eee185190605e1d1",
+      "comparison_winners.parquet": "6cee700ad0f03799ffeab14f35d52d4bbb693f076992a1aaad775b926d269526"
+    },
+    "code_sha": "cb1c78d27f2872999a1e566b01ccae8342d4e4aa",
+    "working_tree_dirty": true,
+    "source_sha256": {
+      "src/hocus_quant/model_lab/__init__.py": "b9507a6fbf988b9f0a5fd778b794fd78f9db5d13157fe78dae3ded690a1c20d2",
+      "src/hocus_quant/model_lab/all_features.py": "cbdd504406fb586015ce5f5bcfc1a16dc8d59f38b3757e9cc682fb0cd4e4121d",
+      "src/hocus_quant/model_lab/backtest.py": "30e913a0ee671a21a5e0b855642433f9c524a6cc8d44670a0bfbb6fe315b74d2",
+      "src/hocus_quant/model_lab/data.py": "e26cf55f4e7699ee0c781c58bba7445ce4b084f4e92cb67875aaabdf571e22f3",
+      "src/hocus_quant/model_lab/metrics.py": "d84d6bb3e0cf54c26d884fc4328897fec096b03a3dc87db5c2d3edeb19b09bfe",
+      "src/hocus_quant/model_lab/models.py": "e1bbc3de7545e692b79508a21a493335f2df955759dd4ec706210da7e52ae6e5",
+      "src/hocus_quant/model_lab/report.py": "0b2c7a0bd3f61b96f515067ca7b63bc570e5bb07a344f8e97a4bbdd1028b1108",
+      "src/hocus_quant/model_lab/run.py": "b3921475432ab09228b35b5b5a205b24cacd8bf10b4043558e39440f168a1c44",
+      "src/hocus_quant/model_lab/targets.py": "98cbe7a88abafe538e7a9c6aa58e0aebb4830047a6be8f40301892727805d9d4"
+    }
+  },
+  "generator_sha256": "6e521cc4032be65edf11101c01dd2dcab225e533819258a37ade18895786a0c3",
+  "report_sha256": "f196d839e08f7c3ecb0405f9e49d92b086dfd5bfb40f9ede358da8e1e10925bd",
+  "generator_current_sha256": "8433d92ee8971659c5b2a7db36eaaf914c41f4ba174e1b0470237eace964f16a"
+}

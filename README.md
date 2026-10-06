@@ -31,6 +31,8 @@ The [top 3% portfolio replay](docs/SPEC_008_TOP3_RESULTS.md) reuses the same sco
 and validation winners to compare concentration with the top 10% reference.
 The [rank portfolio detail](docs/SPEC_008_RANK_PORTFOLIO_DETAIL.md) lists every stock,
 decision basket, monthly return and reconciled stock contribution for H5/H10 at 25 bp.
+The [25/45 bp cost scenarios](docs/SPEC_008_COST_SCENARIOS_25_45.md) compare the
+optimistic and mixed round-trip flat-cost assumptions on the same top3 scores.
 The [Model Lab](https://sandbox.hocus.works/quant-model-lab/)
 shows metrics, deciles, importances and long-only backtests at 0/10/25/50 bp round-trip.
 The candidate sets had already used 2025/2026 outcomes; this is **development, not independent

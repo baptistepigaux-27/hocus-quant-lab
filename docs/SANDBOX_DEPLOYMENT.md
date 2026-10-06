@@ -19,6 +19,9 @@ its completion summary is present. Neither run performs fitting in the UI.
 The full-registry run also exposes a **Top 3 % / Top 10 %** portfolio selector after
 the precomputed `portfolio-top03/summary.json` is present. Both choices read the same
 models and scores. The nested replay is covered by the existing read-only data bind.
+When `portfolio-top03/costs-25-45/summary.json` is present, the same bind also exposes
+the **45 bp · mixte** scenario for all full-registry top3 models. This is a flat
+round-trip cost assumption; it does not apply TTF per instrument.
 
 Notebook: [`model_lab.py`](../notebooks/model_lab.py). No fitting or portfolio replay
 runs in the UI. Navigation includes Overview, Model Benchmark, Target Comparison,

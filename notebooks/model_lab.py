@@ -108,6 +108,14 @@ def _(pd, model_root, portfolio_choice):
     )
     equity = pd.read_parquet(_portfolio_root / "backtest_equity.parquet")
     backtest = pd.read_parquet(_portfolio_root / "backtest_summary.parquet")
+    _mixed_root = _portfolio_root / "costs-25-45"
+    if (_mixed_root / "summary.json").exists():
+        equity = pd.concat(
+            [equity, pd.read_parquet(_mixed_root / "backtest_equity.parquet")], ignore_index=True
+        )
+        backtest = pd.concat(
+            [backtest, pd.read_parquet(_mixed_root / "backtest_summary.parquet")], ignore_index=True
+        )
     _comparison_path = model_root / "portfolio-top03" / "comparison_winners.parquet"
     concentration_comparison = (
         pd.read_parquet(_comparison_path) if _comparison_path.exists() else pd.DataFrame()
@@ -134,7 +142,7 @@ def _(mo, summary):
 
 
 @app.cell
-def _(mo, registry):
+def _(mo, registry, backtest):
     target_choice = mo.ui.dropdown(
         options=[
             "direction_abs",
@@ -150,8 +158,12 @@ def _(mo, registry):
     horizon_choice = mo.ui.dropdown(options={"H5": 5, "H10": 10}, value="H5", label="Horizon futur")
     _sets = list(dict.fromkeys(r["feature_set"] for r in registry))
     feature_choice = mo.ui.dropdown(options=_sets, value=_sets[0], label="Set de features")
+    _cost_options = {"0 bp": 0, "10 bp": 10, "25 bp": 25}
+    if 45 in set(backtest.cost_bp):
+        _cost_options["45 bp · mixte"] = 45
+    _cost_options["50 bp"] = 50
     cost_choice = mo.ui.dropdown(
-        options={"0 bp": 0, "10 bp": 10, "25 bp": 25, "50 bp": 50},
+        options=_cost_options,
         value="25 bp",
         label="Frais aller-retour",
     )
@@ -287,6 +299,7 @@ def _(
     Nombre de titres = max(1, ceil(fraction × scores finis)) ; ex æquo départagés par ISIN.
     Les scores et gagnants de validation sont identiques entre top 3 % et top 10 %.
     Les métriques IC/AUC et les déciles portent toujours sur l'univers complet.
+    Le scénario 45 bp est un forfait mixte global, pas une TTF calculée titre par titre.
     Un score naïf constant donne un panier arbitraire, sans classement prédictif.
     Prix manquant : pas de fill inventé.
     Corporate actions/anomalies restent annotées ; séries raw non certifiées, univers survivant.
@@ -428,7 +441,10 @@ def _(
                             ]],
                             selection=None,
                         ),
-                    ]) if not concentration_comparison.empty else mo.md(""),
+                    ]) if (
+                        not concentration_comparison.empty
+                        and (concentration_comparison.cost_bp == cost_choice.value).any()
+                    ) else mo.md(""),
                     mo.ui.plotly(
                         px.line(
                             _eq,
