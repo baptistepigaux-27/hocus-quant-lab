@@ -7,8 +7,9 @@ checkout `/home/ubuntu/worktrees/hocus-quant-spec008`.
 
 La [synthèse des corrélations](EXPLORATION_CORRELATIONS_SYNTHESE.md) décrit la phase
 initiale. Depuis, le laboratoire possède des modèles prédictifs et des simulations
-de portefeuille **de développement**, ainsi que des modèles d'indices et un
-K-means SBF 120. Les phrases de la synthèse indiquant l'absence de modèles et de
+de portefeuille **de développement**, ainsi que des modèles d'indices, un
+K-means SBF 120 et leur intégration historique aux modèles actions. Les phrases
+de la synthèse indiquant l'absence de modèles et de
 backtest s'appliquent à la phase qu'elle clôture. Son PDF reste cette archive du
 5 octobre ; le présent journal décrit la suite.
 
@@ -30,6 +31,7 @@ sur une période indépendante n'est revendiqué.
 | Indices par groupes | Modèles sur groupes d'indices de marché/sectoriels, métriques et diagnostics de paniers | [Contrat](SPEC_008_INDICES_CONTRACT.md), [résultats](SPEC_008_INDICES_RESULTS.md), `0ab07ba` |
 | Grands marchés | Estimateurs distincts sur les dates de CAC40/SBF120/S&P500/DAX40/FTSE100 | [Contrat](INDEX_SERIES_MODELS_CONTRACT.md), [résultats](INDEX_SERIES_MODELS_RESULTS.md), `9e15c6a` |
 | SBF 120, sept régimes | K-means des dates de l'indice, centres et tables de prévision 2024 figés | [Contrat](SBF120_KMEANS7_CONTRACT.md), [résultats](SBF120_KMEANS7_RESULTS.md) |
+| Contextes SRD | Producteurs historiques hors apprentissage, centres 2023 et jointure as-of ; 356 features ajoutées ; comparaison aux modèles actions seuls | [Contrat](SRD_CONTEXT_INTEGRATION_CONTRACT.md), [résultats](SRD_CONTEXT_RESULTS.md) |
 
 Les données locales, modèles sérialisés et grands ledgers sont ignorés par Git.
 Les contrats, configs, scripts, rapports et empreintes des sources sont versionnés.
@@ -78,9 +80,10 @@ Les métriques d'IC portent sur les indices comparés **à une même date**.
 Les paniers top3 sont des diagnostics de rendements futurs moyens ; aucune
 exécution ou commission d'indice n'est simulée.
 
-Les 22 284 scores exportés sur 996 flux concernent seulement le test 2026. Ils
-n'ont pas encore été intégrés au SRD. Les scores OOF historiques et la jointure
-as-of demeurent nécessaires.
+Les 22 284 scores exportés sur 996 flux concernent seulement le test 2026.
+Ils restent les résultats de cette première phase. La section 6 décrit la variante
+historique reconstruite pour l'intégration SRD, sans réutiliser ces exports pour
+remplir le train 2024.
 
 ## 4. Dernière étape supervisée : modèles temporels indépendants
 
@@ -169,7 +172,60 @@ Les variables corrélées peuvent surpondérer certains types d'état. Les 2024 
 K-means correspondent au fit, pas à une validation. Les modèles supervisés utilisent
 un retrain 2025, et ne disposent donc pas du même budget d'information.
 
-## 6. Publication et accès
+## 6. Intégration des contextes aux modèles actions SRD
+
+L'expérience `srd-context-v1` ajoute **356 variables** aux 1 048 variables d'action :
+20 variables de régime SBF120, 324 prévisions des 27 secteurs et 12 prévisions
+CAC40/SBF120. Les secteurs forment un contexte global ; aucune classification
+sectorielle historique des actions n'est inventée.
+
+Un score calculé par un modèle entraîné jusqu'en 2025 ne peut pas remplir le train
+2024. Les producteurs sont donc reconstruits avec un amorçage 2023, des fits
+expansifs avant chaque trimestre de 2024/S1 2025 et des labels déjà matures.
+Le test 2026 utilise un fit borné avant juillet 2025. Les paramètres des RF de
+contexte sont fixés avant les résultats SRD, sans reprendre les anciens gagnants.
+
+Les sept centres K-means sont ancrés en **2023**, puis gelés. C'est une variante
+historique distincte du fit 2024 publié précédemment : les noms C1…C7 ne désignent
+pas les mêmes centres. Les tables de prévisions par régime suivent les mêmes
+bornes d'apprentissage que les producteurs supervisés.
+
+La décision commune est minuit UTC D+1, après disponibilité des closes d'indices
+et avant le prochain open. La jointure as-of vérifie les horloges de disponibilité,
+le fit et la maturité des labels. Aucun stock ni label n'est retiré ; les 1 048
+valeurs d'action et les 17 494 lignes sur 100 dates sont identiques à la référence.
+Environ 5 % des valeurs de contexte sont manquantes explicitement.
+
+Les mêmes grilles SRD et seeds servent à ajuster **56 modèles**, sur les six targets
+H5/H10, sélectionnés sur S1 2025 puis rejoués sur S1 2026. Les simulations top 3 %
+à 25/45 bp comparent les gagnants avec et sans contexte. Le rapport conserve aussi
+les comparaisons par type de modèle et des intervalles individuels appariés d'IC.
+L'amélioration de prédiction et celle du portefeuille sont évaluées séparément.
+
+Les contextes historiques sont hors apprentissage de leurs producteurs ; les
+modèles SRD utilisent toujours leur validation 2025 pour choisir leurs paramètres.
+L'intégration ne crée pas une période de confirmation indépendante. Résultats et
+diagnostics : [rapport complet](SRD_CONTEXT_RESULTS.md).
+
+Sur les gagnants de validation, **5/12** améliorent le rendement net à 25 bp.
+Le Random Forest sur le rang du rendement passe de **10,81 % à 16,99 % en H5**,
+et de **17,68 % à 25,49 % en H10**. À 45 bp, les performances enrichies sont
+**14,35 % et 23,64 %**. Le drawdown se dégrade toutefois sur ces deux modèles :
+à 45 bp, **−5,41 % → −6,48 % en H5** et **−4,50 % → −6,76 % en H10**.
+
+L'ajout n'améliore pas toutes les targets : rendement absolu H5 passe de **14,05 %
+à 2,69 %** à 25 bp, malgré un IC ponctuel plus élevé. Aucun écart d'IC ne possède
+trois intervalles individuels à 90 % entièrement positifs, pour blocs 2/4/6.
+Ces chiffres ne justifient pas de remplacer systématiquement la référence.
+
+Les **168 modèles RF producteurs**, **56 modèles SRD**, l'ancrage K-means et
+**42 tables par régime** reproduisent les scores sauvegardés. L'écart maximal est
+`2,220446049250313e-15` pour les producteurs et `1,971756091734278e-13` pour le SRD ;
+les 2 000 valeurs de régime sont reproduites exactement. Les empreintes et
+replays sont dans `srd-context-v1/comparison_replay_audit.json` et le
+[manifeste de publication](SRD_CONTEXT_RESULTS.sources.json).
+
+## 7. Publication et accès
 
 [Model Lab](https://sandbox.hocus.works/quant-model-lab/) :
 
@@ -177,6 +233,9 @@ un retrain 2025, et ne disposent donc pas du même budget d'information.
 - **Grands marchés** : prévisions temporelles par indice, métriques et intervalles.
 - **SBF 120 · régimes** : sept centres, chronologie des régimes, occupation,
   distances au support train, profils futurs, prévisions et ledger.
+- **Contextes SRD** : modèles actions seuls/enrichis, coûts 25/45 bp, intervalles
+  appariés et disponibilité historique ; jeu « Actions + contextes · 1 404 features »
+  dans les contrôles de l'explorateur de modèles.
 
 Le service `hocus-quant-model-lab-sandbox` utilise le port loopback **8069** et le
 checkout isolé. Chaque expérience a son bind en lecture seule. Les données et
@@ -190,6 +249,15 @@ Les dix onglets s'affichent et l'onglet SBF 120 montre les profils et graphiques
 2026 H5. Aucune erreur JavaScript n'a été observée à l'ouverture. La capture locale
 `/tmp/hocus-sbf120-regimes.png` conserve cette inspection visuelle.
 
+Publication des contextes SRD observée le 6 octobre : **onze onglets**, comparaison
+des douze gagnants et ledger visibles ; le jeu enrichi expose top 3 % et les seuls
+scénarios calculés 25/45 bp. Le navigateur a affiché le RF rang H10 à 45 bp,
+rendement cumulé **23,64 %**, avec sa courbe. Le sélecteur de modèle propose désormais
+le gagnant de validation par défaut. Aucune erreur JavaScript ni alerte affichée.
+Service Model Lab actif, loopback **200**, route publique sans credentials **401** ;
+service SRD 8068 toujours actif. La publication et les empreintes des captures sont
+dans `data/analysis/srd-context-v1/sandbox_publication.json`.
+
 Pour la publication initiale des grands marchés, les choix CAC40 direction H5 et
 FTSE100 volatilité H10 avaient été inspectés au navigateur ; le log local
 `/tmp/hocus-index-series-browser.log` et les captures correspondantes sont des
@@ -197,12 +265,12 @@ traces opérationnelles, pas des preuves statistiques. Les replays scientifiques
 et empreintes sont persistés dans `data/analysis/`, et référencés dans le
 [fichier de provenance du journal](RESEARCH_PROGRESS_2026_10_06.sources.json).
 
-## 7. Prochaines étapes ouvertes
+## 8. Prochaines étapes ouvertes
 
-1. Produire des scores historiques OOF et définir une jointure as-of des contextes
-   indices/régimes au SRD, avec disponibilité et borne de fit explicites.
-2. Mesurer le gain incrémental au SRD par rapport au modèle sans contexte ; des
-   performances sur l'indice seul ne prouvent pas ce gain.
+1. Décomposer l'ajout de contexte par blocs dans une nouvelle expérience fixée
+   à l'avance ; le benchmark complet ne mesure pas une contribution causale par bloc.
+2. Explorer les interactions action/contexte et la stabilité sur d'autres épisodes,
+   en conservant les baisses de performance de cette première comparaison.
 3. Traiter prix ajustés/corporate actions et composition historique de l'univers.
 4. Préciser fiscalité par instrument, minimums de courtage, spread et exécution
    si l'objectif devient une simulation négociable.

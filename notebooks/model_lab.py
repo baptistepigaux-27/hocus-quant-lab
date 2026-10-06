@@ -31,6 +31,9 @@ def _():
     regimes_root = Path(
         os.environ.get("HOCUS_SBF120_REGIMES_DATA", str(baseline_root.parent / "sbf120-kmeans7-v1"))
     )
+    context_root = Path(
+        os.environ.get("HOCUS_SRD_CONTEXT_DATA", str(baseline_root.parent / "srd-context-v1"))
+    )
     return (
         mo,
         pd,
@@ -42,7 +45,156 @@ def _():
         index_root,
         series_root,
         regimes_root,
+        context_root,
     )
+
+
+@app.cell
+def _(mo, pd, context_root):
+    if (context_root / "context_report_complete.json").exists():
+        _scores = pd.read_parquet(context_root / "context/scores.parquet", columns=["cutoff"])
+        _days = sorted(map(str, _scores.cutoff.unique()))
+    else:
+        _days = ["En préparation"]
+    context_day = mo.ui.dropdown(options=_days, value=_days[-1], label="Date du contexte SRD")
+    return (context_day,)
+
+
+@app.cell
+def _(mo, pd, px, context_root, context_day):
+    if not (context_root / "context_report_complete.json").exists():
+        context_panel = mo.md("## Contextes SRD\nExpérience enrichie en préparation.")
+    else:
+        _overview = pd.read_parquet(context_root / "comparison_validation_winners.parquet")
+        _delta = pd.read_parquet(context_root / "comparison_baseline.parquet")
+        _confidence = pd.read_parquet(context_root / "comparison_confidence.parquet")
+        _coverage = pd.read_parquet(context_root / "context_coverage.parquet")
+        _importance = pd.read_parquet(context_root / "context_importance_shares.parquet")
+        _scores = pd.read_parquet(context_root / "context/scores.parquet")
+        _scores = _scores[_scores.cutoff.astype(str) == context_day.value]
+        _scores = _scores.assign(
+            Bloc=_scores.feature_id.str.split(".").str[1],
+        )
+        _compact = _delta[["target", "horizon", "model_baseline", "model_context"]].rename(
+            columns={
+                "target": "Target",
+                "horizon": "H",
+                "model_baseline": "Référence",
+                "model_context": "Enrichi",
+            }
+        )
+        for _cost in (25, 45):
+            for _variant, _label in [("baseline", "référence"), ("context", "enrichi")]:
+                _compact[f"Net {_cost} bp · {_label} (%)"] = (
+                    100 * _delta[f"cumulative_return_{_cost}bp_{_variant}"]
+                ).round(2)
+        _gains = int((_delta.delta_cumulative_return_25bp > 0).sum())
+        _robust = int((_confidence.groupby(["target", "horizon"]).delta_ic_lo90.min() > 0).sum())
+        context_panel = mo.vstack(
+            [
+                mo.md("""
+            ## Contextes SRD
+            **1 404 variables : 1 048 propres aux actions et 356 contextes de marché.**
+            Sept régimes SBF 120 ancrés sur 2023, distances et prévisions par régime ;
+            prévisions H5/H10 des 27 indices sectoriels, CAC40 et SBF120.
+            Producteurs ajustés avant chaque trimestre ; seuls les labels déjà matures entrent
+            dans le fit. Contexte test 2026 figé avec information antérieure à juillet 2025.
+            Les vecteurs sectoriels sont partagés par toutes les actions de la date.
+            """),
+                mo.md("### Référence 1 048 variables et modèle enrichi · mêmes observations test"),
+                mo.md(
+                    f"**{_gains}/12 gagnants améliorent leur rendement net à 25 bp.** "
+                    f"{_robust} gain d'IC possède trois intervalles 90 % entièrement positifs. "
+                    "Rendements cumulés S1 2026, non annualisés ; top 3 %."
+                ),
+                mo.ui.table(_compact, selection=None, page_size=12),
+                mo.md("### Métriques détaillées de tous les gagnants"),
+                mo.ui.table(
+                    _overview[
+                        [
+                            "target",
+                            "horizon",
+                            "feature_set",
+                            "model",
+                            "validation_metric",
+                            "mean_ic",
+                            "roc_auc",
+                            "r2",
+                            "n",
+                            "cumulative_return_25bp",
+                            "cumulative_return_45bp",
+                            "max_drawdown_45bp",
+                        ]
+                    ].round(5),
+                    selection=None,
+                    page_size=24,
+                ),
+                mo.md("### Écarts contexte moins référence · gagnants choisis sur validation"),
+                mo.ui.table(
+                    _delta[
+                        [
+                            "target",
+                            "horizon",
+                            "model_context",
+                            "model_baseline",
+                            "delta_mean_ic",
+                            "paired_ic_cutoffs",
+                            "paired_delta_ic",
+                            "delta_roc_auc",
+                            "delta_r2",
+                            "delta_cumulative_return_25bp",
+                            "delta_cumulative_return_45bp",
+                        ]
+                    ].round(5),
+                    selection=None,
+                ),
+                mo.md("### Incertitude de l'écart d'IC · blocs de 2/4/6 cutoffs"),
+                mo.ui.table(_confidence.round(5), selection=None, page_size=12),
+                mo.md("### Disponibilité historique des contextes"),
+                mo.ui.table(_coverage, selection=None),
+                mo.md("### Ledger : contextes disponibles à la date choisie"),
+                context_day,
+                mo.ui.table(
+                    _scores[
+                        [
+                            "feature_id",
+                            "value",
+                            "source_available_at",
+                            "fit_information_available_at",
+                            "max_training_label_available_at",
+                            "source_quote_date",
+                            "quote_age_days",
+                            "fold",
+                            "producer_id",
+                            "status",
+                        ]
+                    ],
+                    selection=None,
+                    page_size=15,
+                ),
+                mo.md("### Importance des blocs · descriptif"),
+                mo.ui.plotly(
+                    px.box(
+                        _importance,
+                        x="block",
+                        y="importance_share",
+                        color="model",
+                        title="Parts de gain/impurity du fit SRD train 2024",
+                    )
+                ),
+                mo.md("""
+            Les centres 2023 constituent une variante historique du K-means ; leur C1…C7
+            diffèrent du fit 2024 de l'onglet « SBF 120 · régimes ». L'ajout change le jeu
+            d'information du modèle. Les gagnants de référence et enrichis sont sélectionnés
+            séparément sur 2025. Intervalles individuels 90 %, sans correction multiple.
+            Les écarts appariés d'IC utilisent seulement les dates où les deux IC existent.
+            Décision commune : minuit UTC D+1, jointure as-of avant prochain open.
+            Les absences de contexte restent NaN et aucune action n'est retirée.
+            Top 3 %, frais forfaitaires 25/45 bp ; périodes déjà explorées, PIT reconstruit.
+            """),
+            ]
+        )
+    return (context_panel,)
 
 
 @app.cell
@@ -176,7 +328,9 @@ def _(mo, pd, px, json, regimes_root, regimes_period, regimes_target, regimes_ho
             retrain jusqu'à juin 2025, budget d'information différent.
             Bootstrap par blocs H/2H/4H, centres figés, sans correction multiple.
             Export : sept indicatrices, sept distances et six prévisions, S1 2025/S1 2026.
-            PIT reconstruit ; jointure SRD et confirmation indépendante restent à faire.
+            PIT reconstruit. La variante historique ancrée 2023 est intégrée dans
+            « Contextes SRD » ; cette expérience conserve les centres 2024.
+            Aucune confirmation indépendante.
             """),
             ]
         )
@@ -322,8 +476,9 @@ def _(mo, pd, px, series_root, series_index, series_target, series_horizon):
             Références : fréquence de hausse historique, rendement zéro, volatilité historique H.
             Sélection sur log-loss pour direction, RMSE pour les régressions.
             Une référence peut gagner. Intervalles individuels 90 %, sans correction multiple,
-            conditionnels aux modèles ajustés. Scores test 2026 exportés pour un futur contexte SRD.
-            OOF roulant et jointure as-of restent nécessaires. Prix et timestamps reconstruits ;
+            conditionnels aux modèles ajustés. Cet onglet conserve les exports test 2026 initiaux.
+            Leur variante historique intégrée est dans « Contextes SRD ».
+            Prix et timestamps reconstruits ;
             aucune confirmation indépendante revendiquée.
             """),
             ]
@@ -467,7 +622,8 @@ def _(mo, pd, px, index_root, index_group, index_target, index_horizon):
             Un modèle naïf constant donne un panier arbitraire par identifiant.
             Les exports de scores pour la suite SRD concernent seulement le test 2026,
             avec dates de disponibilité modélisées et grade PIT reconstruit.
-            Le raccordement historique 2024/2025 demandera des scores OOF et une jointure as-of.
+            Le raccordement historique utilise des producteurs antérieurs dans
+            « Contextes SRD ». Cet onglet conserve l'expérience indices initiale.
             La version corrigée utilise minuit UTC D+1 et des horizons sur le calendrier CAC40.
             Les trous source rendent les labels indisponibles, sans remplacer l'indice choisi.
             Les snapshots SRD portent déjà minuit Paris ; leur coupe historique est cohérente.
@@ -478,10 +634,12 @@ def _(mo, pd, px, index_root, index_group, index_target, index_horizon):
 
 
 @app.cell
-def _(mo, baseline_root, all_features_root):
+def _(mo, baseline_root, all_features_root, context_root):
     _options = {"Strict 85 / Strong 138": str(baseline_root)}
     if (all_features_root / "summary.json").exists():
         _options["Toutes les variables · 1 048 features"] = str(all_features_root)
+    if (context_root / "context_report_complete.json").exists():
+        _options["Actions + contextes · 1 404 features"] = str(context_root)
     experiment_choice = mo.ui.dropdown(
         options=_options,
         value=list(_options)[-1],
@@ -546,8 +704,10 @@ def _(mo, pd, json, Path, experiment_choice):
 
 
 @app.cell
-def _(mo, model_root):
-    _options = {"Top 10 %": 0.1}
+def _(mo, json, model_root):
+    _config = json.loads((model_root / "experiment_config.json").read_text())
+    _fraction = _config.get("portfolio_top_fraction", 0.1)
+    _options = {f"Top {_fraction * 100:.0f} %": _fraction}
     if (model_root / "portfolio-top03" / "summary.json").exists():
         _options["Top 3 %"] = 0.03
     portfolio_choice = mo.ui.dropdown(
@@ -560,7 +720,10 @@ def _(mo, model_root):
 @app.cell
 def _(pd, model_root, portfolio_choice):
     _portfolio_root = (
-        model_root / "portfolio-top03" if portfolio_choice.value == 0.03 else model_root
+        model_root / "portfolio-top03"
+        if portfolio_choice.value == 0.03
+        and (model_root / "portfolio-top03" / "summary.json").exists()
+        else model_root
     )
     equity = pd.read_parquet(_portfolio_root / "backtest_equity.parquet")
     backtest = pd.read_parquet(_portfolio_root / "backtest_summary.parquet")
@@ -581,6 +744,8 @@ def _(pd, model_root, portfolio_choice):
 
 @app.cell
 def _(mo, summary):
+    _sets = summary.get("feature_sets", {"strict": 85, "strong": 138})
+    _feature_text = " / ".join(f"{name} : {count:,} variables" for name, count in _sets.items())
     mo.md(f"""
     # Model Lab · SPEC-008
     **Development backtest — not independent confirmation.**
@@ -588,9 +753,10 @@ def _(mo, summary):
     Train 2024 · validation S1 2025 · retrain 2024 + S1 2025 · test S1 2026.
     **Le lock a déjà utilisé des outcomes de 2025 et 2026 :
     ces résultats restent du développement.**
-    12 tâches H5/H10 · {summary.get("feature_sets", {"strict": 85, "strong": 138})}
+    12 tâches H5/H10 · {_feature_text}
     · {summary["model_count"]} modèles.
     Le set « all » utilise les 1 048 entrées du registre, sans sélection par les outcomes.
+    Le set « context » y ajoute 356 contextes historiques d'indices et de régimes.
     PIT reconstruit · aucune donnée ni modification de
     [SPEC-007](https://sandbox.hocus.works/quant-lab-srd/?v=spec007).
     """)
@@ -614,10 +780,10 @@ def _(mo, registry, backtest):
     horizon_choice = mo.ui.dropdown(options={"H5": 5, "H10": 10}, value="H5", label="Horizon futur")
     _sets = list(dict.fromkeys(r["feature_set"] for r in registry))
     feature_choice = mo.ui.dropdown(options=_sets, value=_sets[0], label="Set de features")
-    _cost_options = {"0 bp": 0, "10 bp": 10, "25 bp": 25}
-    if 45 in set(backtest.cost_bp):
-        _cost_options["45 bp · mixte"] = 45
-    _cost_options["50 bp"] = 50
+    _cost_options = {
+        "45 bp · mixte" if _cost == 45 else f"{_cost} bp": _cost
+        for _cost in sorted(set(backtest.cost_bp))
+    }
     cost_choice = mo.ui.dropdown(
         options=_cost_options,
         value="25 bp",
@@ -629,15 +795,18 @@ def _(mo, registry, backtest):
 
 @app.cell
 def _(mo, registry, target_choice, horizon_choice, feature_choice):
-    available_models = {
-        r["model"]: r["model_id"]
+    _entries = [
+        r
         for r in registry
         if r["target"] == target_choice.value
         and r["horizon"] == horizon_choice.value
         and r["feature_set"] == feature_choice.value
-    }
+    ]
+    available_models = {r["model"]: r["model_id"] for r in _entries}
+    _eligible = [r for r in _entries if r["validation_metric"] is not None]
+    _default = max(_eligible, key=lambda r: r["validation_metric"])["model"]
     model_choice = mo.ui.dropdown(
-        options=available_models, value="xgb", label="Modèle · XGB référence par défaut"
+        options=available_models, value=_default, label="Modèle · gagnant de validation par défaut"
     )
     mo.output.replace(model_choice)
     return model_choice
@@ -670,6 +839,7 @@ def _(
     index_panel,
     series_panel,
     regimes_panel,
+    context_panel,
 ):
     _mid = model_choice.value
     _row = next(r for r in registry if r["model_id"] == _mid)
@@ -705,6 +875,11 @@ def _(
         n=("n", "sum"),
     )
     _imp = importances[importances.model_id == _mid]
+    _importance_column = (
+        "validation_permutation_drop"
+        if not _imp.empty and _imp.validation_permutation_drop.notna().any()
+        else "gain_or_impurity"
+    )
     _cal = (
         calibration[(calibration.model_id == _mid) & (calibration.split == "test")]
         if "model_id" in calibration
@@ -717,17 +892,18 @@ def _(
             [
                 mo.ui.plotly(
                     px.bar(
-                        _imp.sort_values("validation_permutation_drop", ascending=False).head(20),
-                        x="validation_permutation_drop",
+                        _imp.sort_values(_importance_column, ascending=False).head(20),
+                        x=_importance_column,
                         y="feature_id",
                         orientation="h",
-                        title="Permutation validation · 2024 fit uniquement",
+                        title="Importance descriptive · fit 2024 uniquement",
                     )
                 ),
                 mo.ui.table(_imp, selection=None, page_size=15),
                 mo.md(
-                    "RF impurity / XGB gain et permutation marginale, sans causalité "
-                    "ni nouvelle sélection. Une réplication ; variables corrélées."
+                    "RF impurity / XGB gain ; permutation affichée seulement lorsqu'elle "
+                    "a été calculée. Aucune permutation pour l'expérience enrichie. "
+                    "Descriptif, sans causalité ; variables corrélées."
                 ),
             ]
         )
@@ -756,7 +932,9 @@ def _(
     compartiments fixes 2 H5 / 3 H10, equipondération au sein du nouveau compartiment, cash à 0 %.
     Frais all-in aller-retour appliqués moitié par jambe, sans levier.
     Nombre de titres = max(1, ceil(fraction × scores finis)) ; ex æquo départagés par ISIN.
-    Les scores et gagnants de validation sont identiques entre top 3 % et top 10 %.
+    Pour les replays de concentration d'un même modèle, scores et gagnants ne changent pas.
+    L'expérience enrichie ajoute 356 contextes historiques ; ses propres gagnants
+    sont choisis sur validation, puis simulés en top 3 %.
     Les métriques IC/AUC et les déciles portent toujours sur l'univers complet.
     Le scénario 45 bp est un forfait mixte global, pas une TTF calculée titre par titre.
     Un score naïf constant donne un panier arbitraire, sans classement prédictif.
@@ -804,7 +982,7 @@ def _(
                     ),
                     mo.vstack(
                         [
-                            mo.md("### Comparaison des registres · référence top 10 %"),
+                            mo.md("### Comparaison des jeux de variables · expériences publiées"),
                             mo.ui.table(
                                 feature_comparison.drop(columns=["model_id"], errors="ignore"),
                                 selection=None,
@@ -948,6 +1126,7 @@ def _(
             "Indices": index_panel,
             "Grands marchés": series_panel,
             "SBF 120 · régimes": regimes_panel,
+            "Contextes SRD": context_panel,
         }
     )
     return

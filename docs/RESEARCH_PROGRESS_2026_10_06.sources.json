@@ -1,6 +1,6 @@
 {
   "as_of": "2026-10-06",
-  "parent_commit": "9e15c6a",
+  "parent_commit": "a9baee6",
   "artifacts": {
     "data/analysis/index-series-models-v1/prediction_replay_audit.json": "c6618b6968ab4c9808ff53d0db4eb6b77b886a85303771eacb08db614289041c",
     "data/analysis/index-series-models-v1/dataset_audit.json": "da3386956dcb0eb1ff5f5904565b4cf61488c8f4cb801435d7bb5093e0e4fe56",
@@ -13,6 +13,12 @@
     "docs/SPEC_008_INDICES_RESULTS.sources.json": "fbc7044e2d62f95201be68d376c4d8c8fb6ce37fe317ae435dd20a700ecaba53",
     "docs/SPEC_008_COST_SCENARIOS_25_45.sources.json": "8596b8b3bb614fd92617f1e0dd9211a877aec2bb6cc6284e2c30ed2e89318abb",
     "docs/SBF120_KMEANS7_RESULTS.sources.json": "540a2492662a98376c5fb87457034fe82c08cb3c0d5ce3c240ebeabfd959e858",
-    "docs/RESEARCH_PROGRESS_2026_10_06.md": "f56c3b2e318cfb1e30e7f6e476e96d25e82c6817a434cdaac646ee595e9c0895"
+    "docs/RESEARCH_PROGRESS_2026_10_06.md": "49d86d2ea9dafb84b1e54da85d9b2cb1d4cdb3b469432ed66c35505564e224ef",
+    "docs/SRD_CONTEXT_RESULTS.sources.json": "c5cbca459fb89d134b995480e6fe6cac378a2f529afd80c02a65c13c7783241a",
+    "docs/SRD_CONTEXT_INTEGRATION_CONTRACT.md": "f6fa6eede0af5d245d5e176ca788111df48f861568bcbe5a4be86161f1f793f0",
+    "data/analysis/srd-context-v1/context_report_complete.json": "c5cbca459fb89d134b995480e6fe6cac378a2f529afd80c02a65c13c7783241a",
+    "data/analysis/srd-context-v1/comparison_replay_audit.json": "f7a205414f2a1f7feb812740e185233c4de6bccc5c566ddc48824d0954c68f26",
+    "data/analysis/srd-context-v1/integration_audit.json": "6b738a2608309d3f7a5089fa3f1ace79e0af64666d2385e0934d53e00e2356c6",
+    "data/analysis/srd-context-v1/sandbox_publication.json": "f597f24795f79932d3edea2ef06818c481da20ed59a3c6f2c7c06e710d3a4539"
   }
 }

@@ -51,6 +51,30 @@ Date/target/horizon controls expose profiles, occupancy, distance to training
 support, forecasts, individual block intervals and the assignment ledger.
 See [the regime contract](SBF120_KMEANS7_CONTRACT.md).
 
+The **Contextes SRD** tab reads `data/analysis/srd-context-v1` through the separate
+`HOCUS_SRD_CONTEXT_DATA` environment variable and read-only bind. The experiment
+selector also exposes **Actions + contextes · 1 404 features** once
+`context_report_complete.json` exists. Its native portfolio size is top3 and its
+cost selector shows the calculated 25/45 bp scenarios. The other experiments
+retain their existing portfolio and cost choices.
+
+Generate the historical inputs and precomputed models before deploying:
+
+```bash
+uv run python scripts/srd_context.py inputs
+uv run python scripts/srd_context.py context
+uv run python scripts/srd_context.py data
+uv run python scripts/srd_context.py run --workers 2
+uv run python scripts/srd_context.py publish
+```
+
+Each SRD task uses the unchanged model engine and four threads per estimator.
+Two independent task processes share the fixed source files through local
+symlinks; completed task folders can be resumed without refitting. All models
+are combined only after every task completes. The report marker additionally
+requires saved-model prediction replays and the as-of integration audit. No
+fitting is triggered in the UI. See the [context contract](SRD_CONTEXT_INTEGRATION_CONTRACT.md).
+
 Install a changed template and restart only the Model Lab service:
 
 ```bash
@@ -66,8 +90,8 @@ counts are recorded in [the execution journal](RESEARCH_PROGRESS_2026_10_06.md).
 
 Notebook: [`model_lab.py`](../notebooks/model_lab.py). No fitting or portfolio replay
 runs in the UI. Navigation includes Overview, Model Benchmark, Target Comparison,
-Score Deciles, Backtest, Feature Importance, Methodology, Indices, Grands marchés
-and SBF 120 · régimes;
+Score Deciles, Backtest, Feature Importance, Methodology, Indices, Grands marchés,
+SBF 120 · régimes and Contextes SRD;
 all results are labelled
 **development backtest — not independent confirmation**.
 

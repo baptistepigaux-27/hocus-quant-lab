@@ -48,7 +48,7 @@ the score export is restricted to test 2026, with reconstructed availability.
 The published v2 uses the index source's midnight UTC clock and a common CAC40
 target calendar, reconciled independently before fitting. The initial index run
 with a mismatched Paris clock is archived locally and excluded from publication.
-Historical OOF scores and an as-of SRD join remain a subsequent research step.
+The historical producer variant and as-of SRD integration are documented below.
 
 **Major-market time series:** [individual index forecasters](docs/INDEX_SERIES_MODELS_CONTRACT.md)
 fit CAC40, SBF120, S&P500, DAX40 and FTSE100 separately on daily dates. Each model
@@ -62,9 +62,19 @@ Weights and preprocessing are never pooled across indices.
 fits dates of the SBF120 index using the same 22 features, with centres and outcome
 tables frozen on 2024. [Results](docs/SBF120_KMEANS7_RESULTS.md), assignments,
 distances, H5/H10 forecasts and temporal intervals are available in the Model Lab's
-**SBF 120 · régimes** tab. The exported 2025/2026 categories prepare a future SRD
-context join. [Latest execution record](docs/RESEARCH_PROGRESS_2026_10_06.md)
+**SBF 120 · régimes** tab. The integration below uses separate centres anchored in
+2023 so that 2024 scores use only earlier information.
+[Latest execution record](docs/RESEARCH_PROGRESS_2026_10_06.md)
 connects the correlation phase, models, portfolio replays and index experiments.
+
+**SRD with market context:** the [integration contract](docs/SRD_CONTEXT_INTEGRATION_CONTRACT.md)
+adds 356 historical context features to the 1,048 stock features: seven SBF120
+regimes and their forecasts, the 27 sector-index predictions, and CAC40/SBF120
+predictions. Context producers use a 2023 warmup and earlier matured labels in
+quarterly expanding fits. An as-of join preserves the stock cohort and targets.
+The [comparison results](docs/SRD_CONTEXT_RESULTS.md) contrast validation-selected
+models and top3 portfolios at 25/45 bp with the existing full-registry baseline.
+The Model Lab's **Contextes SRD** tab exposes the comparison and availability ledger.
 
 - **AMF short positions:** Gremlin acquisition and the Quant Lab offline adapter are implemented; see [AMF rules](docs/AMF_SHORT_POSITIONS.md).
 - **Market prices:** real ABC Bourse files supplied manually have been imported. The full SRD archive has 199,416 observations across 197 provider identifiers; eight additional universes have 1,745,030 observations. Coverage is 2022-09-29 to 2026-09-28. These files are local and ignored by Git.
