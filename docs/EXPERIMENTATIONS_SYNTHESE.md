@@ -1,6 +1,6 @@
 # Hocus Quant Lab — synthèse des expérimentations
 
-**6 octobre 2026 · version 2 · base de lecture `76629a6`.**
+**6 octobre 2026 · version 3 · base de lecture `49108d5`.**
 
 **Objet :** retrouver toutes les étapes de recherche, leur statut, les résultats
 utiles, la documentation et les prochaines expériences proposées.
@@ -28,7 +28,9 @@ identifie les documents et artefacts utilisés. Cette synthèse ne lance aucun n
 
 L'[audit des prix des horizons courts](SRD_PRICE_AUDIT.md) a été exécuté depuis
 la première version. Le [contrat commun des horizons](SRD_HORIZON_COMPARISON_CONTRACT.md)
-est écrit ; son inventaire comporte 22 dates communes, sans nouvelle matrice de performance.
+a été exécuté : dix modèles figés, 22 cutoffs, univers natif = commun, deux
+compartiments, 375 simulations et 24 tests passés. Les
+[résultats homogènes](SRD_HORIZON_COMMON_REPLAY_RESULTS.md) isolent score et détention.
 Les autres priorités restent des propositions.
 
 ## 2. Comment lire les statuts et les chiffres
@@ -134,7 +136,7 @@ hypothèses. Il ne représente pas une probabilité de hausse ou d'alpha.
 | E17 | VAD top/flop 3 % et détention H5→H10 / H10→H20 | **Livré, replay théorique** · 672 simulations ; VAD défavorable pour le rang H5 ; prolongation parfois favorable | [Contrat](SRD_VAD_HOLDING_CONTRACT.md), [résultats](SRD_VAD_HOLDING_RESULTS.md) | Séparer signal short, neutralisation du risque et coûts réels du prêt |
 | E18 | Nouveaux modèles H1/H2/H3, détenus à H ou H5 | **Livré, développement** · 74 modèles, 16 tâches, 462 replays ; gains parfois concentrés | [Contrat](SRD_SHORT_HORIZONS_CONTRACT.md), [résultats](SRD_SHORT_HORIZONS_RESULTS.md) | Auditer les trades matériels puis comparer horizons, exposition et frais sur les mêmes dates |
 | E19 | Audit primaire des prix et contributions des horizons courts | **Livré, diagnostic** · 199 416 lignes rapprochées du brut ; 140 cas matériels exécutés avec endpoints Euronext identiques ; 66 écarts de volume restent à qualifier | [Audit et provenance](SRD_PRICE_AUDIT.md) | Établir la définition des volumes ; ne pas réécrire les scores ni supprimer les événements futurs |
-| E20 | Contrat commun H1/H2/H3/H5/H10 | **Contrat écrit, replay non exécuté** · 22 cutoffs communs ; cohorte/horloge à rapprocher | [Comparaison des horizons](SRD_HORIZON_COMPARISON_CONTRACT.md) | Rejouer les mêmes scores après audit de cohorte, avec exposition et coûts communs |
+| E20 | Replay commun H1/H2/H3/H5/H10 | **Livré, développement** · 22 cutoffs, dix modèles figés, 375 simulations, natif = commun, 24 tests passés | [Contrat v2](SRD_HORIZON_COMPARISON_CONTRACT.md), [résultats](SRD_HORIZON_COMMON_REPLAY_RESULTS.md), [matrices](SRD_HORIZON_COMMON_REPLAY_MATRICES.md) | Qualifier les nouveaux cas matériels et préparer une confirmation prospective distincte |
 
 Les nombres de modèles ne doivent pas être additionnés comme autant de preuves
 indépendantes : plusieurs expériences réutilisent les mêmes modèles ou sources.
@@ -260,6 +262,33 @@ Sources : [groupes d'indices](SPEC_008_INDICES_RESULTS.md),
 [K-means](SBF120_KMEANS7_RESULTS.md). Ces indices ont pour usage prévu le contexte
 des modèles SRD ; leurs résultats ne constituent pas une stratégie de trading d'indice.
 
+### 6.6 Replay homogène : 22 cutoffs, même univers et deux compartiments
+
+Ces résultats constituent une expérience distincte des tableaux précédents :
+2 janvier → 12 juin 2026, suivie jusqu'au 31 juillet. Les 159–164 actions sont les
+mêmes entre horizons à T ; les cinq titres choisis peuvent différer selon le score.
+Frais 45 bp AR, top 3 %, mêmes dix gagnants de validation 2025, sans contexte.
+
+| Target / score | Détention | Net 45 bp | DD | Capital actif moyen | Part top cinq trades du net |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Rendement XGB H3 | H3 | +19,77 % | −2,19 % | 21,9 % | 76,1 % |
+| Rendement RF H5 | H5 | +16,32 % | −3,85 % | 36,5 % | 70,4 % |
+| Rendement RF H5 | H10 | +35,59 % | −9,85 % | 72,1 % | 50,4 % |
+| Rang RF H5 | H5 | +12,85 % | −3,37 % | 36,5 % | 79,6 % |
+| Rang RF H5 | H10 | +29,70 % | −8,58 % | 72,0 % | 53,4 % |
+| Rang RF H10 | H10 | +24,35 % | −6,70 % | 73,6 % | 60,6 % |
+
+À durée H5 puis H10 fixe, le score **H5** arrive premier en rendement cumulé dans
+chaque famille. H3 demeure premier du rendement natif, mais pas de toute la matrice.
+X-FAB apporte encore **5,48 points** au H3 net, soit 27,7 % du gain. Le turnover
+est voisin de 21–22 fois NAV : raccourcir la sortie ne multiplie pas les 22 entrées.
+La détention H10 améliore H5 dans **six comparaisons sur huit**, sans bénéfice universel.
+
+À top 10 %, rang H5→H10 reste à **+13,42 %**, contre **+0,18 %** pour rendement
+H5→H10. Le rang mérite donc un examen prospectif, tandis que le maximum de PnL
+reste celui du rendement H5→H10. Aucun choix n'est gelé automatiquement sur 2026.
+[Rapport complet et quatorze réponses](SRD_HORIZON_COMMON_REPLAY_RESULTS.md).
+
 ## 7. Défauts localisés, corrections et limites restantes
 
 | Sujet | État au 6 octobre | Conséquence |
@@ -283,9 +312,9 @@ les RF/XGB, les contextes, le top 3 %, la VAD ni les nouveaux horizons courts.
 | Priorité | Travail proposé | Livrable concret | Critère de décision |
 | --- | --- | --- | --- |
 | **P0 — audit court livré ; suite ouverte** | Prix matériels H1/H2/H3 rapprochés ; qualifier maintenant les volumes et étendre la certification | [148 cas et captures](SRD_PRICE_AUDIT.md) ; 140 cas exécutés concordants, 66 différences de volume | Définition des volumes cohérente sur tout le corpus ; aucune exclusion selon le résultat |
-| **P0 — contrat écrit ; replay à faire** | Comparaison commune des horizons et de l'exécution | [Contrat](SRD_HORIZON_COMPARISON_CONTRACT.md), inventaire des 22 cutoffs ; cohorte/horloge à rapprocher avant calcul | Les différences d'horizon, de cash et de composition sont séparées des variations de qualité du score |
+| **P0 — replay livré ; audit à étendre** | Comparaison commune des horizons et de l'exécution | [Résultats](SRD_HORIZON_COMMON_REPLAY_RESULTS.md), 22 cutoffs, 375 replays, nouveaux cas matériels enregistrés | Scores et durées séparés descriptivement ; qualifier les nouveaux endpoints et les volumes avant confirmation |
 | **P1** | Décomposer la valeur du contexte sur le rang SRD | Baseline, +CAC/SBF, +secteurs, +régimes, +volatilité de contexte ciblée, +ensemble complet ; mêmes cohortes et règles de sélection | Gain incrémental mesuré face à la référence, avec pertes et incertitude conservées ; aucun bloc choisi sur sa meilleure performance 2026 |
-| **P1** | Comparer explicitement score et durée de détention | Matrice fixée d'avance, comprenant H1/H2/H3 natifs et H5, rang H5→H10 et H10→H20 ; coûts et exposition communs documentés | La meilleure durée n'est pas déduite du seul PnL cumulé ; effets sur paniers, risque et frais lisibles |
+| **P1 — première matrice livrée** | Approfondir score/détention et l'incertitude | Matrice H1/H2/H3/H5/H10 commune livrée ; H20 reste un replay antérieur distinct | Vérifier la portée des écarts observés, sans réoptimiser les horizons sur 2026 |
 | **P1** | Préparer une confirmation propre aux modèles ML | Gel de quelques hypothèses, variables, modèles, paramètres, coûts et règles de portefeuille ; enregistrement prospectif séparé de SPEC-007 | Période réellement non consultée, décisions enregistrées avant les outcomes, règle d'arrêt et de lecture fixée |
 | **P1, en parallèle** | Faire vivre SPEC-007 sans changer son contrat | Nouvelles captures, registrations scellées, outcomes H5, monitor et checkpoints 8/13/26 | Lecture des 85 strict selon leurs signes gelés ; disponibilité et qualité documentées |
 | **P2** | Rendre l'exécution et les coûts plus réalistes | Fiscalité datée par instrument, courtage par montant, minimums, liquidité et écarts d'exécution ; scénarios auditables | Résultats lisibles après hypothèses réalisables, sans assimiler les 45 bp à une fiscalité calculée |
@@ -294,8 +323,8 @@ les RF/XGB, les contextes, le top 3 %, la VAD ni les nouveaux horizons courts.
 | **P3** | Étendre aux actions US/allemandes et autres univers | Contrat de données propre au marché, corporate actions, heures/devises/calendriers, puis benchmark comparable | Transportabilité examinée ; absence de revendication de confirmation à partir de données déjà explorées |
 | **P3** | Consolider la référence Git et le catalogue | Référence commune de code/rapports, procédure de reconstruction des données locales et index de navigation | Un lecteur externe retrouve le bon état de recherche et ses limites depuis le README |
 
-**Prochaine séquence recommandée : P0 prix → P0 comparaison commune → P1 ablation
-du contexte et horizons → confirmation ML dédiée.** SPEC-007 peut avancer en
+**Prochaine séquence recommandée : qualifier les volumes et nouveaux cas prix →
+P1 ablation du contexte → confirmation ML dédiée.** SPEC-007 peut avancer en
 parallèle dès réception des nouvelles observations. Les expériences AMF et
 d'autres marchés viennent ensuite, avec leur contrat propre.
 
@@ -310,7 +339,7 @@ du `main` local ; la référence de cette synthèse est donc explicitement cette
 
 - [Model Lab](https://sandbox.hocus.works/quant-model-lab/), sous authentification :
   modèles SRD, indices, grands marchés, régimes, **Contextes SRD**, **VAD et détention**
-  et **Horizons courts** ; les treize onglets sont documentés dans le journal.
+  et **Horizons courts**, **Horizon Comparison** ; quatorze onglets, neuf sections de replay.
 - [Laboratoire SRD](https://sandbox.hocus.works/quant-lab-srd/?v=h5) : prix,
   corrélations et diagnostics historiques ; [guide](SRD_MARIMO_LAB.md).
 - [Déploiement et isolation des services](SANDBOX_DEPLOYMENT.md).
@@ -330,6 +359,7 @@ du `main` local ; la référence de cette synthèse est donc explicitement cette
 | `srd-portfolio-extensions-v1` | Ledgers achat/VAD et durées prolongées |
 | `srd-short-horizons-v1` | Targets H1/H2/H3, 74 modèles, 462 replays, diagnostics et contributions |
 | `srd-price-audit-v1` | Rapprochement brut/prix primaires, 148 cas, différences de volume et inventaire commun des horizons |
+| `srd-horizon-common-replay-v1` | 22 cutoffs, dix scores figés, 375 replays, matrices, ledgers, overlap, audit et reçus de tests/publication |
 
 Les artefacts des corrélations, du lock et de confirmation sont référencés par
 leurs rapports dédiés. Les variantes initiales invalides ne sont pas des résultats

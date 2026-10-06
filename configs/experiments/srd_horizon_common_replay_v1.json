@@ -1,0 +1,191 @@
+{
+  "version": 1,
+  "scientific_base_commit": "49108d5",
+  "development_only": true,
+  "user_request_sha256": "3263f54a4fe4fd42305018618eb412f8a455344aedbd7317111b5bb22d18088e",
+  "common_cutoffs": [
+    "2026-01-02",
+    "2026-01-09",
+    "2026-01-16",
+    "2026-01-23",
+    "2026-01-30",
+    "2026-02-06",
+    "2026-02-13",
+    "2026-02-20",
+    "2026-02-27",
+    "2026-03-06",
+    "2026-03-13",
+    "2026-03-20",
+    "2026-03-27",
+    "2026-04-10",
+    "2026-04-17",
+    "2026-04-24",
+    "2026-05-08",
+    "2026-05-15",
+    "2026-05-22",
+    "2026-05-29",
+    "2026-06-05",
+    "2026-06-12"
+  ],
+  "models": [
+    {
+      "model_id": "rank_pct-h1-all-rf-0df3b166dc71",
+      "target": "rank_pct",
+      "target_id": "future.rank_pct.h1.family.v1",
+      "horizon": 1,
+      "model": "rf",
+      "model_sha256": "fbd3e7e273f99c3754dbd74978d964ac15bf77799465ff08fd9d7fe73d3841c2",
+      "validation_metric": 0.04473885953574547,
+      "code_sha": "a85e5c66cfd5863391f845a6db20f9862891f940",
+      "root": "data/analysis/srd-short-horizons-v1"
+    },
+    {
+      "model_id": "rank_pct-h2-all-rf-90eeb04f8762",
+      "target": "rank_pct",
+      "target_id": "future.rank_pct.h2.family.v1",
+      "horizon": 2,
+      "model": "rf",
+      "model_sha256": "2b000ba9d9c09444190739e2761baf7be05e065807e072f966dcc058d269c505",
+      "validation_metric": 0.012090218029056334,
+      "code_sha": "a85e5c66cfd5863391f845a6db20f9862891f940",
+      "root": "data/analysis/srd-short-horizons-v1"
+    },
+    {
+      "model_id": "rank_pct-h3-all-rf-6ef7625d42fd",
+      "target": "rank_pct",
+      "target_id": "future.rank_pct.h3.family.v1",
+      "horizon": 3,
+      "model": "rf",
+      "model_sha256": "9fb73ff7595397cc53c4777c9bcc4e0d28277e2b4ccbe35958276837d3d406a3",
+      "validation_metric": 0.03556799748840844,
+      "code_sha": "a85e5c66cfd5863391f845a6db20f9862891f940",
+      "root": "data/analysis/srd-short-horizons-v1"
+    },
+    {
+      "model_id": "rank_pct-h5-all-rf-3c5fa028d3f4",
+      "target": "rank_pct",
+      "target_id": "future.rank_pct.h5.family.v1",
+      "horizon": 5,
+      "model": "rf",
+      "model_sha256": "474859095404b65648f648d44a5b64f0481cef99a676029d432b7021218e0793",
+      "validation_metric": 0.07110873222013339,
+      "code_sha": "c61fd520ccb0ba2655c1927cf4cc1eb1f6423d8f",
+      "root": "data/analysis/spec008-model-lab-all-features"
+    },
+    {
+      "model_id": "rank_pct-h10-all-rf-bedd78069821",
+      "target": "rank_pct",
+      "target_id": "future.rank_pct.h10.family.v1",
+      "horizon": 10,
+      "model": "rf",
+      "model_sha256": "528e2a3209af9e392ffdbe739fcc78ee8cc0f673b6b189a07a844865fd8a9b5b",
+      "validation_metric": 0.06286534336955817,
+      "code_sha": "c61fd520ccb0ba2655c1927cf4cc1eb1f6423d8f",
+      "root": "data/analysis/spec008-model-lab-all-features"
+    },
+    {
+      "model_id": "return_abs-h1-all-xgb-2cb02f543be3",
+      "target": "return_abs",
+      "target_id": "future.return_abs.h1.v1",
+      "horizon": 1,
+      "model": "xgb",
+      "model_sha256": "d70a9fc069ccfc5aa5698053372bfd69a96e6b0fb65271504d16027ba2de6781",
+      "validation_metric": -0.0018017145270695684,
+      "code_sha": "a85e5c66cfd5863391f845a6db20f9862891f940",
+      "root": "data/analysis/srd-short-horizons-v1"
+    },
+    {
+      "model_id": "return_abs-h2-all-rf-06dc2b7ed8ec",
+      "target": "return_abs",
+      "target_id": "future.return_abs.h2.v1",
+      "horizon": 2,
+      "model": "rf",
+      "model_sha256": "d8fdb502f0a79b281d23c167d60716d72a4cf205e15d0cf2445b27650296e4f6",
+      "validation_metric": 0.016011479010918712,
+      "code_sha": "a85e5c66cfd5863391f845a6db20f9862891f940",
+      "root": "data/analysis/srd-short-horizons-v1"
+    },
+    {
+      "model_id": "return_abs-h3-all-xgb-d139323e99e0",
+      "target": "return_abs",
+      "target_id": "future.return_abs.h3.v1",
+      "horizon": 3,
+      "model": "xgb",
+      "model_sha256": "43c947349b259ff0c297bced08c2ba7b63755ef8d3d92d3cc6515fa2913fc379",
+      "validation_metric": 0.01441000740946345,
+      "code_sha": "a85e5c66cfd5863391f845a6db20f9862891f940",
+      "root": "data/analysis/srd-short-horizons-v1"
+    },
+    {
+      "model_id": "return_abs-h5-all-rf-1273ae260f86",
+      "target": "return_abs",
+      "target_id": "future.return_abs.h5.v1",
+      "horizon": 5,
+      "model": "rf",
+      "model_sha256": "299ce20f37c621b1b97e9a92c98a00004419aff81edb282d4d579b5b385d8b53",
+      "validation_metric": 0.05387919019736757,
+      "code_sha": "c61fd520ccb0ba2655c1927cf4cc1eb1f6423d8f",
+      "root": "data/analysis/spec008-model-lab-all-features"
+    },
+    {
+      "model_id": "return_abs-h10-all-rf-1bbd2af1ad50",
+      "target": "return_abs",
+      "target_id": "future.return_abs.h10.v1",
+      "horizon": 10,
+      "model": "rf",
+      "model_sha256": "57fedede6dac549fd71ea5eac1200a3133c8dc9e791a6840e65af189dd43cb55",
+      "validation_metric": 0.03136858964799496,
+      "code_sha": "c61fd520ccb0ba2655c1927cf4cc1eb1f6423d8f",
+      "root": "data/analysis/spec008-model-lab-all-features"
+    }
+  ],
+  "targets": [
+    "return_abs",
+    "rank_pct"
+  ],
+  "score_horizons": [
+    1,
+    2,
+    3,
+    5,
+    10
+  ],
+  "exit_horizons": [
+    1,
+    2,
+    3,
+    5,
+    10
+  ],
+  "matrix_policy": "exit_horizon >= score_horizon; 15 cells per target",
+  "costs_round_trip_bp": [
+    0,
+    25,
+    45
+  ],
+  "top_fractions": [
+    0.03,
+    0.1
+  ],
+  "universes": [
+    "native",
+    "common"
+  ],
+  "sleeves": 2,
+  "initial_capital": 1.0,
+  "leverage": false,
+  "strategy": "long_only",
+  "end_date": "2026-07-31",
+  "entry_policy": "first common calendar session strictly after cutoff; if own open missing, cash (no delayed entry)",
+  "exit_policy": "Hth common session including entry; wait for next actual close if absent",
+  "calendar": "preserved observed equity session union, reconciled to preserved CAC AllShares dates",
+  "decision_clock": "00:00 UTC next calendar day; original stock features preserved",
+  "seed": 20261006,
+  "bootstrap_reps": 10000,
+  "bootstrap_blocks": [
+    2,
+    4,
+    6
+  ],
+  "volume_definition_not_certified": true
+}

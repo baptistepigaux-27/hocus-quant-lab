@@ -85,6 +85,17 @@ target, model horizon and detailed holding controls read precomputed artefacts.
 H5 models show H5/H10 holdings; H10 models show H10/H20. No fitting or replay runs
 in the notebook. See [the portfolio contract](SRD_VAD_HOLDING_CONTRACT.md).
 
+The **Horizon Comparison** tab reads the fixed 22-date replay through
+`HOCUS_SRD_COMMON_DATA` and a separate read-only bind for
+`data/analysis/srd-horizon-common-replay-v1`. Generate the scientific replay with
+`uv run python scripts/replay_srd_common_horizons.py`, then publish descriptive
+reports with `uv run python scripts/publish_srd_common_horizons.py` before restarting
+the Model Lab service. The nine sections and six filters read preserved artefacts;
+no model fitting, volume correction or portfolio re-optimization occurs in the UI.
+See [the common contract](SRD_HORIZON_COMPARISON_CONTRACT.md) and
+[results](SRD_HORIZON_COMMON_REPLAY_RESULTS.md). Public authentication and the
+separate SRD service on port 8068 remain required.
+
 The **Horizons courts** tab reads `data/analysis/srd-short-horizons-v1` through
 `HOCUS_SRD_SHORT_DATA` and a separate read-only bind. Build data, train and publish
 with `uv run python scripts/srd_short_horizons.py data|run|publish` (one action

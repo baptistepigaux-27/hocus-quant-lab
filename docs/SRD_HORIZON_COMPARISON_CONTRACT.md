@@ -1,10 +1,16 @@
 # SRD — contrat de comparaison des horizons et de l'exécution
 
-**6 octobre 2026 · version 1.**
+**6 octobre 2026 · version 2 · paramètres utilisateur appliqués au replay livré.**
 
-**Statut :** contrat écrit pour le prochain replay de développement. Inventaire
-des dates exécuté ; matrice commune de performances **non encore calculée**.
-Ce contrat ne modifie pas les simulations H1/H2/H3, H5/H10 ou VAD publiées.
+**Statut :** replay de développement exécuté : [résultats et quatorze réponses](SRD_HORIZON_COMMON_REPLAY_RESULTS.md),
+[matrices](SRD_HORIZON_COMMON_REPLAY_MATRICES.md). Dix modèles gelés, 22 cutoffs,
+360 stratégies et 15 références. Les anciennes simulations restent des expériences distinctes.
+
+**Amendement avant calcul :** la consigne utilisateur a remplacé les quatre
+compartiments et l'extension H20 de la version 1 par **deux compartiments** et
+la matrice triangulaire H1/H2/H3/H5/H10. La
+[configuration scellée](../configs/experiments/srd_horizon_common_replay_v1.json)
+précède la lecture des résultats. Il ne s'agit pas d'un ajustement selon le PnL.
 
 ## 1. Question et références
 
@@ -20,22 +26,21 @@ L'[audit des prix](SRD_PRICE_AUDIT.md) doit accompagner les replays.
 Le choix des durées et critères intervient après exploration de 2026. Une
 amélioration sur ces données constituera du développement, sans confirmation indépendante.
 
-## 2. Matrice fixée pour la prochaine comparaison
+## 2. Matrice fixée et exécutée
 
 | Horizon du score appris | Durées de détention à relire |
 | ---: | --- |
-| H1 | 1, 5 séances communes |
-| H2 | 2, 5 séances communes |
-| H3 | 3, 5 séances communes |
+| H1 | 1, 2, 3, 5, 10 séances communes |
+| H2 | 2, 3, 5, 10 séances communes |
+| H3 | 3, 5, 10 séances communes |
 | H5 | 5, 10 séances communes |
-| H10 | 10, 20 séances communes |
+| H10 | 10 séances communes |
 
-Chaque target conserve sa définition et son modèle choisi sur validation. Ne pas
-choisir un autre modèle selon la meilleure détention en 2026. Présenter séparément
-rang, rendement, directions et excursions. Tendance/erreur-type est indéfinie à
-H1/H2 ; à H3 son faible nombre de degrés de liberté demande une lecture séparée.
-Les scores constants restent identifiés comme références et leurs sélections
-départagées par ISIN ne constituent pas un signal appris.
+Les deux familles exécutées sont **rendement absolu** et **rang du rendement**,
+soit dix gagnants choisis sur validation 2025 et réutilisés sans refit.
+Directions constantes, excursions et tendance ne sont pas ajoutées à ce replay.
+Les features/actions et scores restent exactement ceux des expériences sources.
+Top 3 % principal et top 10 % de sensibilité, aucune autre concentration.
 
 Les scénarios sont **brut, 25 et 45 bp aller-retour**. La VAD n'entre pas dans cette
 première comparaison commune long-only. Elle pourra être relue séparément avec
@@ -48,7 +53,7 @@ son allocation 50/50 et ses contraintes de prêt.
 | Décision | Après disponibilité de toutes les entrées ; borne commune 00:00 UTC le lendemain du cutoff |
 | Features | Informations connues au cutoff ; disponibilité vérifiée, aucune donnée future |
 | Admission des titres | Cohorte issue des features et de l'éligibilité connue à T ; ne pas la restreindre selon les rendements futurs |
-| Calendrier d'exécution | Grille Euronext Paris versionnée et rapprochée des séances observées ; archive de la grille et des exceptions |
+| Calendrier d'exécution | Union des séances actions observées, rapprochée du snapshot CAC AllShares ; aucune date actions seule dans la période, certification de place indépendante non revendiquée |
 | Achat | Open réellement traité de la première séance après le cutoff, postérieur à la décision |
 | Sortie native ou prolongée | Close de la H-ième séance de la grille commune, entrée incluse ; H1 = open→close de la séance d'entrée |
 | Prix absent à l'entrée | Allocation laissée en cash, sans remplacement du titre |
@@ -81,10 +86,12 @@ des labels ; **leur intersection d'entités ne suffit pas à reconstruire une co
 Rapprocher features et registres d'éligibilité ; produire les scores absents depuis
 les modèles sauvegardés, sans refit. Les outcomes manquants restent dénombrés.
 
-Avant replay, vérifier les bornes de disponibilité du benchmark des anciennes
-targets relatives H5/H10. La correction UTC des horizons courts ne leur donne
-pas automatiquement la même convention. Toute différence de contrat doit être
-signalée ou faire l'objet d'un nouveau run distinct.
+Le rapprochement a trouvé des features et registres d'éligibilité byte-identiques :
+**159–164 actions**, univers natif = commun, aucun instrument exclu par intersection.
+Les **35 730 scores** préexistants couvrent toutes les lignes de ces dix modèles ;
+aucune inférence complémentaire n'est requise. Le rejeu des estimateurs sauvegardés
+corrobore ces scores, ensuite conservés à l'identique. Les targets relatives et
+prévisions de contexte ne participent pas à cette expérience.
 
 ## 4. Deux niveaux de comparaison
 
@@ -104,18 +111,21 @@ périodes se chevauchent.
 
 ### B. Portefeuille à capital commun
 
-Fixer pour toute la matrice : **capital initial 1, quatre compartiments,
+Fixer pour toute la matrice : **capital initial 1, deux compartiments,
 long-only, aucun levier**, répartition équipondérée du top 3 %, même calendrier
 de NAV et liquidation suivie jusqu'au 31 juillet 2026.
 
-À chaque entrée, le budget est au plus `NAV du close précédent / 4`, borné par
+À chaque entrée, le budget est au plus `NAV du close précédent / 2`, borné par
 le cash disponible. Un retard de sortie peut immobiliser du capital ; publier
 les entrées réduites ou bloquées, sans augmenter les compartiments après lecture
 des performances. Les horizons H1/H2/H3 gardent plus de cash entre décisions.
 
-Ces quatre compartiments sont une **nouvelle convention** pour la matrice jusqu'à
-H20. Les tableaux précédents utilisent deux compartiments pour les horizons courts ;
-leurs NAV ne peuvent pas être comparées directement à ce nouveau run.
+Les deux compartiments déterminent un plafond de budget par nouvelle décision,
+et non deux comptes dont les gains seraient isolés. Le cash est commun ; une
+position retardée peut réduire un prochain budget. Les positions d'une décision
+reçoivent toutes la même allocation, open absent compris (cette part reste en cash).
+Actions fractionnaires, aucun arrondi de lots, cash à taux zéro. Le nombre de
+positions est ceil(top × N), soit cinq à top 3 %, seize ou dix-sept à top 10 %.
 
 Les frais sont répartis moitié à l'entrée, moitié à la sortie et appliqués aux
 nominaux effectivement échangés. Les 45 bp restent un scénario global,
@@ -133,7 +143,7 @@ l'exposition moyenne ou la durée de détention.
 L'unité temporelle est le cutoff. Comparer les écarts de paniers de façon appariée
 sur les 22 dates. Une incertitude descriptive par blocs de 2/4/6 cutoffs, avec
 10 000 réplications et seed fixée, doit conserver les mêmes tirages entre variantes.
-Les horizons H20 peuvent rester dépendants au-delà des blocs courts : afficher
+Les horizons H10 et événements partagés peuvent rester dépendants : afficher
 cette sensibilité et ne pas traiter 22 observations comme indépendantes.
 
 Les intervalles individuels et critères de conservation du signe ne contrôlent pas
@@ -149,7 +159,11 @@ des volumes n'est pas réparé par un bootstrap.
 4. Ledgers, NAV et attribution des gains/pertes pour chaque durée et coût.
 5. Incertitude descriptive, concentration, retards, défauts de volume et limites.
 
-**Prochaine action : exécuter cette matrice commune après le rapprochement de
-cohorte/horloge.** Une ablation de contexte viendra ensuite avec les mêmes règles.
+**Replay livré :** [rapport](SRD_HORIZON_COMMON_REPLAY_RESULTS.md),
+[matrices](SRD_HORIZON_COMMON_REPLAY_MATRICES.md), onglet **Horizon Comparison**
+du [Model Lab](https://sandbox.hocus.works/quant-model-lab/).
+Artefacts dans `data/analysis/srd-horizon-common-replay-v1/`, tests techniques et
+comptabilité quotidienne conservés dans `tests.xml` et `test_receipt.json`.
+Une ablation de contexte pourra suivre avec ses propres paramètres fixés avant calcul.
 Une confirmation prospective ML demandera son propre gel préalable ; le
 [protocole SPEC-007](SPEC_007_INDEPENDENT_CONFIRMATION.md) concerne un autre lock.

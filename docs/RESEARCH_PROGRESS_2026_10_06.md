@@ -38,7 +38,7 @@ sur une période indépendante n'est revendiqué.
 | VAD et détention | Modèles actions seuls, 50/50 top/flop 3 %, coûts 25/45 bp, prêt 0/3 %, détentions H5→H10 et H10→H20 | [Contrat](SRD_VAD_HOLDING_CONTRACT.md), [résultats](SRD_VAD_HOLDING_RESULTS.md) |
 | Horizons courts | 1 048 variables actions, nouvelles targets H1/H2/H3, 74 modèles et replays bruts H/H5 | [Contrat](SRD_SHORT_HORIZONS_CONTRACT.md), [résultats](SRD_SHORT_HORIZONS_RESULTS.md) |
 | Audit des prix courts | 199 416 lignes brutes rapprochées ; 140 cas matériels exécutés identiques à Euronext ; écarts de volume ouverts | [Audit](SRD_PRICE_AUDIT.md) |
-| Comparaison commune des horizons | Contrat écrit, 22 cutoffs communs inventoriés ; nouvelle matrice non calculée | [Contrat](SRD_HORIZON_COMPARISON_CONTRACT.md) |
+| Comparaison commune des horizons | Dix modèles figés, 22 dates, univers identiques, deux compartiments et 375 simulations | [Contrat v2](SRD_HORIZON_COMPARISON_CONTRACT.md), [résultats](SRD_HORIZON_COMMON_REPLAY_RESULTS.md) |
 
 Les données locales, modèles sérialisés et grands ledgers sont ignorés par Git.
 Les contrats, configs, scripts, rapports et empreintes des sources sont versionnés.
@@ -401,7 +401,8 @@ endpoints de tous les 140 cas matériels exécutés des horizons courts. Il cons
 les pertes Nacon/MaaT et les sorties retardées. Les 66 différences de volume sur
 23 instruments doivent être qualifiées ; elles ne proviennent pas du parseur.
 La comparaison commune est définie dans un [contrat dédié](SRD_HORIZON_COMPARISON_CONTRACT.md),
-avec 22 dates communes ; aucun nouveau modèle ou portefeuille commun n'est encore calculé.
+avec 22 dates communes ; le [replay livré](SRD_HORIZON_COMMON_REPLAY_RESULTS.md)
+utilise dix estimateurs sauvegardés sans aucun nouvel entraînement.
 
 1. Décomposer l'ajout de contexte par blocs dans une nouvelle expérience fixée
    à l'avance ; le benchmark complet ne mesure pas une contribution causale par bloc.
@@ -412,3 +413,45 @@ avec 22 dates communes ; aucun nouveau modèle ou portefeuille commun n'est enco
    si l'objectif devient une simulation négociable.
 5. Recueillir des observations de confirmation nouvelles selon le protocole
    SPEC-007. Aucun résultat rétrospectif supplémentaire ne remplit cette exigence.
+
+
+## 11. Replay commun H1/H2/H3/H5/H10 livré
+
+La consigne de replay a fixé avant lecture des performances **deux compartiments**,
+la matrice triangulaire sortie ≥ score, 0/25/45 bp AR et top 3 %/10 % seulement.
+Elle remplace les quatre compartiments et H20 proposés dans le contrat v1.
+Les 22 dates préexistantes restent inchangées ; le contrat v2 documente cet amendement.
+
+Les univers d'éligibilité à T sont identiques : 159–164 titres par date,
+3 573 lignes par modèle, perte de couverture nulle. Les 35 730 scores sont conservés
+exactement ; les dix modèles sauvegardés les reproduisent à 3,33e-16 près au maximum.
+Pas de refit, tuning, remplacement de modèle, volume ou suppression future.
+
+Les 360 stratégies et 15 références univers couvrent toutes les combinaisons
+requises. À net 45 bp et top 3 %, rang H5→H5 = +12,85 %, H5→H10 = +29,70 %,
+H10 natif = +24,35 %. Rendement H3 natif = +19,77 % (brut +25,79 %),
+rendement H5→H10 = +35,59 %. Les scores H5 arrivent devant les scores courts
+à durées H5 et H10 fixes, dans les deux familles. Les cinq trades H3 apportent
+76,1 % du gain net, X-FAB 5,48 points. À top 10 %, rang H5→H10 vaut encore
++13,42 %, rendement H5→H10 seulement +0,18 %. Ces constats restent exploratoires.
+
+[Rapport, quatorze réponses et conclusions séparées](SRD_HORIZON_COMMON_REPLAY_RESULTS.md)
+et [toutes les matrices](SRD_HORIZON_COMMON_REPLAY_MATRICES.md).
+Artefacts : `data/analysis/srd-horizon-common-replay-v1/` ;
+reproduction : `scripts/replay_srd_common_horizons.py` puis
+`scripts/publish_srd_common_horizons.py`. **24 tests passés**, aucun ignoré :
+exécutions H1/H2/H3/H5/H10, frais, suspension et cash, déterminisme, scores conservés,
+absence de refit/tuning, sélection sans outcomes et comptabilité quotidienne des 375 NAV.
+Erreur comptable maximale 3,86e-14 ; aucune dette supérieure à la tolérance 1e-12.
+Les sources prix auditées ont le même SHA ; captures Euronext réutilisées sans fetch.
+Les nouveaux couples instrument/entrée/sortie matériels ont leur registre pending.
+La définition des volumes demeure ouverte, sans modification de prix/features/scores.
+
+Le sandbox expose **Horizon Comparison**, quatorzième onglet, avec neuf sections :
+Overview, Native Horizons, Fixed Holding, Horizon Matrix, Exposure, Cutoff Stability,
+Trade Attribution, Selection Overlap, Audit. Six filtres indépendants : target,
+horizon appris, détention, top %, coût, univers. La matrice offre aussi un choix de métrique.
+L'interface ne lance aucun calcul de modèle ; nouveau bind de données en lecture seule.
+Publication et contrôles navigateur : `sandbox_publication.json` dans le dossier du replay.
+
+**development evidence only — no independent alpha confirmation.**

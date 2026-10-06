@@ -14,7 +14,10 @@ The [short-horizon price audit](docs/SRD_PRICE_AUDIT.md) reconciles raw inputs,
 material entry/exit prices with Euronext and portfolio contributions. It also
 identifies unresolved volume differences. The
 [common horizon comparison contract](docs/SRD_HORIZON_COMPARISON_CONTRACT.md)
-defines the next replay; its shared 22-date performance matrix is not computed yet.
+has been executed: [common replay results](docs/SRD_HORIZON_COMMON_REPLAY_RESULTS.md)
+and [complete matrices](docs/SRD_HORIZON_COMMON_REPLAY_MATRICES.md). Ten frozen winners,
+22 dates, identical native/common universes, two sleeves and 375 simulations.
+The **Horizon Comparison** sandbox tab reads these preserved results.
 
 The complete correlation exploration is documented in the [French synthesis](docs/EXPLORATION_CORRELATIONS_SYNTHESE.md) ([PDF](docs/EXPLORATION_CORRELATIONS_SYNTHESE.pdf)): data, features, targets, 2024–2026 comparisons, reversal audit, H5 results by historical window, bootstrap intervals and remaining methodological limitations.
 

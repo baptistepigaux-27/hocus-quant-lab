@@ -42,6 +42,11 @@ def _():
     short_root = Path(
         os.environ.get("HOCUS_SRD_SHORT_DATA", str(baseline_root.parent / "srd-short-horizons-v1"))
     )
+    common_root = Path(
+        os.environ.get(
+            "HOCUS_SRD_COMMON_DATA", str(baseline_root.parent / "srd-horizon-common-replay-v1")
+        )
+    )
     return (
         mo,
         pd,
@@ -56,7 +61,399 @@ def _():
         context_root,
         vad_root,
         short_root,
+        common_root,
     )
+
+
+@app.cell
+def _(mo):
+    common_target = mo.ui.dropdown(
+        options={"Rang du rendement": "rank_pct", "Rendement absolu": "return_abs"},
+        value="Rang du rendement",
+        label="Target du replay commun",
+    )
+    common_score = mo.ui.dropdown(
+        options={f"H{h}": h for h in [1, 2, 3, 5, 10]}, value="H5", label="Horizon appris"
+    )
+    common_exit = mo.ui.dropdown(
+        options={f"H{h}": h for h in [1, 2, 3, 5, 10]}, value="H10", label="Durée de détention"
+    )
+    common_top = mo.ui.dropdown(
+        options={"Top 3 %": 0.03, "Top 10 % · diagnostic": 0.10},
+        value="Top 3 %",
+        label="Concentration",
+    )
+    common_cost = mo.ui.dropdown(
+        options={"Brut · 0 bp": 0, "Net · 25 bp": 25, "Net · 45 bp": 45},
+        value="Net · 45 bp",
+        label="Frais AR",
+    )
+    common_scope = mo.ui.dropdown(
+        options={"Commun · principal": "common", "Natif": "native"},
+        value="Commun · principal",
+        label="Univers",
+    )
+    common_metric = mo.ui.dropdown(
+        options={
+            "Rendement cumulé": "cumulative_return",
+            "Drawdown maximal": "max_drawdown",
+            "Capital actif moyen": "average_active_session_capital",
+            "Turnover": "turnover",
+            "Trades gagnants": "hit_rate",
+            "Part du top 5 trades": "top_5_share",
+        },
+        value="Rendement cumulé",
+        label="Métrique de matrice",
+    )
+    return (
+        common_target,
+        common_score,
+        common_exit,
+        common_top,
+        common_cost,
+        common_scope,
+        common_metric,
+    )
+
+
+@app.cell
+def _(
+    mo,
+    pd,
+    px,
+    json,
+    common_root,
+    common_target,
+    common_score,
+    common_exit,
+    common_top,
+    common_cost,
+    common_scope,
+    common_metric,
+):
+    if not (common_root / "summary.json").exists():
+        common_panel = mo.md("## Horizon Comparison\nArtefacts du replay commun absents.")
+    else:
+        _m = pd.read_parquet(common_root / "metrics.parquet")
+        _sum = json.loads((common_root / "summary.json").read_text())
+        _audit = json.loads((common_root / "audit.json").read_text())
+        _counts = pd.read_parquet(common_root / "cohort_counts.parquet")
+        _reference_returns = (
+            _m[_m.target == "universe"].set_index(["exit_horizon", "cost_bp"]).cumulative_return
+        )
+        _m["excess_vs_common_benchmark"] = [
+            r.cumulative_return - _reference_returns.loc[(r.exit_horizon, r.cost_bp)]
+            for r in _m.itertuples()
+        ]
+        _all = _m[
+            (_m.target == common_target.value)
+            & (_m.universe_policy == common_scope.value)
+            & (_m.top_fraction == common_top.value)
+            & (_m.cost_bp == common_cost.value)
+        ]
+        _overview = _m[
+            (_m.target != "universe")
+            & (_m.universe_policy == common_scope.value)
+            & (_m.top_fraction == common_top.value)
+            & (_m.cost_bp == common_cost.value)
+        ]
+        _cols = [
+            "target",
+            "score_horizon",
+            "exit_horizon",
+            "model",
+            "cumulative_return",
+            "max_drawdown",
+            "average_active_session_capital",
+            "average_exposure",
+            "turnover",
+            "hit_rate",
+            "positions",
+            "excess_vs_common_benchmark",
+            "top_5_share",
+        ]
+        _selected = _all[
+            (_all.score_horizon == common_score.value) & (_all.exit_horizon == common_exit.value)
+        ]
+        _bench = _m[
+            (_m.target == "universe")
+            & (_m.exit_horizon == common_exit.value)
+            & (_m.cost_bp == common_cost.value)
+        ]
+        _percent_fields = [
+            "cumulative_return",
+            "max_drawdown",
+            "average_active_session_capital",
+            "average_exposure",
+            "hit_rate",
+            "top_5_share",
+            "volatility",
+            "average_cash_fraction",
+            "median_exposure",
+            "max_exposure",
+            "excess_vs_common_benchmark",
+        ]
+
+        def _display(frame):
+            result = frame.copy()
+            for col in _percent_fields:
+                if col in result:
+                    result[col] = result[col] * 100
+                    result = result.rename(columns={col: col + " (%)"})
+            return mo.ui.table(result, selection=None, page_size=10)
+
+        _matrix = _all.pivot(
+            index="score_horizon", columns="exit_horizon", values=common_metric.value
+        ).reindex(index=[1, 2, 3, 5, 10], columns=[1, 2, 3, 5, 10])
+        _matrix = _matrix if common_metric.value == "turnover" else _matrix * 100
+        _matrix.index = [f"H{h}" for h in [1, 2, 3, 5, 10]]
+        _matrix.columns = [f"H{h}" for h in [1, 2, 3, 5, 10]]
+        _heatmap = px.imshow(
+            _matrix,
+            text_auto=".2f",
+            aspect="auto",
+            labels={"x": "Détention H", "y": "Score H", "color": "Valeur"},
+            title=common_metric.selected_key + " · " + common_cost.selected_key,
+        )
+        _ov = pd.read_parquet(common_root / "overlap.parquet")
+        _ov = _ov[
+            (_ov.universe_policy == common_scope.value)
+            & (_ov.top_fraction == common_top.value)
+            & _ov.model_a.str.startswith(common_target.value)
+            & _ov.model_b.str.startswith(common_target.value)
+        ]
+        _ov_summary = _ov.groupby(["model_a", "model_b"], as_index=False)[
+            ["jaccard", "overlap_fraction", "score_correlation", "rank_correlation"]
+        ].mean()
+        _native = _all[_all.score_horizon == _all.exit_horizon]
+        _sections = {
+            "Overview": mo.vstack(
+                [
+                    mo.md(f"""### 22 décisions communes · 10 modèles figés
+**{_sum["strategy_simulations"]} replays + {_sum["benchmark_simulations"]} références.**
+159–164 actions à T ; univers natif = commun, perte de couverture 0 %.
+Deux compartiments · prochain open · sorties entrée incluse · cash si open absent.
+Top 3 % principal ; top 10 % diagnostic. Scores et volumes conservés.
+Les pourcentages sont affichés en %, le turnover en multiples de NAV.
+**Développement uniquement ; aucune confirmation indépendante d'alpha.**
+Rapport : `docs/SRD_HORIZON_COMMON_REPLAY_RESULTS.md`.
+"""),
+                    _display(_overview[_cols]),
+                    mo.md("#### Instruments par cutoff · aucune exclusion par intersection"),
+                    _display(_counts[_counts.score_horizon == common_score.value]),
+                ]
+            ),
+            "Native Horizons": mo.vstack(
+                [mo.md("### Scores détenus à leur horizon natif"), _display(_native[_cols])]
+            ),
+            "Fixed Holding": mo.vstack(
+                [
+                    mo.md("### Même durée de détention · comparaison des scores"),
+                    _display(_all[_all.exit_horizon == common_exit.value][_cols]),
+                    mo.md("#### Univers commun équipondéré · même durée, coûts et compartiments"),
+                    _display(_bench[_cols]),
+                ]
+            ),
+            "Horizon Matrix": mo.vstack(
+                [
+                    common_metric,
+                    mo.ui.plotly(_heatmap),
+                    mo.md(
+                        "Cellules non testées : sortie plus courte que l'horizon appris. "
+                        "Les valeurs sont en %, sauf turnover en multiples."
+                    ),
+                    _display(_all[_cols]),
+                ]
+            ),
+            "Selection Overlap": mo.vstack(
+                [
+                    mo.md("### Paniers par cutoff · Jaccard, chevauchement et corrélations"),
+                    _display(_ov_summary),
+                    mo.md("#### Cinq meilleurs trades · mêmes cutoffs et sortie H10, net 45 bp"),
+                    _display(pd.read_parquet(common_root / "winner_overlap.parquet")),
+                    mo.md(
+                        "Identité trade = action + cutoff. La vue des gagnants est "
+                        "fixée à H10/45 bp/top 3 %, quels que soient les filtres précédents."
+                    ),
+                ]
+            ),
+            "Audit": mo.vstack(
+                [
+                    mo.md(f"""### Conservation et contrôles
+Fit : {_audit["fit_calls"]} ; tuning : {_audit["tuning_calls"]}.
+Sources inchangées : {_audit["input_files_unchanged"]}.
+Scores originaux inchangés : {_audit["scores_original_export_unchanged"]}.
+Erreur comptable maximale : {_audit["max_accounting_error"]:.2e}.
+Audit prix antérieur réutilisé après égalité du SHA source ; cas nouveaux en attente.
+**Volumes non certifiés : aucun remplacement ni recalcul.**
+Grille actions observée rapprochée du CAC AllShares ; calendrier non certifié indépendant.
+Les suspensions et trades extrêmes restent dans toutes les NAV.
+"""),
+                    _display(
+                        _all[
+                            [
+                                "model_id",
+                                "score_horizon",
+                                "exit_horizon",
+                                "missing_entries",
+                                "delayed_exits",
+                                "delay_mean_sessions",
+                                "delay_max_sessions",
+                                "delayed_pnl",
+                                "volume_definition_not_certified",
+                            ]
+                        ]
+                    ),
+                    _display(pd.read_parquet(common_root / "new_price_audit_cases_unique.parquet")),
+                ]
+            ),
+        }
+        if _selected.empty:
+            _message = mo.md(
+                "### Combinaison non testée\nChoisir une détention supérieure "
+                "ou égale à l'horizon appris pour consulter le ledger."
+            )
+            _sections.update(
+                {name: _message for name in ["Exposure", "Cutoff Stability", "Trade Attribution"]}
+            )
+        else:
+            _sid = _selected.simulation_id.iloc[0]
+            _eq = pd.read_parquet(common_root / "portfolio_daily.parquet")
+            _eq = _eq[_eq.simulation_id == _sid].sort_values("session_date")
+            _cp = pd.read_parquet(common_root / "portfolio_cutoff.parquet")
+            _cp = _cp[_cp.simulation_id == _sid].sort_values("cutoff")
+            _t = pd.read_parquet(common_root / "trades.parquet")
+            _t = _t[_t.simulation_id == _sid]
+            _events = _t[
+                (_t.return_gross.abs() > 0.10)
+                | (_t.pnl_net.abs() > 0.01)
+                | (_t.future_quality != "approved")
+                | (_t.status != "closed")
+            ]
+            _sections.update(
+                {
+                    "Exposure": mo.vstack(
+                        [
+                            mo.md(
+                                "### NAV, capital et cash\nCapital actif = nominaux d'entrée des "
+                                "positions actives dans la séance / NAV précédente. "
+                                "H1 est intraday : "
+                                "son exposition au close peut être nulle sans capital actif nul."
+                            ),
+                            _display(
+                                _selected[
+                                    [
+                                        "cumulative_return",
+                                        "max_drawdown",
+                                        "volatility",
+                                        "sharpe",
+                                        "average_exposure",
+                                        "median_exposure",
+                                        "max_exposure",
+                                        "average_active_session_capital",
+                                        "average_cash_fraction",
+                                        "average_holding_sessions",
+                                        "max_simultaneous_positions",
+                                        "return_per_average_exposure",
+                                        "turnover",
+                                    ]
+                                ]
+                            ),
+                            mo.ui.plotly(
+                                px.line(_eq, x="session_date", y="equity", title="NAV cumulée")
+                            ),
+                            mo.ui.plotly(
+                                px.line(
+                                    _eq,
+                                    x="session_date",
+                                    y=["gross_exposure", "active_session_capital", "cash_fraction"],
+                                    title="Fractions de capital",
+                                )
+                            ),
+                        ]
+                    ),
+                    "Cutoff Stability": mo.vstack(
+                        [
+                            mo.md("### Attribution par décision · points du capital initial"),
+                            _display(
+                                _selected[
+                                    [
+                                        "positive_cutoff_fraction",
+                                        "mean_cutoff_pnl",
+                                        "median_cutoff_pnl",
+                                        "best_cutoff",
+                                        "best_cutoff_pnl",
+                                        "worst_cutoff",
+                                        "worst_cutoff_pnl",
+                                        "top3_cutoff_contribution",
+                                    ]
+                                ]
+                            ),
+                            mo.ui.plotly(
+                                px.bar(
+                                    _cp,
+                                    x="cutoff",
+                                    y="contribution_points",
+                                    title="Contribution nette par cutoff (points)",
+                                )
+                            ),
+                            _display(_cp),
+                        ]
+                    ),
+                    "Trade Attribution": mo.vstack(
+                        [
+                            mo.md(
+                                "### Trades et concentration\nContributions en points "
+                                "du capital initial ; "
+                                "une part du gain net peut dépasser 100 % "
+                                "si les autres trades perdent."
+                            ),
+                            _display(
+                                _selected[
+                                    [
+                                        "top1_contribution",
+                                        "top3_contribution",
+                                        "top5_contribution",
+                                        "top10_contribution",
+                                        "negative_top5_contribution",
+                                        "top_5_share",
+                                        "absolute_contribution_hhi",
+                                        "positive_contribution_hhi",
+                                    ]
+                                ]
+                            ),
+                            _display(_t.sort_values(["cutoff", "score_rank"])),
+                            mo.md("#### Event concentration · conservés dans le résultat"),
+                            _display(_events.sort_values("pnl_net", ascending=False)),
+                        ]
+                    ),
+                }
+            )
+        # Keep section order stable regardless of selected matrix cell.
+        common_panel = mo.vstack(
+            [
+                mo.md("## Horizon Comparison"),
+                mo.hstack([common_target, common_score, common_exit], justify="start"),
+                mo.hstack([common_top, common_cost, common_scope], justify="start"),
+                mo.ui.tabs(
+                    {
+                        name: _sections[name]
+                        for name in [
+                            "Overview",
+                            "Native Horizons",
+                            "Fixed Holding",
+                            "Horizon Matrix",
+                            "Exposure",
+                            "Cutoff Stability",
+                            "Trade Attribution",
+                            "Selection Overlap",
+                            "Audit",
+                        ]
+                    }
+                ),
+            ]
+        )
+    return (common_panel,)
 
 
 @app.cell
@@ -1279,6 +1676,7 @@ def _(
     context_panel,
     vad_panel,
     short_panel,
+    common_panel,
 ):
     _mid = model_choice.value
     _row = next(r for r in registry if r["model_id"] == _mid)
@@ -1568,6 +1966,7 @@ def _(
             "Contextes SRD": context_panel,
             "VAD et détention": vad_panel,
             "Horizons courts": short_panel,
+            "Horizon Comparison": common_panel,
         }
     )
     return
