@@ -10,6 +10,12 @@ The [complete experiment synthesis](docs/EXPERIMENTATIONS_SYNTHESE.md) lists res
 status, results, documentation and proposed next steps across correlations, models,
 portfolio replays, index contexts and independent confirmation.
 
+The [short-horizon price audit](docs/SRD_PRICE_AUDIT.md) reconciles raw inputs,
+material entry/exit prices with Euronext and portfolio contributions. It also
+identifies unresolved volume differences. The
+[common horizon comparison contract](docs/SRD_HORIZON_COMPARISON_CONTRACT.md)
+defines the next replay; its shared 22-date performance matrix is not computed yet.
+
 The complete correlation exploration is documented in the [French synthesis](docs/EXPLORATION_CORRELATIONS_SYNTHESE.md) ([PDF](docs/EXPLORATION_CORRELATIONS_SYNTHESE.pdf)): data, features, targets, 2024–2026 comparisons, reversal audit, H5 results by historical window, bootstrap intervals and remaining methodological limitations.
 
 **SPEC-006T:** the [ex-ante research contract](docs/SPEC_006T_EX_ANTE_RESEARCH_CONTRACT.md)

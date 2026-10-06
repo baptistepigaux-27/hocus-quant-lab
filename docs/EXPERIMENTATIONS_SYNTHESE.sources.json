@@ -1,8 +1,8 @@
 {
   "as_of": "2026-10-06",
-  "research_base_commit": "9a292e2",
+  "research_base_commit": "76629a6",
   "branch": "spec/008-multivariate-model-backtest",
-  "method": "Synthesis of existing documented results; no new scientific run",
+  "method": "Synthesis of documented experiments including the new price audit; no new model fits or common horizon replay",
   "artifacts": {
     "configs/research/confirmation_protocol_v1.toml": "9ee0de37c4f04c44adfc8a87d65a56f918cb3bd16dac4a16ea2244aa488ddc24",
     "data/analysis/index-series-models-v1/report_complete.json": "d46ae2ee89d474b22f8e1112960eb957625e9ad3fdf957d183582a7a7b1892ef",
@@ -23,14 +23,14 @@
     "docs/ABC_BOURSE_DELIVERY.md": "99bf101541d782d0041dccff6baccfd1af27d8122ee0414facb5aa0484f0b164",
     "docs/AMF_SHORT_POSITIONS.md": "69cb17b9fd540df02edbc236a2445d370a5d822fc516c2c137ace7f7eeb4b1d0",
     "docs/DATA_SOURCES.md": "b64573cf6d526c643fe79c4b43af5421a787065bcdbd699452002a168273e8b6",
-    "docs/EXPERIMENTATIONS_SYNTHESE.md": "2fa95ff5b796892098a57aea3a06054b95205b2e809e77281bb582b35cb96acd",
+    "docs/EXPERIMENTATIONS_SYNTHESE.md": "e88b12966be430f187e4efab49ca760565fd8edccca29e6f068beaa9ac4a694b",
     "docs/EXPLORATION_CORRELATIONS_SYNTHESE.md": "acd5f7da4493bc18d7f530b522448041dd2fb80897558a2208877451ef7a9f55",
     "docs/FEATURES.md": "a6eb85a06fd6ab8b19e4547cbe4c517f462b33abd9a868c0acf2ad1d99934c4c",
     "docs/INDEX_SERIES_MODELS_CONTRACT.md": "45eaf3dd611b0bf836f0cb00dae230a64731f5b905af24e2fccc635dab6763ac",
     "docs/INDEX_SERIES_MODELS_RESULTS.md": "5adc20809440df856d8ee8def0e62c6ab897791cd2817303bbd4b826a9ee3d55",
     "docs/POINT_IN_TIME.md": "01bd1912ea2033f64c0f31c2a55c1b31bc353919d1e6b274c3f00f5884116285",
-    "docs/RESEARCH_PROGRESS_2026_10_06.md": "f98b08f1cc79acf3d8270f16a592e7186ddaa375d44b2bab6f699dcbeba345ea",
-    "docs/RESEARCH_PROGRESS_2026_10_06.sources.json": "39d2d607f478a06e4b1205c801f470040a6ca8eba3de6c16e92e0138289d99ab",
+    "docs/RESEARCH_PROGRESS_2026_10_06.md": "37063f1cf29a0e819bf08593ddb8b6f2b340b3a29f9a6c1193ae7bcf69751a49",
+    "docs/RESEARCH_PROGRESS_2026_10_06.sources.json": "fcc67fdafa956e6a9e6749b71cd43fb53a1ad5d63a594671297228dc2fb56929",
     "docs/SANDBOX_DEPLOYMENT.md": "e00a9c712874ba6a037a9e91bca172273ea18928e3d820db35044e9daa29f6cc",
     "docs/SBF120_KMEANS7_CONTRACT.md": "ae34d0db62f132443116a882756a51c5e007dd60ebc2111e4cc042c7d24680c2",
     "docs/SBF120_KMEANS7_RESULTS.md": "2f9646ac8e51b2308eabbc09680b4f511707bd7359e6ca35250893ed0563c39c",
@@ -63,6 +63,13 @@
     "docs/SRD_SHORT_HORIZONS_CONTRACT.md": "0a51058e8eed21e48bfceb5e7476fc26ca51e5ef8672c2f7e47234e435df5b83",
     "docs/SRD_SHORT_HORIZONS_RESULTS.md": "d8c63e923a04cc4344de4a81ea09eaca090d481a620f5b88d79e9f53ef10bc2d",
     "docs/SRD_VAD_HOLDING_CONTRACT.md": "be0cb4369aaa539ba37e6705b80113558ce8d21023d2df97b0ec0838018a3251",
-    "docs/SRD_VAD_HOLDING_RESULTS.md": "5cb5387ece9fbd063dcf9ded8b73dbf08586594b1b2ad708e276a7261af4aff7"
+    "docs/SRD_VAD_HOLDING_RESULTS.md": "5cb5387ece9fbd063dcf9ded8b73dbf08586594b1b2ad708e276a7261af4aff7",
+    "docs/SRD_PRICE_AUDIT.md": "03ff36672be1932290bfe8a2b3b10b4e092478872e6c2ba67b4ab84e513d869a",
+    "docs/SRD_HORIZON_COMPARISON_CONTRACT.md": "355b8459032a99a9fe4cc72bd2e13885992e8a20f62d4ca8868e79ded60be0f1",
+    "docs/SRD_PRICE_AUDIT.sources.json": "64f12cbfe41b057287dd8361577cacf68e68943c05bc67060e0991e74b1ae810",
+    "data/analysis/srd-price-audit-v1/audit.json": "327d715ef690ee2e58c4ea27b609a4b73dbf52df00cb4cf9706a0ae92556ebcc",
+    "data/analysis/srd-price-audit-v1/primary_field_summary.csv": "448173dda787f140525f521ad1d51c99a43670bab21a204d5a94b95e77a843bd",
+    "data/analysis/srd-price-audit-v1/primary_differences.csv": "2b35309d654a4cde97a944306960d5042a7c78daa189074f2c53953ce116bd7b",
+    "data/analysis/srd-price-audit-v1/common_cutoffs.json": "5b707e513ab12b39ce2d763014d56beb6b53f0d3cdebed3b2d9686e2c0234e75"
   }
 }

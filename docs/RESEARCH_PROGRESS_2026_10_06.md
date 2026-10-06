@@ -37,6 +37,8 @@ sur une période indépendante n'est revendiqué.
 | Contextes SRD | Producteurs historiques hors apprentissage, centres 2023 et jointure as-of ; 356 features ajoutées ; comparaison aux modèles actions seuls | [Contrat](SRD_CONTEXT_INTEGRATION_CONTRACT.md), [résultats](SRD_CONTEXT_RESULTS.md) |
 | VAD et détention | Modèles actions seuls, 50/50 top/flop 3 %, coûts 25/45 bp, prêt 0/3 %, détentions H5→H10 et H10→H20 | [Contrat](SRD_VAD_HOLDING_CONTRACT.md), [résultats](SRD_VAD_HOLDING_RESULTS.md) |
 | Horizons courts | 1 048 variables actions, nouvelles targets H1/H2/H3, 74 modèles et replays bruts H/H5 | [Contrat](SRD_SHORT_HORIZONS_CONTRACT.md), [résultats](SRD_SHORT_HORIZONS_RESULTS.md) |
+| Audit des prix courts | 199 416 lignes brutes rapprochées ; 140 cas matériels exécutés identiques à Euronext ; écarts de volume ouverts | [Audit](SRD_PRICE_AUDIT.md) |
+| Comparaison commune des horizons | Contrat écrit, 22 cutoffs communs inventoriés ; nouvelle matrice non calculée | [Contrat](SRD_HORIZON_COMPARISON_CONTRACT.md) |
 
 Les données locales, modèles sérialisés et grands ledgers sont ignorés par Git.
 Les contrats, configs, scripts, rapports et empreintes des sources sont versionnés.
@@ -393,6 +395,13 @@ et empreintes sont persistés dans `data/analysis/`, et référencés dans le
 [fichier de provenance du journal](RESEARCH_PROGRESS_2026_10_06.sources.json).
 
 ## 10. Prochaines étapes ouvertes
+
+Le [nouvel audit des prix](SRD_PRICE_AUDIT.md) corrobore X-FAB à +50 % et les
+endpoints de tous les 140 cas matériels exécutés des horizons courts. Il conserve
+les pertes Nacon/MaaT et les sorties retardées. Les 66 différences de volume sur
+23 instruments doivent être qualifiées ; elles ne proviennent pas du parseur.
+La comparaison commune est définie dans un [contrat dédié](SRD_HORIZON_COMPARISON_CONTRACT.md),
+avec 22 dates communes ; aucun nouveau modèle ou portefeuille commun n'est encore calculé.
 
 1. Décomposer l'ajout de contexte par blocs dans une nouvelle expérience fixée
    à l'avance ; le benchmark complet ne mesure pas une contribution causale par bloc.

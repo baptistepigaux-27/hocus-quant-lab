@@ -1,6 +1,6 @@
 # Hocus Quant Lab — synthèse des expérimentations
 
-**6 octobre 2026 · version 1 · base de lecture `9a292e2`.**
+**6 octobre 2026 · version 2 · base de lecture `76629a6`.**
 
 **Objet :** retrouver toutes les étapes de recherche, leur statut, les résultats
 utiles, la documentation et les prochaines expériences proposées.
@@ -26,7 +26,10 @@ identifie les documents et artefacts utilisés. Cette synthèse ne lance aucun n
    coûts et périodes déjà explorées limitent l'interprétation. La confirmation
    prospective SPEC-007 attend de nouvelles observations.
 
-Les priorités ci-dessous sont **des propositions**, sans nouvelle expérience exécutée.
+L'[audit des prix des horizons courts](SRD_PRICE_AUDIT.md) a été exécuté depuis
+la première version. Le [contrat commun des horizons](SRD_HORIZON_COMPARISON_CONTRACT.md)
+est écrit ; son inventaire comporte 22 dates communes, sans nouvelle matrice de performance.
+Les autres priorités restent des propositions.
 
 ## 2. Comment lire les statuts et les chiffres
 
@@ -130,6 +133,8 @@ hypothèses. Il ne représente pas une probabilité de hausse ou d'alpha.
 | E16 | Ajouter K-means et prévisions d'indices aux actions SRD | **Livré, développement** · 356 contextes, 1 404 variables, 56 modèles ; rendement net amélioré dans 5/12 tâches | [Intégration historique](SRD_CONTEXT_INTEGRATION_CONTRACT.md), [résultats](SRD_CONTEXT_RESULTS.md) | Faire une ablation par bloc et conserver les baisses observées |
 | E17 | VAD top/flop 3 % et détention H5→H10 / H10→H20 | **Livré, replay théorique** · 672 simulations ; VAD défavorable pour le rang H5 ; prolongation parfois favorable | [Contrat](SRD_VAD_HOLDING_CONTRACT.md), [résultats](SRD_VAD_HOLDING_RESULTS.md) | Séparer signal short, neutralisation du risque et coûts réels du prêt |
 | E18 | Nouveaux modèles H1/H2/H3, détenus à H ou H5 | **Livré, développement** · 74 modèles, 16 tâches, 462 replays ; gains parfois concentrés | [Contrat](SRD_SHORT_HORIZONS_CONTRACT.md), [résultats](SRD_SHORT_HORIZONS_RESULTS.md) | Auditer les trades matériels puis comparer horizons, exposition et frais sur les mêmes dates |
+| E19 | Audit primaire des prix et contributions des horizons courts | **Livré, diagnostic** · 199 416 lignes rapprochées du brut ; 140 cas matériels exécutés avec endpoints Euronext identiques ; 66 écarts de volume restent à qualifier | [Audit et provenance](SRD_PRICE_AUDIT.md) | Établir la définition des volumes ; ne pas réécrire les scores ni supprimer les événements futurs |
+| E20 | Contrat commun H1/H2/H3/H5/H10 | **Contrat écrit, replay non exécuté** · 22 cutoffs communs ; cohorte/horloge à rapprocher | [Comparaison des horizons](SRD_HORIZON_COMPARISON_CONTRACT.md) | Rejouer les mêmes scores après audit de cohorte, avec exposition et coûts communs |
 
 Les nombres de modèles ne doivent pas être additionnés comme autant de preuves
 indépendantes : plusieurs expériences réutilisent les mêmes modèles ou sources.
@@ -264,7 +269,8 @@ des modèles SRD ; leurs résultats ne constituent pas une stratégie de trading
 | Redondance des variables/targets | Documentée ; déduplication de rang dans le lock | Plusieurs lignes ou modèles ne représentent pas plusieurs informations indépendantes |
 | Heure et calendrier des groupes d'indices | v1 invalide archivée ; v2 recalculée après audit | Lire les rapports v2 et distinguer leur convention des expériences précédentes |
 | Direction relative des nouveaux horizons courts | Borne UTC corrigée avant les 74 entraînements publiés ; 7 571 labels relatifs changés dans le dataset initial | La version partielle avant correction reste invalide ; les features et autres targets sont inchangées |
-| Prix et opérations sur titres | Événements matériels et ajustements non entièrement certifiés | Priorité à l'audit des profits concentrés ; aucun retrait opportuniste selon le résultat |
+| Prix et opérations sur titres | Endpoints des 140 cas matériels exécutés H1/H2/H3 rapprochés d'Euronext ; certification générale encore ouverte | X-FAB à +50 % corroboré ; concentration à conserver dans la lecture |
+| Définition des volumes | Audit E19 : 66 écarts sur 1 180 séances comparables, 23 instruments | Origine et impact sur les features non établis ; aucun remplacement ponctuel des seules observations examinées |
 | Univers et libellés | Corpus livré et référentiel actuel, historique des appartenances incomplet | Risque de survivance ; absence de preuve d'un SBF120 historique investissable |
 | Frais et VAD | Forfaits 25/45 bp, prêt 0/3 % de sensibilité | Pas de minimum de courtage, fiscalité par titre, carnet d'ordres ou prêt effectif certifié |
 | Validation indépendante | 2024–2026 déjà consultés ; SPEC-007 attend des données | Nouveau protocole séparé requis pour confirmer les modèles ML et les choix de portefeuille |
@@ -276,8 +282,8 @@ les RF/XGB, les contextes, le top 3 %, la VAD ni les nouveaux horizons courts.
 
 | Priorité | Travail proposé | Livrable concret | Critère de décision |
 | --- | --- | --- | --- |
-| **P0** | Auditer les prix et événements qui portent les gains | Registre des plus fortes contributions, barres sources, événements documentés, règles de traitement versionnées | Chaque événement matériel est expliqué ou reste explicitement non certifié ; aucune exclusion choisie pour améliorer la performance |
-| **P0** | Établir une comparaison commune des horizons et de l'exécution | Contrat calendrier/disponibilité/entrée/sortie, mêmes dates comparables, budget et règles de qualité ; tableaux IC après open, paniers, NAV, risque et couverture | Les différences d'horizon, de cash et de composition sont séparées des variations de qualité du score |
+| **P0 — audit court livré ; suite ouverte** | Prix matériels H1/H2/H3 rapprochés ; qualifier maintenant les volumes et étendre la certification | [148 cas et captures](SRD_PRICE_AUDIT.md) ; 140 cas exécutés concordants, 66 différences de volume | Définition des volumes cohérente sur tout le corpus ; aucune exclusion selon le résultat |
+| **P0 — contrat écrit ; replay à faire** | Comparaison commune des horizons et de l'exécution | [Contrat](SRD_HORIZON_COMPARISON_CONTRACT.md), inventaire des 22 cutoffs ; cohorte/horloge à rapprocher avant calcul | Les différences d'horizon, de cash et de composition sont séparées des variations de qualité du score |
 | **P1** | Décomposer la valeur du contexte sur le rang SRD | Baseline, +CAC/SBF, +secteurs, +régimes, +volatilité de contexte ciblée, +ensemble complet ; mêmes cohortes et règles de sélection | Gain incrémental mesuré face à la référence, avec pertes et incertitude conservées ; aucun bloc choisi sur sa meilleure performance 2026 |
 | **P1** | Comparer explicitement score et durée de détention | Matrice fixée d'avance, comprenant H1/H2/H3 natifs et H5, rang H5→H10 et H10→H20 ; coûts et exposition communs documentés | La meilleure durée n'est pas déduite du seul PnL cumulé ; effets sur paniers, risque et frais lisibles |
 | **P1** | Préparer une confirmation propre aux modèles ML | Gel de quelques hypothèses, variables, modèles, paramètres, coûts et règles de portefeuille ; enregistrement prospectif séparé de SPEC-007 | Période réellement non consultée, décisions enregistrées avant les outcomes, règle d'arrêt et de lecture fixée |
@@ -323,6 +329,7 @@ du `main` local ; la référence de cette synthèse est donc explicitement cette
 | `srd-context-v1` | Producteurs historiques, centres 2023, jointure as-of et modèles enrichis |
 | `srd-portfolio-extensions-v1` | Ledgers achat/VAD et durées prolongées |
 | `srd-short-horizons-v1` | Targets H1/H2/H3, 74 modèles, 462 replays, diagnostics et contributions |
+| `srd-price-audit-v1` | Rapprochement brut/prix primaires, 148 cas, différences de volume et inventaire commun des horizons |
 
 Les artefacts des corrélations, du lock et de confirmation sont référencés par
 leurs rapports dédiés. Les variantes initiales invalides ne sont pas des résultats
