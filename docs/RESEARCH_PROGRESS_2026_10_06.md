@@ -5,6 +5,9 @@ checkout `/home/ubuntu/worktrees/hocus-quant-spec008`.
 
 ## État actuel
 
+Le [catalogue de toutes les expérimentations](EXPERIMENTATIONS_SYNTHESE.md)
+regroupe statuts, résultats, documentation et prochaines étapes proposées.
+
 La [synthèse des corrélations](EXPLORATION_CORRELATIONS_SYNTHESE.md) décrit la phase
 initiale. Depuis, le laboratoire possède des modèles prédictifs et des simulations
 de portefeuille **de développement**, ainsi que des modèles d'indices, un

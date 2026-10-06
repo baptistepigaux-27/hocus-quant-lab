@@ -6,6 +6,10 @@ Independent confirmation and economically certified alpha remain unestablished.
 
 ## Current state (2026-10-06)
 
+The [complete experiment synthesis](docs/EXPERIMENTATIONS_SYNTHESE.md) lists research
+status, results, documentation and proposed next steps across correlations, models,
+portfolio replays, index contexts and independent confirmation.
+
 The complete correlation exploration is documented in the [French synthesis](docs/EXPLORATION_CORRELATIONS_SYNTHESE.md) ([PDF](docs/EXPLORATION_CORRELATIONS_SYNTHESE.pdf)): data, features, targets, 2024–2026 comparisons, reversal audit, H5 results by historical window, bootstrap intervals and remaining methodological limitations.
 
 **SPEC-006T:** the [ex-ante research contract](docs/SPEC_006T_EX_ANTE_RESEARCH_CONTRACT.md)
