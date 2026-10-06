@@ -17,6 +17,7 @@ Environment=HOCUS_INDEX_SERIES_DATA=__ROOT__/data/analysis/index-series-models-v
 Environment=HOCUS_SBF120_REGIMES_DATA=__ROOT__/data/analysis/sbf120-kmeans7-v1
 Environment=HOCUS_SRD_CONTEXT_DATA=__ROOT__/data/analysis/srd-context-v1
 Environment=HOCUS_SRD_VAD_DATA=__ROOT__/data/analysis/srd-portfolio-extensions-v1
+Environment=HOCUS_SRD_SHORT_DATA=__ROOT__/data/analysis/srd-short-horizons-v1
 ExecStart=__ROOT__/.venv/bin/marimo run notebooks/model_lab.py --host 127.0.0.1 --port 8069 --headless --no-token --no-sandbox --base-url /quant-model-lab
 Restart=on-failure
 RestartSec=5
@@ -35,6 +36,7 @@ BindReadOnlyPaths=__ROOT__/data/analysis/index-series-models-v1
 BindReadOnlyPaths=__ROOT__/data/analysis/sbf120-kmeans7-v1
 BindReadOnlyPaths=__ROOT__/data/analysis/srd-context-v1
 BindReadOnlyPaths=__ROOT__/data/analysis/srd-portfolio-extensions-v1
+BindReadOnlyPaths=__ROOT__/data/analysis/srd-short-horizons-v1
 StateDirectory=hocus-quant-model-lab
 PrivateTmp=true
 PrivateDevices=true

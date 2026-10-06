@@ -85,6 +85,13 @@ and [results](docs/SRD_VAD_HOLDING_RESULTS.md). The **VAD et détention** tab ex
 comparisons, daily curves and contributions. Decisions are from S1 2026; liquidations
 are followed through July. Reproduce with `uv run python scripts/replay_srd_vad_horizons.py`.
 
+**Short stock-only targets:** the [H1/H2/H3 contract](docs/SRD_SHORT_HORIZONS_CONTRACT.md)
+reuses the same 1,048 stock features, adds 16 mathematically defined target tasks,
+and trains 74 models. [Results](docs/SRD_SHORT_HORIZONS_RESULTS.md) compare gross native
+holdings with H5, net 25/45 bp, same-capital universe baskets and executable-return
+diagnostics. The **Horizons courts** tab is independent of the H5/H10 selectors.
+Reproduce with `uv run python scripts/srd_short_horizons.py` actions `data`, `run`, `publish`.
+
 - **AMF short positions:** Gremlin acquisition and the Quant Lab offline adapter are implemented; see [AMF rules](docs/AMF_SHORT_POSITIONS.md).
 - **Market prices:** real ABC Bourse files supplied manually have been imported. The full SRD archive has 199,416 observations across 197 provider identifiers; eight additional universes have 1,745,030 observations. Coverage is 2022-09-29 to 2026-09-28. These files are local and ignored by Git.
 - **Instrument reference:** the companion workbook has been ingested: 2,135 codes, including 2,067 with labels and 68 unresolved. Labels are a current snapshot, not historical point-in-time names.

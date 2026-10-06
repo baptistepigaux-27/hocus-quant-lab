@@ -33,6 +33,7 @@ sur une période indépendante n'est revendiqué.
 | SBF 120, sept régimes | K-means des dates de l'indice, centres et tables de prévision 2024 figés | [Contrat](SBF120_KMEANS7_CONTRACT.md), [résultats](SBF120_KMEANS7_RESULTS.md) |
 | Contextes SRD | Producteurs historiques hors apprentissage, centres 2023 et jointure as-of ; 356 features ajoutées ; comparaison aux modèles actions seuls | [Contrat](SRD_CONTEXT_INTEGRATION_CONTRACT.md), [résultats](SRD_CONTEXT_RESULTS.md) |
 | VAD et détention | Modèles actions seuls, 50/50 top/flop 3 %, coûts 25/45 bp, prêt 0/3 %, détentions H5→H10 et H10→H20 | [Contrat](SRD_VAD_HOLDING_CONTRACT.md), [résultats](SRD_VAD_HOLDING_RESULTS.md) |
+| Horizons courts | 1 048 variables actions, nouvelles targets H1/H2/H3, 74 modèles et replays bruts H/H5 | [Contrat](SRD_SHORT_HORIZONS_CONTRACT.md), [résultats](SRD_SHORT_HORIZONS_RESULTS.md) |
 
 Les données locales, modèles sérialisés et grands ledgers sont ignorés par Git.
 Les contrats, configs, scripts, rapports et empreintes des sources sont versionnés.
@@ -267,7 +268,68 @@ Prêt historique, rappels, dividendes dus, fiscalité par titre et marge ne sont
 pas connus : VAD théorique et prix raw, toujours en développement rétrospectif.
 Tous les gagnants et toutes les simulations sont conservés, sans choix sur 2026.
 
-## 8. Publication et accès
+## 8. Modèles actions seuls : targets H1/H2/H3
+
+Les features et sources du registre complet restent identiques octet pour octet.
+Cette extension ajoute les horizons courts au dataset, avec les mêmes périodes
+2024 / S1 2025 / S1 2026 et les mêmes grilles d'estimateurs. Elle ne réutilise pas
+les features de marché. Les dates de coupe restent hebdomadaires.
+
+La tendance / erreur-type est indéfinie à H1/H2 et n'est entraînée qu'à H3 :
+**16 tâches et 74 modèles finaux**. Excursions H1 = 2 × rendement H1, donc deux
+formulations d'une même information. H1/H2 ont 24 décisions test ; H3 en a 23,
+avec purge des fenêtres aux frontières. Les comparaisons de paniers sont également
+présentées sur les 23 dates communes.
+
+L'audit de construction a repéré un décalage d'heure du benchmark : minuit Paris
+D+1 excluait le close d'indice déclaré disponible à minuit UTC D+1. La nouvelle
+borne UTC corrige la direction relative sans changer les features ni les autres
+targets. **7 571 labels direction relative** changent sur le dataset complet.
+L'entraînement partiel initial est archivé comme invalide ; les 74 modèles sont
+ajustés après correction. Les closes futurs utilisent le calendrier commun,
+sans avancer vers une quote ultérieure si une quote manque.
+
+Les performances brutes correspondent à une entrée au prochain open et à une
+sortie au close H ou H5. Deux compartiments identiques pour toutes les détentions ;
+la target close-à-close comprend un gap qui précède cette entrée. Le rapport
+sépare IC/AUC de target, IC de rendement après open, IC du gap, rendement cumulé,
+paniers comparables et excès face à l'univers équipondéré. À H1, une exposition
+de fin de séance nulle masque une position intraday : le capital actif par séance
+est aussi enregistré. Ces diagnostics restent rétrospectifs.
+
+Le [rapport détaillé](SRD_SHORT_HORIZONS_RESULTS.md) contient les 16 gagnants choisis
+sur validation uniquement, les scénarios 0/25/45 bp et la réconciliation des
+462 replays. Reproduction : `scripts/srd_short_horizons.py` actions `data`, `run`,
+`publish`. Aucun modèle n'est entraîné à l'ouverture du notebook.
+
+### Résultats courts en première approche
+
+Top 3 % acheté, rendement cumulé brut du portefeuille de développement :
+
+| Target / modèle | Horizon appris | Sortie native | Sortie H5 |
+| --- | ---: | ---: | ---: |
+| Rendement / XGB | H1 | +9,335 % | +15,333 % |
+| Rendement / RF | H2 | +8,752 % | +12,553 % |
+| Rendement / XGB | H3 | +23,476 % | +13,770 % |
+| Rang / RF | H1 | +5,048 % | +8,312 % |
+| Rang / RF | H2 | +7,075 % | +13,874 % |
+| Rang / RF | H3 | +8,066 % | +9,945 % |
+
+Prolonger n'améliore pas systématiquement le résultat. H3 rendement est concentré :
+les cinq meilleurs trades apportent **15,834 points**, dont **5,779** pour un
+trade `BE0974310428` marqué en revue (+50 % entre entrée et sortie). Il est conservé,
+sans filtrage favorable après lecture. Cette variation n'est pas certifiée.
+Les deux entrées manquantes de cette simulation restent en cash.
+Pour la direction absolue, la référence constante gagne la validation aux trois
+horizons : ses paniers par identifiant ne constituent pas un signal appris.
+
+Audit : **52 399 trajectoires** recalculées, erreur de rendement nulle ;
+**74 modèles sauvegardés / 283 482 scores** rejoués avec tolérance relative et
+absolue de `1e-12`, différence absolue maximale `1,0914e-11` sur des scores de
+grande amplitude. Les **462 ledgers** se réconcilient avec leurs NAV. Les diagnostics
+du gap vérifient l'identité multiplicative sans changer la sélection.
+
+## 9. Publication et accès
 
 [Model Lab](https://sandbox.hocus.works/quant-model-lab/) :
 
@@ -280,6 +342,8 @@ Tous les gagnants et toutes les simulations sont conservés, sans choix sur 2026
   dans les contrôles de l'explorateur de modèles.
 - **VAD et détention** : actions seules, comparaison achat/VAD et détentions
   prolongées, courbes, contributions par jambe/action et ledger.
+- **Horizons courts** : modèles actions H1/H2/H3, rendements avant frais et
+  25/45 bp, détention native et H5, courbes, paniers et diagnostics après l'open.
 
 Le service `hocus-quant-model-lab-sandbox` utilise le port loopback **8069** et le
 checkout isolé. Chaque expérience a son bind en lecture seule. Les données et
@@ -310,6 +374,14 @@ seules de 1 048 variables par défaut. Le service et ses binds en lecture seule
 incluent le dossier des replays. Trace :
 `data/analysis/srd-portfolio-extensions-v1/sandbox_publication.json`.
 
+Publication des horizons courts observée le 6 octobre : **treize onglets**,
+contrôles H1/H2/H3 et brut/25/45 bp, table des 16 gagnants, courbes des détentions
+native/H5 et univers équipondéré, capital actif, paniers et concentration du PnL.
+Le navigateur a affiché H1 rang brut, H2 rang brut, H3 rendement brut et H3 tendance
+à 45 bp sans erreur JavaScript ni traceback. Service Model Lab actif, loopback
+**200**, route publique sans credentials **401** ; service SRD 8068 distinct actif.
+Trace : `data/analysis/srd-short-horizons-v1/sandbox_publication.json`.
+
 Pour la publication initiale des grands marchés, les choix CAC40 direction H5 et
 FTSE100 volatilité H10 avaient été inspectés au navigateur ; le log local
 `/tmp/hocus-index-series-browser.log` et les captures correspondantes sont des
@@ -317,7 +389,7 @@ traces opérationnelles, pas des preuves statistiques. Les replays scientifiques
 et empreintes sont persistés dans `data/analysis/`, et référencés dans le
 [fichier de provenance du journal](RESEARCH_PROGRESS_2026_10_06.sources.json).
 
-## 9. Prochaines étapes ouvertes
+## 10. Prochaines étapes ouvertes
 
 1. Décomposer l'ajout de contexte par blocs dans une nouvelle expérience fixée
    à l'avance ; le benchmark complet ne mesure pas une contribution causale par bloc.

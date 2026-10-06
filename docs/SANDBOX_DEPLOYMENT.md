@@ -85,6 +85,15 @@ target, model horizon and detailed holding controls read precomputed artefacts.
 H5 models show H5/H10 holdings; H10 models show H10/H20. No fitting or replay runs
 in the notebook. See [the portfolio contract](SRD_VAD_HOLDING_CONTRACT.md).
 
+The **Horizons courts** tab reads `data/analysis/srd-short-horizons-v1` through
+`HOCUS_SRD_SHORT_DATA` and a separate read-only bind. Build data, train and publish
+with `uv run python scripts/srd_short_horizons.py data|run|publish` (one action
+at a time). Publication requires quote-based target audits and all 74 saved-model
+replays, followed by 462 long-only simulations. Independent controls select H1/H2/H3,
+target and gross 0 bp / net 25/45 bp. Curves compare native holdings with H5 and
+the same-capital universe reference. No fitting occurs in the notebook.
+See [the short-horizon contract](SRD_SHORT_HORIZONS_CONTRACT.md).
+
 Install a changed template and restart only the Model Lab service:
 
 ```bash
@@ -101,7 +110,7 @@ counts are recorded in [the execution journal](RESEARCH_PROGRESS_2026_10_06.md).
 Notebook: [`model_lab.py`](../notebooks/model_lab.py). No fitting or portfolio replay
 runs in the UI. Navigation includes Overview, Model Benchmark, Target Comparison,
 Score Deciles, Backtest, Feature Importance, Methodology, Indices, Grands marchés,
-SBF 120 · régimes, Contextes SRD and VAD et détention;
+SBF 120 · régimes, Contextes SRD, VAD et détention and Horizons courts;
 all results are labelled
 **development backtest — not independent confirmation**.
 

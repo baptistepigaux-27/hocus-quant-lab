@@ -1,0 +1,60 @@
+version = "SRD-SHORT-HORIZONS/1.0.0"
+source_path = "data/analysis/spec008-model-lab-all-features"
+output_path = "data/analysis/srd-short-horizons-v1"
+report_stem = "SRD_SHORT_HORIZONS_RESULTS"
+seed = 20261005
+lock_path = "configs/research/candidate_lock_v1.json"
+lock_sha256 = "7508b6900e36c11757bd84d82c1a9f7d322a07db6ce4ff00e961e5a258432e0f"
+feature_sets = ["all"]
+horizons = [1, 2, 3]
+families = ["direction_abs", "return_abs", "direction_rel", "rank_pct", "excursion_balance", "trend_tstat"]
+train_start = "2024-01-01"
+train_end = "2024-12-31"
+validation_start = "2025-01-01"
+validation_end = "2025-06-30"
+test_start = "2026-01-01"
+test_end = "2026-06-30"
+portfolio_end = "2026-07-31"
+cutoff_weekday = 4
+classification_zero = "exclude from binary fit/metrics; retain -1/0/+1 ledger"
+classification_threshold = 0.5
+minimum_ic_pairs = 30
+permutation_enabled = false
+backtest_enabled = false
+portfolio_top_fraction = 0.03
+costs_round_trip_bp = [0, 25, 45]
+portfolio_sleeves = 2
+portfolio_hold_extension = 5
+threads = 4
+
+[[rf_grid]]
+n_estimators = 80
+max_depth = 4
+min_samples_leaf = 30
+max_features = 0.5
+
+[[rf_grid]]
+n_estimators = 120
+max_depth = 7
+min_samples_leaf = 50
+max_features = 0.7
+
+[[xgb_grid]]
+n_estimators = 100
+max_depth = 2
+learning_rate = 0.04
+subsample = 0.8
+colsample_bytree = 0.7
+min_child_weight = 30
+reg_alpha = 0.1
+reg_lambda = 10.0
+
+[[xgb_grid]]
+n_estimators = 160
+max_depth = 3
+learning_rate = 0.03
+subsample = 0.8
+colsample_bytree = 0.8
+min_child_weight = 50
+reg_alpha = 0.5
+reg_lambda = 20.0

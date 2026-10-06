@@ -39,6 +39,9 @@ def _():
             "HOCUS_SRD_VAD_DATA", str(baseline_root.parent / "srd-portfolio-extensions-v1")
         )
     )
+    short_root = Path(
+        os.environ.get("HOCUS_SRD_SHORT_DATA", str(baseline_root.parent / "srd-short-horizons-v1"))
+    )
     return (
         mo,
         pd,
@@ -52,7 +55,239 @@ def _():
         regimes_root,
         context_root,
         vad_root,
+        short_root,
     )
+
+
+@app.cell
+def _(mo):
+    short_horizon = mo.ui.dropdown(
+        options={"H1 · une séance": 1, "H2 · deux séances": 2, "H3 · trois séances": 3},
+        value="H1 · une séance",
+        label="Horizon d'apprentissage",
+    )
+    short_target = mo.ui.dropdown(
+        options={
+            "Direction absolue": "direction_abs",
+            "Direction relative": "direction_rel",
+            "Rendement absolu": "return_abs",
+            "Rang du rendement": "rank_pct",
+            "Équilibre des excursions": "excursion_balance",
+            "Tendance / erreur-type (H3 uniquement)": "trend_tstat",
+        },
+        value="Rang du rendement",
+        label="Target",
+    )
+    short_cost = mo.ui.dropdown(
+        options={"Brut · 0 bp": 0, "Net · 25 bp AR": 25, "Net · 45 bp AR": 45},
+        value="Brut · 0 bp",
+        label="Frais",
+    )
+    return short_horizon, short_target, short_cost
+
+
+@app.cell
+def _(mo, pd, px, short_root, short_horizon, short_target, short_cost):
+    _controls = mo.hstack([short_horizon, short_target, short_cost], justify="start")
+    if not (short_root / "report_complete.json").exists():
+        short_panel = mo.md("## Horizons courts\nModèles actions H1/H2/H3 en préparation.")
+    else:
+        _comparisons = pd.read_parquet(short_root / "comparison_winners.parquet")
+        _comparisons = _comparisons[_comparisons.cost_bp == short_cost.value]
+        _selection = _comparisons[
+            (_comparisons.horizon == short_horizon.value)
+            & (_comparisons.target == short_target.value)
+        ]
+        _overview = _comparisons[
+            [
+                "target",
+                "horizon",
+                "model",
+                "test_ic",
+                "test_auc",
+                "cumulative_return_native",
+                "cumulative_return_h5",
+                "max_drawdown_native",
+                "max_drawdown_h5",
+            ]
+        ].copy()
+        for _column in [
+            "cumulative_return_native",
+            "cumulative_return_h5",
+            "max_drawdown_native",
+            "max_drawdown_h5",
+        ]:
+            _overview[_column] *= 100
+        _overview = _overview.rename(
+            columns={
+                "target": "Target",
+                "horizon": "H",
+                "model": "Modèle validation",
+                "test_ic": "IC target",
+                "test_auc": "AUC",
+                "cumulative_return_native": "Performance sortie H (%)",
+                "cumulative_return_h5": "Performance sortie H5 (%)",
+                "max_drawdown_native": "Drawdown H (%)",
+                "max_drawdown_h5": "Drawdown H5 (%)",
+            }
+        ).round(4)
+        _overview["Target"] = _overview["Target"].map(
+            {
+                "direction_abs": "Direction absolue",
+                "direction_rel": "Direction relative",
+                "return_abs": "Rendement absolu",
+                "rank_pct": "Rang du rendement",
+                "excursion_balance": "Équilibre des excursions",
+                "trend_tstat": "Tendance / erreur-type",
+            }
+        )
+        _detail = mo.md("Tendance / erreur-type indéfinie à H1/H2 ; disponible à H3.")
+        if not _selection.empty:
+            _selected = _selection.iloc[0]
+            _mid = _selected.model_id
+            _curves = pd.read_parquet(short_root / "backtest_equity.parquet")
+            _curves = _curves[
+                (_curves.model_id.isin([_mid, f"universe-h{short_horizon.value}"]))
+                & (_curves.cost_bp == short_cost.value)
+            ].copy()
+            _curves["Simulation"] = (
+                _curves.model.map({"universe": "Univers équipondéré"}).fillna("Top 3 %")
+                + " · détention H"
+                + _curves.holding_horizon.astype(str)
+            )
+            _stats = pd.read_parquet(short_root / "winners_summary.parquet")
+            _stats = _stats[(_stats.model_id == _mid) & (_stats.cost_bp == short_cost.value)]
+            _basket = pd.read_parquet(short_root / "basket_metrics.parquet")
+            _basket = _basket[(_basket.model_id == _mid) & _basket.common_cutoff].copy()
+            _basket["Rendement panier brut (%)"] = 100 * _basket.gross_basket_return
+            _basket["Détention"] = "H" + _basket.holding_horizon.astype(str)
+            _metrics = pd.read_parquet(short_root / "metrics.parquet")
+            _metrics = _metrics[
+                (_metrics.target == short_target.value)
+                & (_metrics.horizon == short_horizon.value)
+                & (_metrics.split == "test")
+            ]
+            _concentration = pd.read_parquet(short_root / "concentration_winners.parquet")
+            _concentration = _concentration[_concentration.model_id == _mid]
+            _concentration = _concentration[
+                [
+                    "holding_horizon",
+                    "total_gross_contribution",
+                    "top5_trade_contribution",
+                    "review_trade_count",
+                    "review_trade_contribution",
+                ]
+            ].copy()
+            for _c in [
+                "total_gross_contribution",
+                "top5_trade_contribution",
+                "review_trade_contribution",
+            ]:
+                _concentration[_c] *= 100
+            _detail = mo.vstack(
+                [
+                    mo.md(
+                        f"### {_selected.model} · H{short_horizon.value}\n"
+                        "Modèle choisi sur S1 2025 ; aucune sélection sur la performance 2026."
+                    ),
+                    mo.ui.plotly(
+                        px.line(
+                            _curves,
+                            x="session_date",
+                            y="equity",
+                            color="Simulation",
+                            title="Capital simulé · base 1 · mêmes scores",
+                        )
+                    ),
+                    mo.ui.plotly(
+                        px.line(
+                            _curves,
+                            x="session_date",
+                            y="active_session_capital",
+                            color="Simulation",
+                            title="Capital actif par séance",
+                        )
+                    ),
+                    mo.ui.table(
+                        _stats[
+                            [
+                                "holding_horizon",
+                                "cumulative_return",
+                                "max_drawdown",
+                                "average_active_session_capital",
+                                "average_exposure",
+                                "missing_entries",
+                                "delayed_exits",
+                                "unresolved_exits",
+                            ]
+                        ],
+                        selection=None,
+                    ),
+                    mo.md(
+                        "### Rendements bruts des paniers · 23 dates communes\n"
+                        "Le graphe reste avant frais même si le scénario de portefeuille est net."
+                    ),
+                    mo.ui.plotly(
+                        px.bar(
+                            _basket,
+                            x="cutoff",
+                            y="Rendement panier brut (%)",
+                            color="Détention",
+                            barmode="group",
+                        )
+                    ),
+                    mo.md("### Association après l'open et gap préalable"),
+                    mo.ui.table(
+                        _selection[
+                            [
+                                "test_ic",
+                                "execution_ic_native",
+                                "execution_ic_h5",
+                                "gap_ic",
+                                "matched_basket_native",
+                                "matched_basket_h5",
+                                "matched_excess_native",
+                                "matched_excess_h5",
+                            ]
+                        ],
+                        selection=None,
+                    ),
+                    mo.md("### Toutes les variantes de cette target · métriques test"),
+                    mo.ui.table(_metrics, selection=None),
+                    mo.md(
+                        "### Concentration du PnL brut · points du capital initial\n"
+                        "Les variations marquées en revue restent incluses. Les cinq meilleurs "
+                        "trades peuvent expliquer une grande partie du résultat ; leur cause "
+                        "n'est pas certifiée par ces prix source."
+                    ),
+                    mo.ui.table(_concentration.round(4), selection=None),
+                ]
+            )
+        short_panel = mo.vstack(
+            [
+                mo.md(
+                    "## Horizons courts · actions seules\n"
+                    "**1 048 features, 74 modèles, 16 tâches.** Train 2024, choix S1 2025, "
+                    "lecture S1 2026. Top 3 % acheté, entrée au prochain open, "
+                    "sortie H ou H5. Deux compartiments, sans levier ni VAD. "
+                    "Décisions hebdomadaires ; H1 ne signifie pas un score quotidien."
+                ),
+                _controls,
+                mo.ui.table(_overview, selection=None),
+                _detail,
+                mo.md(
+                    "### Lecture\n"
+                    "À H1, l'exposition en fin de séance est nulle car entrée et sortie ont "
+                    "lieu le même jour. Le capital actif inclut cette séance. "
+                    "H5 mobilise plus longtemps le capital : comparer aussi les paniers "
+                    "et l'univers équipondéré. L'IC de target close-à-close comprend le "
+                    "gap préalable à l'entrée ; l'IC après open mesure le rendement continu "
+                    "exécutable. Excursions H1 = 2 × rendement H1. Prix bruts, "
+                    "PIT reconstruit, frais forfaitaires, période déjà explorée."
+                ),
+            ]
+        )
+    return (short_panel,)
 
 
 @app.cell
@@ -1043,6 +1278,7 @@ def _(
     regimes_panel,
     context_panel,
     vad_panel,
+    short_panel,
 ):
     _mid = model_choice.value
     _row = next(r for r in registry if r["model_id"] == _mid)
@@ -1331,6 +1567,7 @@ def _(
             "SBF 120 · régimes": regimes_panel,
             "Contextes SRD": context_panel,
             "VAD et détention": vad_panel,
+            "Horizons courts": short_panel,
         }
     )
     return
