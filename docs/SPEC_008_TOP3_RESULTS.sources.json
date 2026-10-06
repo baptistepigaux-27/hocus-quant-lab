@@ -1,0 +1,52 @@
+{
+  "report_sha256": "c4b9eba415f9ade3f8abde1aec8df3701205b228f2cdec8a2e8ae549947f929b",
+  "manifest": {
+    "version": "SPEC-008-ALL-TOP03/1.0.0",
+    "status": "development_complete",
+    "development_only": true,
+    "source": "data/analysis/spec008-model-lab-all-features",
+    "portfolio_top_fraction": 0.03,
+    "reference_top_fraction": 0.1,
+    "model_count": 56,
+    "backtest_count": 232,
+    "training_fits": 0,
+    "scores_unchanged": true,
+    "winners_unchanged": true,
+    "source_sha256": {
+      "src/hocus_quant/model_lab/__init__.py": "b9507a6fbf988b9f0a5fd778b794fd78f9db5d13157fe78dae3ded690a1c20d2",
+      "src/hocus_quant/model_lab/all_features.py": "cbdd504406fb586015ce5f5bcfc1a16dc8d59f38b3757e9cc682fb0cd4e4121d",
+      "src/hocus_quant/model_lab/backtest.py": "30e913a0ee671a21a5e0b855642433f9c524a6cc8d44670a0bfbb6fe315b74d2",
+      "src/hocus_quant/model_lab/data.py": "e26cf55f4e7699ee0c781c58bba7445ce4b084f4e92cb67875aaabdf571e22f3",
+      "src/hocus_quant/model_lab/metrics.py": "d84d6bb3e0cf54c26d884fc4328897fec096b03a3dc87db5c2d3edeb19b09bfe",
+      "src/hocus_quant/model_lab/models.py": "e1bbc3de7545e692b79508a21a493335f2df955759dd4ec706210da7e52ae6e5",
+      "src/hocus_quant/model_lab/report.py": "0b2c7a0bd3f61b96f515067ca7b63bc570e5bb07a344f8e97a4bbdd1028b1108",
+      "src/hocus_quant/model_lab/run.py": "b3921475432ab09228b35b5b5a205b24cacd8bf10b4043558e39440f168a1c44",
+      "src/hocus_quant/model_lab/targets.py": "98cbe7a88abafe538e7a9c6aa58e0aebb4830047a6be8f40301892727805d9d4"
+    },
+    "elapsed_seconds": 196.99597978102975,
+    "artifact_sha256": {
+      "backtest_equity.parquet": "2ae66eaf7ec35c1c2a5e554d65885d394341084b12fb0a66a7741f9365031826",
+      "backtest_summary.parquet": "72ffe83ce5ac554ae1adf717bec3038499ee14aea0e1ed1e5eab63b2ff77e5b3",
+      "backtest_trades.parquet": "da7215244386d24973a032b1e330b88d648e6502afe3dc08f96e5766cf4713be",
+      "comparison_all_models.parquet": "6b90afb3b4031ccc53e164895c77d1375881da550c8b07cff8f7a3755545f26e",
+      "comparison_winners.parquet": "f4156c7031d64e0a5a4a2b66cdd86add849784be40a081ddade783ff96c5bbb9",
+      "selection_audit.parquet": "82170b6cfe1a05d6a8a9d40868119d2ee8ef8c32947d18b517dfe18ea08c6c7e",
+      "source_benchmark.parquet": "7f7efa8dd8dbc10f653cb463e439384143bdf9d3cf583eaabb8d3727ccc1b4c2",
+      "source_market.parquet": "5e81dde4fb4b0cd50ee2cd71d4c5945736a952c1a9640912eee185190605e1d1"
+    },
+    "code_sha": "73110333a7eee3f0f8f63d97a5cb5cc81e087519",
+    "working_tree_dirty": true,
+    "input_sha256": {
+      "predictions.parquet": "04b6e043f09fdea6cc5b7be082d342cb71b3ce2edabc61ff9812a2e45cda4485",
+      "model_registry.json": "9b048da1a7335ebfafdba50f4ae19382e8611fbb6471d7919f6e35696fd7cda7",
+      "experiment_config.json": "eeb01a5cf51857151f4211d50b3a4d95283b4bd37cfa23732cc3c38f16739fa3",
+      "summary.json": "6605a4c9863457189d5a2dc8a78b83b641175d40560aabca055d23e3186c6653",
+      "backtest_summary.parquet": "370712c8d4a8a21d51d8d3e33889109ace8f9c7b6d6ce4fe783061d4d859eb81",
+      "source_market.parquet": "5e81dde4fb4b0cd50ee2cd71d4c5945736a952c1a9640912eee185190605e1d1",
+      "source_benchmark.parquet": "7f7efa8dd8dbc10f653cb463e439384143bdf9d3cf583eaabb8d3727ccc1b4c2"
+    },
+    "metadata_note": "Input hashes restored after completion: the initial manifest key collided with code_identity.source_sha256. No simulation artifacts changed."
+  },
+  "generator_sha256": "ce2a0035adedde61aa51179a22544cdee92e24ee1910452ed6c2a4153074e320",
+  "generator_current_sha256": "36a0abc4d9897c3208a781c4fc28deb05fa71cdff560e9c4fe7699d03dc2bbc4"
+}

@@ -16,6 +16,9 @@ The full-registry experiment lives in `data/analysis/spec008-model-lab-all-featu
 with a second explicit read-only bind and `HOCUS_MODEL_LAB_ALL_DATA`. The experience
 selector exposes both the original Strict/Strong run and the 1,048-feature run when
 its completion summary is present. Neither run performs fitting in the UI.
+The full-registry run also exposes a **Top 3 % / Top 10 %** portfolio selector after
+the precomputed `portfolio-top03/summary.json` is present. Both choices read the same
+models and scores. The nested replay is covered by the existing read-only data bind.
 
 Notebook: [`model_lab.py`](../notebooks/model_lab.py). No fitting or portfolio replay
 runs in the UI. Navigation includes Overview, Model Benchmark, Target Comparison,

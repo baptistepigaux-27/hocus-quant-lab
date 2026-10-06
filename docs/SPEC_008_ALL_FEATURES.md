@@ -70,6 +70,8 @@ au maximum ; il n'ajoute aucun service d'orchestration.
 [Model Lab sandbox](https://sandbox.hocus.works/quant-model-lab/) : le sélecteur
 d'expérience distingue Strict/Strong et « Toutes les variables · 1 048 features ».
 Les sept onglets et les contrôles H5/H10/target/modèle/frais restent disponibles.
+Le sélecteur de portefeuille propose aussi le **top 3 %**, rejoué sur les mêmes scores
+et gagnants de validation. Voir les [simulations et la comparaison top 10 %](SPEC_008_TOP3_RESULTS.md).
 
 Le benchmark initial est conservé sous `data/analysis/spec008-model-lab` ; l'extension
 utilise exclusivement `data/analysis/spec008-model-lab-all-features` et des rapports dédiés.

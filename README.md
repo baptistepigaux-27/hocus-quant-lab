@@ -27,6 +27,8 @@ naive/linear/RF/XGBoost, train 2024, validation S1 2025, final retrain, test S1 
 purging and train-only preprocessing. The [full-registry extension](docs/SPEC_008_ALL_FEATURES.md)
 uses all 1,048 market features with the same decision cohorts, targets and model grids,
 and compares them with Strict/Strong without retuning on 2026.
+The [top 3% portfolio replay](docs/SPEC_008_TOP3_RESULTS.md) reuses the same scores
+and validation winners to compare concentration with the top 10% reference.
 The [Model Lab](https://sandbox.hocus.works/quant-model-lab/)
 shows metrics, deciles, importances and long-only backtests at 0/10/25/50 bp round-trip.
 The candidate sets had already used 2025/2026 outcomes; this is **development, not independent

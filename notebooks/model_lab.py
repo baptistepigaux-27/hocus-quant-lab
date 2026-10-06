@@ -67,8 +67,6 @@ def _(mo, pd, json, Path, experiment_choice):
     cutoff_metrics = pd.read_parquet(model_root / "cutoff_metrics.parquet")
     deciles = pd.read_parquet(model_root / "decile_metrics.parquet")
     importances = pd.read_parquet(model_root / "feature_importances.parquet")
-    equity = pd.read_parquet(model_root / "backtest_equity.parquet")
-    backtest = pd.read_parquet(model_root / "backtest_summary.parquet")
     coverage = pd.read_parquet(model_root / "label_coverage.parquet")
     _comparison_file = model_root / "comparison_validation_winners.parquet"
     feature_comparison = (
@@ -83,13 +81,38 @@ def _(mo, pd, json, Path, experiment_choice):
         cutoff_metrics,
         deciles,
         importances,
-        equity,
-        backtest,
+        model_root,
         coverage,
         feature_comparison,
         calibration,
         winners,
     )
+
+
+@app.cell
+def _(mo, model_root):
+    _options = {"Top 10 %": 0.1}
+    if (model_root / "portfolio-top03" / "summary.json").exists():
+        _options["Top 3 %"] = 0.03
+    portfolio_choice = mo.ui.dropdown(
+        options=_options, value=list(_options)[-1], label="Titres retenus par compartiment"
+    )
+    mo.output.replace(portfolio_choice)
+    return (portfolio_choice,)
+
+
+@app.cell
+def _(pd, model_root, portfolio_choice):
+    _portfolio_root = (
+        model_root / "portfolio-top03" if portfolio_choice.value == 0.03 else model_root
+    )
+    equity = pd.read_parquet(_portfolio_root / "backtest_equity.parquet")
+    backtest = pd.read_parquet(_portfolio_root / "backtest_summary.parquet")
+    _comparison_path = model_root / "portfolio-top03" / "comparison_winners.parquet"
+    concentration_comparison = (
+        pd.read_parquet(_comparison_path) if _comparison_path.exists() else pd.DataFrame()
+    )
+    return equity, backtest, concentration_comparison
 
 
 @app.cell
@@ -167,6 +190,8 @@ def _(
     backtest,
     coverage,
     feature_comparison,
+    concentration_comparison,
+    portfolio_choice,
     calibration,
     winners,
     target_choice,
@@ -254,10 +279,15 @@ def _(
     `excursion_balance = max(P_h/P_T−1) + min(P_h/P_T−1)` sur h=1..H.
     `trend_tstat = b/SE(b)` OLS sur H closes futurs base 100, plate=0, linéaire parfaite=±1e6.
 
-    **Simulation :** long-only, top 10 %, next_open après feature cutoff,
+    **Simulation :** long-only, top {portfolio_choice.value * 100:.0f} %,
+    next_open après feature cutoff,
     close H-ième séance commune,
     compartiments fixes 2 H5 / 3 H10, equipondération au sein du nouveau compartiment, cash à 0 %.
     Frais all-in aller-retour appliqués moitié par jambe, sans levier.
+    Nombre de titres = max(1, ceil(fraction × scores finis)) ; ex æquo départagés par ISIN.
+    Les scores et gagnants de validation sont identiques entre top 3 % et top 10 %.
+    Les métriques IC/AUC et les déciles portent toujours sur l'univers complet.
+    Un score naïf constant donne un panier arbitraire, sans classement prédictif.
     Prix manquant : pas de fill inventé.
     Corporate actions/anomalies restent annotées ; séries raw non certifiées, univers survivant.
     **Lock utilisé :** `{summary["lock_sha256"]}`.
@@ -300,11 +330,14 @@ def _(
                         ],
                         selection=None,
                     ),
-                    mo.ui.table(
-                        feature_comparison.drop(columns=["model_id"], errors="ignore"),
-                        selection=None,
-                        page_size=12,
-                    )
+                    mo.vstack([
+                        mo.md("### Comparaison des registres · référence top 10 %"),
+                        mo.ui.table(
+                            feature_comparison.drop(columns=["model_id"], errors="ignore"),
+                            selection=None,
+                            page_size=12,
+                        ),
+                    ])
                     if not feature_comparison.empty
                     else mo.md("Comparaison complète des sets disponible dans les rapports."),
                 ]
@@ -378,8 +411,24 @@ def _(
             ),
             "Backtest": mo.vstack(
                 [
-                    mo.md("## Backtest\n**Development backtest — not independent confirmation.**"),
+                    mo.md(
+                        f"## Backtest · top {portfolio_choice.value * 100:.0f} %\n"
+                        "**Development backtest — not independent confirmation.**"
+                    ),
                     mo.ui.table(_bt, selection=None),
+                    mo.vstack([
+                        mo.md("### Top 3 % versus top 10 % · mêmes gagnants de validation"),
+                        mo.ui.table(
+                            concentration_comparison[
+                                concentration_comparison.cost_bp == cost_choice.value
+                            ][[
+                                "target", "horizon", "model", "cumulative_return_top3",
+                                "cumulative_return_top10", "delta_cumulative_return",
+                                "max_drawdown_top3", "max_drawdown_top10",
+                            ]],
+                            selection=None,
+                        ),
+                    ]) if not concentration_comparison.empty else mo.md(""),
                     mo.ui.plotly(
                         px.line(
                             _eq,
