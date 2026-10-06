@@ -1,0 +1,16 @@
+version = "SBF120-KMEANS7/1.0.0"
+source_path = "data/analysis/index-series-models-v1"
+output_path = "data/analysis/sbf120-kmeans7-v1"
+index_code = "FR0003999481"
+clusters = 7
+seed = 20261006
+n_init = 50
+max_iter = 500
+algorithm = "lloyd"
+fit_start = "2024-01-01"
+fit_end = "2024-12-31"
+shrinkage_labels = 20.0
+minimum_cluster_labels = 10
+bootstrap_replicates = 5000
+bootstrap_blocks_h5 = [5, 10, 20]
+bootstrap_blocks_h10 = [10, 20, 40]

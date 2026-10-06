@@ -43,9 +43,31 @@ metadata. Generate the artefacts with `scripts/index_series_models.py` actions
 `prepare`, `run`, then `publish`; see the
 [time-series contract](INDEX_SERIES_MODELS_CONTRACT.md).
 
+The **SBF 120 · régimes** tab reads `data/analysis/sbf120-kmeans7-v1` through
+`HOCUS_SBF120_REGIMES_DATA` and a separate read-only bind. Generate it with
+`uv run python scripts/sbf120_kmeans.py` before installing the updated service
+template. Its seven centres and outcome tables fit 2024 only; no UI fitting.
+Date/target/horizon controls expose profiles, occupancy, distance to training
+support, forecasts, individual block intervals and the assignment ledger.
+See [the regime contract](SBF120_KMEANS7_CONTRACT.md).
+
+Install a changed template and restart only the Model Lab service:
+
+```bash
+sed "s|__ROOT__|$(pwd)|g" deploy/model-lab-sandbox.service > /tmp/model-lab-sandbox.service
+sudo install -m 0644 /tmp/model-lab-sandbox.service /etc/systemd/system/hocus-quant-model-lab-sandbox.service
+sudo systemctl daemon-reload
+sudo systemctl restart hocus-quant-model-lab-sandbox
+```
+
+The loopback endpoint is `http://127.0.0.1:8069/quant-model-lab/`. Nginx routing
+and authentication are unchanged. Current deployment receipts and model replay
+counts are recorded in [the execution journal](RESEARCH_PROGRESS_2026_10_06.md).
+
 Notebook: [`model_lab.py`](../notebooks/model_lab.py). No fitting or portfolio replay
 runs in the UI. Navigation includes Overview, Model Benchmark, Target Comparison,
-Score Deciles, Backtest, Feature Importance, Methodology, Indices and Grands marchés;
+Score Deciles, Backtest, Feature Importance, Methodology, Indices, Grands marchés
+and SBF 120 · régimes;
 all results are labelled
 **development backtest — not independent confirmation**.
 

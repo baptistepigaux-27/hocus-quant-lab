@@ -8,6 +8,10 @@
 a depuis séparé l'éligibilité à T de la qualité future. Le présent bilan conserve les chiffres et
 les limites des expériences initiales ; les résultats corrigés sont dans SPEC-006T.
 
+**Avancement au 6 octobre 2026 :** le [journal des étapes suivantes](RESEARCH_PROGRESS_2026_10_06.md)
+documente SPEC-007/008, les simulations SRD, les indices et les sept régimes SBF 120.
+Le présent document reste le bilan historique de la phase de corrélations du 5 octobre.
+
 **Objet :** bilan de la phase exploratoire, depuis les données et les features jusqu’aux comparaisons 2024–2026 et à l’incertitude des coefficients de corrélation.
 
 **Périmètre principal :** actions du corpus ABC Bourse SRD Paris. Le scan initial couvre aussi d’autres familles d’actifs. Les comparaisons détaillées ci-dessous portent sur le scope `equity`, sauf mention explicite.

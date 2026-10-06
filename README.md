@@ -58,6 +58,14 @@ volatility H5/H10, with temporal validation and simple reference forecasts.
 tab report temporal errors/AUC, block intervals and test 2026 context-score exports.
 Weights and preprocessing are never pooled across indices.
 
+**SBF120 market states:** the [seven-cluster K-means](docs/SBF120_KMEANS7_CONTRACT.md)
+fits dates of the SBF120 index using the same 22 features, with centres and outcome
+tables frozen on 2024. [Results](docs/SBF120_KMEANS7_RESULTS.md), assignments,
+distances, H5/H10 forecasts and temporal intervals are available in the Model Lab's
+**SBF 120 · régimes** tab. The exported 2025/2026 categories prepare a future SRD
+context join. [Latest execution record](docs/RESEARCH_PROGRESS_2026_10_06.md)
+connects the correlation phase, models, portfolio replays and index experiments.
+
 - **AMF short positions:** Gremlin acquisition and the Quant Lab offline adapter are implemented; see [AMF rules](docs/AMF_SHORT_POSITIONS.md).
 - **Market prices:** real ABC Bourse files supplied manually have been imported. The full SRD archive has 199,416 observations across 197 provider identifiers; eight additional universes have 1,745,030 observations. Coverage is 2022-09-29 to 2026-09-28. These files are local and ignored by Git.
 - **Instrument reference:** the companion workbook has been ingested: 2,135 codes, including 2,067 with labels and 68 unresolved. Labels are a current snapshot, not historical point-in-time names.

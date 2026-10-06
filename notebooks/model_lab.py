@@ -28,7 +28,159 @@ def _():
             "HOCUS_INDEX_SERIES_DATA", str(baseline_root.parent / "index-series-models-v1")
         )
     )
-    return mo, pd, px, json, Path, baseline_root, all_features_root, index_root, series_root
+    regimes_root = Path(
+        os.environ.get("HOCUS_SBF120_REGIMES_DATA", str(baseline_root.parent / "sbf120-kmeans7-v1"))
+    )
+    return (
+        mo,
+        pd,
+        px,
+        json,
+        Path,
+        baseline_root,
+        all_features_root,
+        index_root,
+        series_root,
+        regimes_root,
+    )
+
+
+@app.cell
+def _(mo):
+    regimes_period = mo.ui.dropdown(
+        options={"Train 2024": "train", "Validation S1 2025": "validation", "Test S1 2026": "test"},
+        value="Test S1 2026",
+        label="Période des régimes",
+    )
+    regimes_target = mo.ui.dropdown(
+        options={"Direction": "direction", "Rendement": "return", "Volatilité": "volatility"},
+        value="Volatilité",
+        label="Résultat futur par régime",
+    )
+    regimes_horizon = mo.ui.dropdown(
+        options={"H5": 5, "H10": 10}, value="H5", label="Horizon régimes"
+    )
+    return regimes_period, regimes_target, regimes_horizon
+
+
+@app.cell
+def _(mo, pd, px, json, regimes_root, regimes_period, regimes_target, regimes_horizon):
+    if not (regimes_root / "report_complete.json").exists():
+        regimes_panel = mo.md("## SBF 120 · régimes\nK-means à sept clusters en préparation.")
+    else:
+        _summary = json.loads((regimes_root / "summary.json").read_text())
+        _dates = pd.read_parquet(regimes_root / "assignments.parquet")
+        _dates = _dates[_dates.period == regimes_period.value].copy()
+        _dates["Régime"] = "C" + _dates.cluster.astype(str)
+        _centers = pd.read_parquet(regimes_root / "centers.parquet")
+        _occupancy = pd.read_parquet(regimes_root / "occupancy.parquet")
+        _profiles = pd.read_parquet(regimes_root / "outcome_profiles.parquet")
+        _profiles = _profiles[
+            (_profiles.period == regimes_period.value)
+            & (_profiles.target == regimes_target.value)
+            & (_profiles.horizon == regimes_horizon.value)
+        ]
+        _lookup = pd.read_parquet(regimes_root / "lookup.parquet")
+        _profiles = _profiles.merge(
+            _lookup, on=["cluster", "target", "horizon"], validate="one_to_one"
+        )
+        _metrics = pd.read_parquet(regimes_root / "metrics.parquet")
+        _metrics = _metrics[
+            (_metrics.target == regimes_target.value) & (_metrics.horizon == regimes_horizon.value)
+        ]
+        _confidence = pd.read_parquet(regimes_root / "confidence.parquet")
+        _predictions = pd.read_parquet(regimes_root / "predictions.parquet")
+        _predictions = _predictions[
+            (_predictions.target == regimes_target.value)
+            & (_predictions.horizon == regimes_horizon.value)
+            & (_predictions.split == regimes_period.value)
+        ].copy()
+        if regimes_target.value == "direction":
+            _predictions["Observé"] = _predictions.target_value.map({-1.0: 0.0, 1.0: 1.0})
+            _predictions["Prévision"] = _predictions.score
+            _predictions["Référence"] = _predictions.reference_score
+        else:
+            _predictions["Observé"] = 100 * _predictions.target_value
+            _predictions["Prévision"] = 100 * _predictions.score
+            _predictions["Référence"] = 100 * _predictions.reference_score
+        regimes_panel = mo.vstack(
+            [
+                mo.md("""
+            ## SBF 120 · régimes
+            **K-means à sept clusters sur les dates de l'indice SBF 120.**
+            22 variables historiques standardisées. Centres et tables de prévision figés sur
+            2024, appliqués sans réapprentissage à 2025/2026. Les clusters représentent des états
+            du marché. Leur numéro est une catégorie, pas une intensité de signal.
+            """),
+                mo.hstack([regimes_period, regimes_target, regimes_horizon], justify="start"),
+                mo.md(
+                    f"Silhouette train : **{_summary['train_silhouette']:.3f}**. "
+                    "Séparation géométrique des groupes ; aucune preuve de prédictivité."
+                ),
+                mo.ui.plotly(
+                    px.scatter(
+                        _dates,
+                        x="cutoff",
+                        y="reference_close",
+                        color="Régime",
+                        category_orders={"Régime": [f"C{_i}" for _i in range(1, 8)]},
+                        hover_data=["nearest_distance", "outside_train_distance_q95"],
+                        title="SBF 120 : dates et régimes assignés avec les centres 2024",
+                    )
+                ),
+                mo.md("### Profils des sept centres · unités natives"),
+                mo.ui.table(_centers, selection=None),
+                mo.md("### Occupation et distance au support train"),
+                mo.ui.table(_occupancy[_occupancy.period == regimes_period.value], selection=None),
+                mo.md(
+                    "Hors support : distance au centre le plus proche supérieure au quantile 95 % "
+                    "des distances train. Aucun jour n'est exclu. "
+                    "Les distances ne sont pas des probabilités."
+                ),
+                mo.md("### Résultats futurs par groupe et prévision apprise sur 2024"),
+                mo.ui.table(_profiles, selection=None),
+                mo.md(
+                    "`outcome_mean` direction = fréquence de hausse. "
+                    "Rendements et volatilités en fractions."
+                ),
+                mo.md("### Prévisions et références · mêmes centres sur les trois périodes"),
+                mo.ui.table(_metrics, selection=None),
+                mo.ui.plotly(
+                    px.line(
+                        _predictions,
+                        x="cutoff",
+                        y=["Prévision", "Observé", "Référence"],
+                        title="Probabilité de hausse"
+                        if regimes_target.value == "direction"
+                        else "Valeurs en %",
+                    )
+                ),
+                mo.md("### Intervalles individuels 90 % · test 2026"),
+                mo.ui.table(
+                    _confidence[
+                        (_confidence.target == regimes_target.value)
+                        & (_confidence.horizon == regimes_horizon.value)
+                    ],
+                    selection=None,
+                ),
+                mo.md("### Ledger des affectations et prévisions"),
+                mo.ui.table(
+                    _predictions.drop(columns=["Prévision", "Observé", "Référence"]),
+                    selection=None,
+                    page_size=12,
+                ),
+                mo.md("""
+            Tables : moyenne de chaque cluster, shrinkage vers la moyenne train (20 labels),
+            fallback si moins de 10 labels. Aucun label 2025/2026 ne choisit les centres ou tables.
+            Train = ajustement, pas une performance hors période. Modèles supervisés antérieurs :
+            retrain jusqu'à juin 2025, budget d'information différent.
+            Bootstrap par blocs H/2H/4H, centres figés, sans correction multiple.
+            Export : sept indicatrices, sept distances et six prévisions, S1 2025/S1 2026.
+            PIT reconstruit ; jointure SRD et confirmation indépendante restent à faire.
+            """),
+            ]
+        )
+    return (regimes_panel,)
 
 
 @app.cell
@@ -517,6 +669,7 @@ def _(
     model_choice,
     index_panel,
     series_panel,
+    regimes_panel,
 ):
     _mid = model_choice.value
     _row = next(r for r in registry if r["model_id"] == _mid)
@@ -794,6 +947,7 @@ def _(
             "Methodology": _method,
             "Indices": index_panel,
             "Grands marchés": series_panel,
+            "SBF 120 · régimes": regimes_panel,
         }
     )
     return

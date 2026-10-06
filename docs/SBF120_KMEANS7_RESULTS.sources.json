@@ -1,0 +1,22 @@
+{
+  "summary_sha256": "79e4805aeeeb1122d619074f2f8ff2599490802b2d23a76eeee4323ec3ce81f6",
+  "report_sha256": "2f9646ac8e51b2308eabbc09680b4f511707bd7359e6ca35250893ed0563c39c",
+  "artifact_sha256": {
+    "outcome_profiles.parquet": "5b8c5d0a7d5d6928b4c7166ba429cefdae9bb5835ed0ce697e45712758fddf8e",
+    "centers.parquet": "3bd148309e0c7d6a1143ce59b4224da58fcb70582441606e91bc339e64624ec9",
+    "feature_profiles.parquet": "28e81a4c5ad7f852ce9ea05ce78f0f55e7e3b2266412d78641f3b07bf54db456",
+    "confidence.parquet": "96de68fe03273bf8e1b89fc84d2130f41e897ded41ba2caefaf08ce48d08d974",
+    "context_features.parquet": "ae21a4d5a66341d769561fa96727c7bb3b867affd210e5418422956b4b049846",
+    "metrics.parquet": "389e4b6d275be246c3e56fd5a7883f6c79b72bcf520dd7758ea7d4c647e7362e",
+    "lookup.parquet": "e49f89d0965ebdf4ce622ce561d98c493c615ae59a498befaa4f48f8c32297b0",
+    "assignments.parquet": "99c28ed2839c1978cdb326da0d15d5af1c7e460874b204b051b50cf12fda40bd",
+    "transitions.parquet": "c7301557cd8cafffb61c87579f0b276f4939f116f924b8daf5f8ebafa399cb4c",
+    "occupancy.parquet": "3d229ce9dfaa696d37a6cb3f0cffec1a54e1d4779f3c97e49921a8c0c24c4767",
+    "predictions.parquet": "3709c4bf559e60cbe63487f881ea722403eda9b512dcde2dc75fb4480f189e73"
+  },
+  "model_sha256": "524626ea55d17c5b9ccc1af375b215af265826397f1be07202c67d3b1b4dc4bc",
+  "source_sha256": {
+    "features.parquet": "56ae2c377390d8f6cd68a17dd4021ecce56726a89290a462b905fade1227c5af",
+    "targets.parquet": "6a9c99d64ab9b622388b086635f67a5bfd832a085a04ba594cccd957e8edc45c"
+  }
+}
