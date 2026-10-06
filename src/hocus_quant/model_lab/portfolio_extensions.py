@@ -120,7 +120,11 @@ def simulate_signed(
                 else [("long", vintage["long_ids"], 0.5), ("short", vintage["short_ids"], 0.5)]
             )
             for side, ids, weight in legs:
-                allocation = budget * weight / len(ids)
+                # A reserved slot stays in cash when a gated basket has <N names.
+                slots = int(vintage.get("allocation_slots", len(ids)))
+                if ids and slots < len(ids):
+                    raise ValueError("Allocation slots cannot be fewer than selected names")
+                allocation = budget * weight / slots if ids else 0.0
                 for entity in ids:
                     row = quotes.get(entity, {})
                     price = row.get("open")
@@ -291,6 +295,33 @@ def simulate_signed(
             }
         )
     equity, ledger = pd.DataFrame(daily), pd.DataFrame(trades)
+    if ledger.empty:
+        ledger = pd.DataFrame(
+            columns=[
+                "cutoff",
+                "entity_id",
+                "side",
+                "entry_date",
+                "scheduled_exit",
+                "allocation",
+                "shares",
+                "entry_price",
+                "entry_nominal",
+                "entry_fee",
+                "borrow_fees",
+                "exit_date",
+                "exit_price",
+                "exit_fee",
+                "return_gross",
+                "return_net",
+                "pnl_gross",
+                "pnl_net",
+                "holding_calendar_days",
+                "status",
+                "future_quality",
+                "future_reason",
+            ]
+        )
     assert abs(ledger.pnl_net.sum() - (equity.equity.iloc[-1] - 1)) < 1e-10
     stats = summarize(equity, ledger)
     stats.update(

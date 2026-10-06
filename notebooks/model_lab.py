@@ -47,6 +47,11 @@ def _():
             "HOCUS_SRD_COMMON_DATA", str(baseline_root.parent / "srd-horizon-common-replay-v1")
         )
     )
+    sector_action_root = Path(
+        os.environ.get(
+            "HOCUS_SRD_SECTOR_ACTION_DATA", str(baseline_root.parent / "srd-sector-action-v1")
+        )
+    )
     return (
         mo,
         pd,
@@ -62,7 +67,384 @@ def _():
         vad_root,
         short_root,
         common_root,
+        sector_action_root,
     )
+
+
+@app.cell
+def _(mo, pd, json, sector_action_root):
+    if (sector_action_root / "summary.json").exists():
+        _config = json.loads((sector_action_root / "contract.json").read_text())
+        _bridge = pd.DataFrame(
+            json.loads((sector_action_root / "industry_bridge.json").read_text())
+        )
+        _dates = {"Tous les cutoffs": "all"} | {d: d for d in _config["common_cutoffs"]}
+        _names = {"Tous les secteurs": "all"} | dict(
+            zip(_bridge.sector_name, _bridge.sector_id, strict=True)
+        )
+    else:
+        _dates, _names = {"Tous les cutoffs": "all"}, {"Tous les secteurs": "all"}
+    sector_strategy = mo.ui.dropdown(
+        options={
+            "S0 · Action-only": "S0",
+            "S1 · Modèle secteurs": "S1",
+            "S2 · Momentum secteurs W20": "S2",
+        },
+        value="S1 · Modèle secteurs",
+        label="Stratégie",
+    )
+    sector_cost = mo.ui.dropdown(
+        options={"Brut · 0 bp": 0, "Net · 25 bp": 25, "Net · 45 bp": 45},
+        value="Net · 45 bp",
+        label="Frais AR",
+    )
+    sector_cutoff = mo.ui.dropdown(options=_dates, value="Tous les cutoffs", label="Cutoff")
+    sector_inspection = mo.ui.dropdown(
+        options=_names, value="Tous les secteurs", label="Secteur à inspecter"
+    )
+    sector_topn = mo.ui.dropdown(
+        options={
+            "5 premières lignes": 5,
+            "10 premières lignes": 10,
+            "20 premières lignes": 20,
+            "Toutes les lignes": 100000,
+        },
+        value="5 premières lignes",
+        label="Top N affiché · portefeuille fixé à 5",
+    )
+    return sector_strategy, sector_cost, sector_cutoff, sector_inspection, sector_topn
+
+
+@app.cell
+def _(
+    mo,
+    pd,
+    px,
+    json,
+    sector_action_root,
+    sector_strategy,
+    sector_cost,
+    sector_cutoff,
+    sector_inspection,
+    sector_topn,
+):
+    if not (sector_action_root / "summary.json").exists():
+        sector_action_panel = mo.md("## Sector + Action\nArtefacts non disponibles.")
+    else:
+        _summary = json.loads((sector_action_root / "summary.json").read_text())
+        _audit = json.loads((sector_action_root / "audit.json").read_text())
+        _m = pd.read_parquet(sector_action_root / "metrics.parquet")
+        _m = _m[_m.cost_bp == sector_cost.value]
+        _d = pd.read_parquet(sector_action_root / "metric_deltas.parquet")
+        _d = _d[_d.cost_bp == sector_cost.value]
+        _scores = pd.read_parquet(sector_action_root / "sector_scores.parquet")
+        _selections = pd.read_parquet(sector_action_root / "selections.parquet")
+        _removed = pd.read_parquet(sector_action_root / "rejections.parquet")
+        _overlap = pd.read_parquet(sector_action_root / "selection_overlap.parquet")
+        _ci = pd.read_parquet(sector_action_root / "conditional_ic.parquet")
+        _cis = pd.read_parquet(sector_action_root / "conditional_ic_summary.parquet")
+        _at = pd.read_parquet(sector_action_root / "sector_attribution.parquet")
+        _at = _at[_at.cost_bp == sector_cost.value]
+        _cp = pd.read_parquet(sector_action_root / "portfolio_cutoff.parquet")
+        _cp = _cp[_cp.cost_bp == sector_cost.value]
+        _st = pd.read_parquet(sector_action_root / "cutoff_stability_summary.parquet")
+        _st = _st[_st.cost_bp == sector_cost.value]
+        _outcome = pd.read_parquet(sector_action_root / "sector_outcomes.parquet")
+        _diag = pd.read_parquet(sector_action_root / "sector_score_diagnostics.parquet")
+        _coverage = pd.read_parquet(sector_action_root / "coverage.parquet")
+        _mapping = pd.read_parquet(sector_action_root / "action_sector_mapping.parquet")
+        _trade = pd.read_parquet(sector_action_root / "trades.parquet")
+        _trade = _trade[
+            (_trade.strategy_id == sector_strategy.value) & (_trade.cost_bp == sector_cost.value)
+        ]
+        _bridge = pd.DataFrame(
+            json.loads((sector_action_root / "industry_bridge.json").read_text())
+        )
+        _names = _bridge.set_index("sector_id").sector_name.to_dict()
+
+        def _filter(frame, sector=True):
+            result = frame.copy()
+            if sector_cutoff.value != "all" and "cutoff" in result:
+                result = result[result.cutoff.astype(str) == sector_cutoff.value]
+            if sector and sector_inspection.value != "all" and "sector_id" in result:
+                result = result[result.sector_id == sector_inspection.value]
+            if "sector_id" in result and "sector_name" not in result:
+                result["sector_name"] = result.sector_id.map(_names)
+            return result
+
+        _pct = [
+            "cumulative_return",
+            "max_drawdown",
+            "average_exposure",
+            "average_active_session_capital",
+            "average_cash_fraction",
+            "hit_rate",
+            "top_5_share",
+            "positive_cutoff_fraction",
+            "delta_cumulative_return",
+            "delta_max_drawdown",
+            "delta_average_exposure",
+            "delta_average_active_session_capital",
+        ]
+
+        def _table(frame, limit=False):
+            result = frame.copy()
+            for column in _pct:
+                if column in result:
+                    result[column] *= 100
+                    result = result.rename(columns={column: column + " (%)"})
+            if limit:
+                result = result.head(sector_topn.value)
+            return mo.ui.table(result, selection=None, page_size=10)
+
+        _eq = pd.read_parquet(sector_action_root / "portfolio_daily.parquet")
+        _eq = _eq[_eq.cost_bp == sector_cost.value]
+        _maincols = [
+            "strategy_id",
+            "cumulative_return",
+            "max_drawdown",
+            "average_exposure",
+            "average_active_session_capital",
+            "average_cash_fraction",
+            "turnover",
+            "hit_rate",
+            "positions",
+            "average_actions_per_basket",
+            "top_5_share",
+        ]
+        sector_action_panel = mo.vstack(
+            [
+                mo.md("## Sector + Action"),
+                mo.hstack([sector_strategy, sector_cost, sector_cutoff], justify="start"),
+                mo.hstack([sector_inspection, sector_topn], justify="start"),
+                mo.md(
+                    "**Deux secteurs → cinq actions au total · RF action H5 → H10 · deux "
+                    "compartiments.** "
+                    "Les filtres inspectent les résultats figés ; Top N change seulement les "
+                    "lignes affichées."
+                ),
+                mo.ui.tabs(
+                    {
+                        "Overview": mo.vstack(
+                            [
+                                mo.md(f"""### Hypothèse et comparaison
+{_summary["cutoffs"]} cutoffs · {_summary["simulations"]} simulations · deux modèles préexistants.
+Mapping actuel : {_summary["mapped_actions"]}/{_summary["total_actions"]} actions.
+**La classification est actuelle, sans preuve d'appartenance historique à T.**
+S0 = action seule ; S1 = secteurs RF ; S2 = momentum passé W20.
+Action-first + gate et Sector-first donnent les mêmes paniers : un seul S1.
+**Développement uniquement ; aucune confirmation indépendante d'alpha.**
+Rapport : `docs/SRD_SECTOR_ACTION_RESULTS.md`.
+"""),
+                                _table(_m[_maincols]),
+                                _table(_d),
+                                mo.md("#### Couverture à T · aucun cutoff supprimé"),
+                                _table(_filter(_coverage, False)),
+                            ]
+                        ),
+                        "Sector Ranking": mo.vstack(
+                            [
+                                mo.md("### Classement sectoriel · scores connus au cutoff"),
+                                _table(
+                                    _filter(_scores, False).sort_values(
+                                        ["cutoff", "model_score"], ascending=[True, False]
+                                    )
+                                ),
+                                mo.md(
+                                    "#### Résultat réel futur · diagnostic, jamais utilisé "
+                                    "dans le gate"
+                                ),
+                                _table(
+                                    _filter(_outcome).sort_values(
+                                        ["cutoff", "model_score"], ascending=[True, False]
+                                    )
+                                ),
+                                _table(_filter(_diag, False)),
+                            ]
+                        ),
+                        "Portfolio Comparison": mo.vstack(
+                            [
+                                mo.md("### Même capital, coûts et moteur d'exécution"),
+                                _table(_m[_maincols]),
+                                _table(_d),
+                                mo.ui.plotly(
+                                    px.line(
+                                        _eq,
+                                        x="session_date",
+                                        y="equity",
+                                        color="strategy_id",
+                                        title="NAV S0 / S1 / S2",
+                                    )
+                                ),
+                                mo.ui.plotly(
+                                    px.line(
+                                        _eq,
+                                        x="session_date",
+                                        y="active_session_capital",
+                                        color="strategy_id",
+                                        title="Capital actif pendant la séance · fraction",
+                                    )
+                                ),
+                                _table(_trade),
+                            ]
+                        ),
+                        "Action Selection": mo.vstack(
+                            [
+                                mo.md("### Actions choisies et substitutions"),
+                                _table(
+                                    _filter(
+                                        _selections[
+                                            _selections.strategy_id == sector_strategy.value
+                                        ]
+                                    ).sort_values(["cutoff", "selected_rank"]),
+                                    True,
+                                ),
+                                _table(
+                                    _filter(
+                                        _removed[_removed.strategy_id == sector_strategy.value]
+                                    ),
+                                    True,
+                                ),
+                                _table(_filter(_overlap, False)),
+                                _table(
+                                    pd.read_parquet(sector_action_root / "overlap_summary.parquet")
+                                ),
+                            ]
+                        ),
+                        "Conditional IC": mo.vstack(
+                            [
+                                mo.md("### Score action dans les secteurs favorables"),
+                                _table(_cis),
+                                _table(_filter(_ci, False)),
+                                mo.md(
+                                    "#### Interaction : produit de rangs · aucun portefeuille "
+                                    "composite"
+                                ),
+                                _table(
+                                    _filter(
+                                        pd.read_parquet(
+                                            sector_action_root / "interaction_ic.parquet"
+                                        ),
+                                        False,
+                                    )
+                                ),
+                                _table(
+                                    pd.read_parquet(sector_action_root / "interaction_bins.parquet")
+                                ),
+                                mo.md(
+                                    "Minimum cinq paires non constantes ; endpoints manquants "
+                                    "comptés, "
+                                    "petits groupes et IC non corrigés pour multiplicité."
+                                ),
+                            ]
+                        ),
+                        "Sector Attribution": mo.vstack(
+                            [
+                                mo.md("### Contributions par secteur · points du capital initial"),
+                                _table(
+                                    _filter(
+                                        _at[_at.strategy_id == sector_strategy.value]
+                                    ).sort_values("pnl", ascending=False)
+                                ),
+                                mo.ui.plotly(
+                                    px.bar(
+                                        _filter(_at),
+                                        x="sector_name",
+                                        y="contribution_points",
+                                        color="strategy_id",
+                                        barmode="group",
+                                        title="Attribution sectorielle",
+                                    )
+                                ),
+                                _table(
+                                    _m[
+                                        [
+                                            "strategy_id",
+                                            "top1_contribution",
+                                            "top3_contribution",
+                                            "top5_contribution",
+                                            "top10_contribution",
+                                            "top_5_share",
+                                            "top_sector_contribution",
+                                            "top2_sector_contribution",
+                                        ]
+                                    ]
+                                ),
+                            ]
+                        ),
+                        "Cutoff Stability": mo.vstack(
+                            [
+                                mo.md(
+                                    "### Attribution par décision · les gains ne sont pas des "
+                                    "essais indépendants"
+                                ),
+                                _table(_st),
+                                _table(_filter(_cp, False)),
+                                mo.ui.plotly(
+                                    px.bar(
+                                        _filter(_cp, False),
+                                        x="cutoff",
+                                        y="contribution_points",
+                                        color="strategy_id",
+                                        barmode="group",
+                                        title="Contributions par cutoff",
+                                    )
+                                ),
+                                _table(
+                                    _filter(
+                                        pd.read_parquet(
+                                            sector_action_root / "paired_cutoff_deltas.parquet"
+                                        ),
+                                        False,
+                                    )
+                                ),
+                                _table(
+                                    pd.read_parquet(
+                                        sector_action_root / "incremental_bootstrap.parquet"
+                                    )
+                                ),
+                            ]
+                        ),
+                        "Audit": mo.vstack(
+                            [
+                                mo.md(f"""### Provenance et limites
+Modèle action : `{_m.action_model_id.iloc[0]}`.
+Modèle secteur : `{_m.sector_model_id.iloc[0]}`.
+Fits : {_audit["fit_calls"]} ; tuning : {_audit["tuning_calls"]}.
+S0 reproduit la référence : {_audit["S0_matches_common_replay"]}.
+Sources inchangées : {_audit["inputs_unchanged"]}.
+Erreur de NAV maximale : {_audit["max_accounting_error"]:.2e}.
+Mapping actuel projeté sur le passé : **pas de garantie PIT sectorielle**.
+Volumes inchangés, non certifiés ; suspensions et pertes conservées.
+Les événements extrêmes sont des annotations, jamais des exclusions.
+"""),
+                                _table(_filter(_mapping)),
+                                _table(
+                                    _m[
+                                        [
+                                            "strategy_id",
+                                            "missing_entries",
+                                            "delayed_exits",
+                                            "delay_mean_sessions",
+                                            "delay_max_sessions",
+                                            "volume_definition_not_certified",
+                                        ]
+                                    ]
+                                ),
+                                _table(
+                                    _filter(
+                                        pd.read_parquet(
+                                            sector_action_root / "new_price_audit_cases.parquet"
+                                        )
+                                    )
+                                ),
+                            ]
+                        ),
+                    }
+                ),
+            ]
+        )
+    return (sector_action_panel,)
 
 
 @app.cell
@@ -1677,6 +2059,7 @@ def _(
     vad_panel,
     short_panel,
     common_panel,
+    sector_action_panel,
 ):
     _mid = model_choice.value
     _row = next(r for r in registry if r["model_id"] == _mid)
@@ -1967,6 +2350,7 @@ def _(
             "VAD et détention": vad_panel,
             "Horizons courts": short_panel,
             "Horizon Comparison": common_panel,
+            "Sector + Action": sector_action_panel,
         }
     )
     return

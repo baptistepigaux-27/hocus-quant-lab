@@ -39,6 +39,7 @@ sur une période indépendante n'est revendiqué.
 | Horizons courts | 1 048 variables actions, nouvelles targets H1/H2/H3, 74 modèles et replays bruts H/H5 | [Contrat](SRD_SHORT_HORIZONS_CONTRACT.md), [résultats](SRD_SHORT_HORIZONS_RESULTS.md) |
 | Audit des prix courts | 199 416 lignes brutes rapprochées ; 140 cas matériels exécutés identiques à Euronext ; écarts de volume ouverts | [Audit](SRD_PRICE_AUDIT.md) |
 | Comparaison commune des horizons | Dix modèles figés, 22 dates, univers identiques, deux compartiments et 375 simulations | [Contrat v2](SRD_HORIZON_COMPARISON_CONTRACT.md), [résultats](SRD_HORIZON_COMMON_REPLAY_RESULTS.md) |
+| Sector-first + action | Deux secteurs CAC, cinq actions, rang H5→H10, S0/S1/S2, neuf replays sans refit et 45 tests passés | [Résultats et limites](SRD_SECTOR_ACTION_RESULTS.md) |
 
 Les données locales, modèles sérialisés et grands ledgers sont ignorés par Git.
 Les contrats, configs, scripts, rapports et empreintes des sources sont versionnés.
@@ -454,4 +455,57 @@ horizon appris, détention, top %, coût, univers. La matrice offre aussi un cho
 L'interface ne lance aucun calcul de modèle ; nouveau bind de données en lecture seule.
 Publication et contrôles navigateur : `sandbox_publication.json` dans le dossier du replay.
 
+**development evidence only — no independent alpha confirmation.**
+
+## 12. Sector-first + action livré
+
+Contrat [versionné avant PnL](../configs/experiments/srd_sector_action_v1.json) :
+22 dates exactement, deux secteurs, cinq actions au total, H10, deux compartiments,
+long-only, même moteur et coûts 0/25/45 bp. Action-first avec gate = Sector-first
+aux 22 dates par construction ; il n'est pas compté comme une expérience supplémentaire.
+
+Modèle action `rank_pct-h5-all-rf-3c5fa028d3f4`, modèle secteur
+`rank_pct-h10-sector-rf-a701e8b7056b`. Scores conservés, aucun refit ni tuning.
+Le RF secteur sauvegardé reproduit ses predictions à 3,33e-16 près.
+S0 reproduit exactement la baseline du replay commun aux trois coûts.
+Le moteur accepte cinq slots fixes pour conserver le cash d'un panier incomplet ;
+son comportement par défaut et les anciens chiffres restent réconciliés.
+Les anciennes empreintes de code décrivent leur état Git historique.
+
+L'ancien contexte était global et n'avait aucun mapping action/secteur.
+Le snapshot ABC capture onze industries CAC déjà présentes, avec ISIN vérifié,
+164/164 actions de l'union commune couvertes. Les cotations Paris d'Airbus et
+Stellantis ont été rapprochées de leurs ISIN avant lecture du PnL ; le mapping
+initial de 162 et ses replays techniques restent archivés localement.
+Ce mapping est actuel, projeté dans le passé, sans garantie historique PIT.
+Les vingt-deux scores CAC Biens de consommation sont absents du RF, en revue à T ;
+le momentum W20 y est disponible et le sélectionne une fois. Cette différence
+est conservée et limite la comparaison des méthodes.
+
+À 45 bp : S0 +29,70 %, S1 RF +1,88 %, S2 momentum +34,61 %.
+DD : −8,58 / −6,51 / −6,70 %. Turnover : 21,48 / 21,88 / 21,88 fois NAV.
+Le gate RF change tous les paniers (3,5 substitutions, 30 % overlap moyen),
+mais l'IC action devient −0,0703 dans ses deux secteurs, contre +0,0664 global.
+Il ne bat S0 que sur 7/22 cutoffs et S2 sur 4/22 ; les intervalles individuels
+90 % des deltas de rendement de panier S1−S0 et S1−S2 sont négatifs aux blocs 2/4/6.
+Les cinq meilleurs trades S1 font 474,2 % du net, compensés par les autres pertes.
+S2 est concentré : technologie +23,86 points, pétrole/gaz +12,70 points.
+
+[Rapport complet et dix réponses](SRD_SECTOR_ACTION_RESULTS.md).
+Artefacts : `data/analysis/srd-sector-action-v1/` ; scripts capture, replay et publication
+référencés par le rapport. **45 tests passés**, 21 nouveaux et 24 du replay commun,
+aucun échec ni ignoré. Tests des vingt exigences, slots cash 0/1/2/5,
+absence d'outcome dans le gate, scores/horloge/mapping et comptabilité des neuf NAV.
+Erreur comptable maximale 1,11e-15 ; sources prix/volumes et SPEC-007 inchangés.
+Nouveaux endpoints matériels enregistrés pour audit, sans exclusion de leurs trades.
+
+Sandbox **Sector + Action**, quinzième onglet : Overview, Sector Ranking,
+Portfolio Comparison, Action Selection, Conditional IC, Sector Attribution,
+Cutoff Stability, Audit. Cinq filtres strategy/cost/cutoff/sector/top N ; top N
+limite l'affichage et ne modifie jamais les cinq actions scientifiques.
+Huit sections et filtres observés au navigateur, aucune erreur JavaScript.
+Model Lab actif, loopback 200, public non authentifié 401 ; service SRD 8068 actif.
+Trace : `sandbox_publication.json`, données montées en lecture seule.
+
+**Décision : ne pas geler S1 ; S2 fournit une hypothèse exploratoire distincte.**
 **development evidence only — no independent alpha confirmation.**

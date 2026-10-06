@@ -105,6 +105,25 @@ target and gross 0 bp / net 25/45 bp. Curves compare native holdings with H5 and
 the same-capital universe reference. No fitting occurs in the notebook.
 See [the short-horizon contract](SRD_SHORT_HORIZONS_CONTRACT.md).
 
+The **Sector + Action** tab reads `data/analysis/srd-sector-action-v1` via
+`HOCUS_SRD_SECTOR_ACTION_DATA` and its own read-only bind. It reuses the common
+22-date universe, action rank RF H5 and the saved sector rank RF H10; no fitting
+runs in the UI. Generate inputs and publish once before deployment:
+
+```bash
+uv run --with beautifulsoup4 python scripts/capture_srd_sector_mapping.py
+uv run python scripts/replay_srd_sector_action.py
+uv run python scripts/publish_srd_sector_action.py
+```
+
+Preserve the captured mapping vintage for reproduction: fetching today's pages
+would create a different current reference. The scientific contract fixes two
+industries and five stocks total. The eight sections expose S0/S1/S2 at 0/25/45 bp,
+sector scores, action substitutions, IC, contributions and audits. The top N
+control only limits displayed rows; it cannot change scientific selections.
+The publication receipt records eight browser checks and the independent SRD service status.
+[Full results and limitations](SRD_SECTOR_ACTION_RESULTS.md).
+
 Install a changed template and restart only the Model Lab service:
 
 ```bash
@@ -121,7 +140,8 @@ counts are recorded in [the execution journal](RESEARCH_PROGRESS_2026_10_06.md).
 Notebook: [`model_lab.py`](../notebooks/model_lab.py). No fitting or portfolio replay
 runs in the UI. Navigation includes Overview, Model Benchmark, Target Comparison,
 Score Deciles, Backtest, Feature Importance, Methodology, Indices, Grands marchés,
-SBF 120 · régimes, Contextes SRD, VAD et détention and Horizons courts;
+SBF 120 · régimes, Contextes SRD, VAD et détention, Horizons courts, Horizon Comparison
+and Sector + Action (fifteen tabs);
 all results are labelled
 **development backtest — not independent confirmation**.
 

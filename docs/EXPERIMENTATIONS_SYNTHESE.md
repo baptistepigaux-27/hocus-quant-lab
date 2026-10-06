@@ -1,6 +1,6 @@
 # Hocus Quant Lab — synthèse des expérimentations
 
-**6 octobre 2026 · version 3 · base de lecture `49108d5`.**
+**6 octobre 2026 · version 4 · base de lecture `5aa6c37`.**
 
 **Objet :** retrouver toutes les étapes de recherche, leur statut, les résultats
 utiles, la documentation et les prochaines expériences proposées.
@@ -31,7 +31,9 @@ la première version. Le [contrat commun des horizons](SRD_HORIZON_COMPARISON_CO
 a été exécuté : dix modèles figés, 22 cutoffs, univers natif = commun, deux
 compartiments, 375 simulations et 24 tests passés. Les
 [résultats homogènes](SRD_HORIZON_COMMON_REPLAY_RESULTS.md) isolent score et détention.
-Les autres priorités restent des propositions.
+La variante [Sector-first + action](SRD_SECTOR_ACTION_RESULTS.md) a ensuite été
+rejouée sans refit : le gate RF dégrade le résultat, tandis que le momentum W20
+donne une amélioration descriptive concentrée. Les autres priorités restent des propositions.
 
 ## 2. Comment lire les statuts et les chiffres
 
@@ -137,6 +139,7 @@ hypothèses. Il ne représente pas une probabilité de hausse ou d'alpha.
 | E18 | Nouveaux modèles H1/H2/H3, détenus à H ou H5 | **Livré, développement** · 74 modèles, 16 tâches, 462 replays ; gains parfois concentrés | [Contrat](SRD_SHORT_HORIZONS_CONTRACT.md), [résultats](SRD_SHORT_HORIZONS_RESULTS.md) | Auditer les trades matériels puis comparer horizons, exposition et frais sur les mêmes dates |
 | E19 | Audit primaire des prix et contributions des horizons courts | **Livré, diagnostic** · 199 416 lignes rapprochées du brut ; 140 cas matériels exécutés avec endpoints Euronext identiques ; 66 écarts de volume restent à qualifier | [Audit et provenance](SRD_PRICE_AUDIT.md) | Établir la définition des volumes ; ne pas réécrire les scores ni supprimer les événements futurs |
 | E20 | Replay commun H1/H2/H3/H5/H10 | **Livré, développement** · 22 cutoffs, dix modèles figés, 375 simulations, natif = commun, 24 tests passés | [Contrat v2](SRD_HORIZON_COMPARISON_CONTRACT.md), [résultats](SRD_HORIZON_COMMON_REPLAY_RESULTS.md), [matrices](SRD_HORIZON_COMMON_REPLAY_MATRICES.md) | Qualifier les nouveaux cas matériels et préparer une confirmation prospective distincte |
+| E21 | Sector-first + score action rang H5 → H10 | **Livré, développement** · 22 cutoffs, 164/164 actions mappées, S0/S1/S2 à 0/25/45 bp ; gate RF défavorable, momentum W20 positif descriptivement | [Résultats, contrat et dix réponses](SRD_SECTOR_ACTION_RESULTS.md) | Ne pas geler le gate RF ; examiner couverture, concentration et mapping prospectif avant une hypothèse momentum distincte |
 
 Les nombres de modèles ne doivent pas être additionnés comme autant de preuves
 indépendantes : plusieurs expériences réutilisent les mêmes modèles ou sources.
@@ -289,6 +292,34 @@ H5→H10. Le rang mérite donc un examen prospectif, tandis que le maximum de Pn
 reste celui du rendement H5→H10. Aucun choix n'est gelé automatiquement sur 2026.
 [Rapport complet et quatorze réponses](SRD_HORIZON_COMMON_REPLAY_RESULTS.md).
 
+### 6.7 Sector-first : deux secteurs, cinq actions au total
+
+Même rang RF H5, sortie H10, 22 cutoffs, univers et deux compartiments que le
+replay commun. Aucun modèle entraîné. Les onze industries CAC préexistantes sont
+rattachées aux actions par un snapshot ABC actuel : 164/164 actions couvertes,
+sans garantie d'appartenance historique PIT.
+
+| Stratégie | Brut | Net 25 bp | Net 45 bp | DD 45 bp | Capital actif moyen |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| S0 · action-only | +36,14 % | +32,52 % | +29,70 % | −8,58 % | 72,0 % |
+| S1 · top 2 secteurs RF → top 5 actions | +7,02 % | +4,13 % | +1,88 % | −6,51 % | 74,2 % |
+| S2 · top 2 momentum W20 → top 5 actions | +41,42 % | +37,60 % | +34,61 % | −6,70 % | 73,3 % |
+
+S1 change les paniers aux 22 dates, avec 3,5 substitutions et 30 % de titres
+communs en moyenne. Son IC action conditionnel vaut −0,0703, contre +0,0664 dans
+l'univers complet. Il bat S0 sur seulement 7/22 cutoffs et S2 sur 4/22.
+Les cinq meilleurs trades représentent 474,2 % de son gain net : leurs profits
+sont largement compensés par les autres pertes.
+
+S2 dépasse S0 de 4,91 points, mais technologie et pétrole/gaz apportent ensemble
+36,56 points, davantage que son gain total de 34,61 %. Le RF n'a pas de score
+pour CAC Biens de consommation, en revue à T ; le momentum dispose de onze
+industries, contre dix pour le RF. Cette différence de couverture limite la
+comparaison des méthodes. **Ne pas geler S1 pour confirmation.** S2 reste une
+hypothèse exploratoire distincte, avec mapping prospectif et concentration à examiner.
+[Rapport complet](SRD_SECTOR_ACTION_RESULTS.md), 45 tests passés et onglet
+**Sector + Action** : huit sections, cinq filtres de consultation.
+
 ## 7. Défauts localisés, corrections et limites restantes
 
 | Sujet | État au 6 octobre | Conséquence |
@@ -300,6 +331,7 @@ reste celui du rendement H5→H10. Aucun choix n'est gelé automatiquement sur 2
 | Direction relative des nouveaux horizons courts | Borne UTC corrigée avant les 74 entraînements publiés ; 7 571 labels relatifs changés dans le dataset initial | La version partielle avant correction reste invalide ; les features et autres targets sont inchangées |
 | Prix et opérations sur titres | Endpoints des 140 cas matériels exécutés H1/H2/H3 rapprochés d'Euronext ; certification générale encore ouverte | X-FAB à +50 % corroboré ; concentration à conserver dans la lecture |
 | Définition des volumes | Audit E19 : 66 écarts sur 1 180 séances comparables, 23 instruments | Origine et impact sur les features non établis ; aucun remplacement ponctuel des seules observations examinées |
+| Mapping sectoriel E21 | Snapshot ABC actuel, 164/164 actions ; onze industries CAC, dix scores RF | Projection rétrospective sans preuve PIT ; disponibilités RF/momentum différentes à documenter |
 | Univers et libellés | Corpus livré et référentiel actuel, historique des appartenances incomplet | Risque de survivance ; absence de preuve d'un SBF120 historique investissable |
 | Frais et VAD | Forfaits 25/45 bp, prêt 0/3 % de sensibilité | Pas de minimum de courtage, fiscalité par titre, carnet d'ordres ou prêt effectif certifié |
 | Validation indépendante | 2024–2026 déjà consultés ; SPEC-007 attend des données | Nouveau protocole séparé requis pour confirmer les modèles ML et les choix de portefeuille |
@@ -314,6 +346,7 @@ les RF/XGB, les contextes, le top 3 %, la VAD ni les nouveaux horizons courts.
 | **P0 — audit court livré ; suite ouverte** | Prix matériels H1/H2/H3 rapprochés ; qualifier maintenant les volumes et étendre la certification | [148 cas et captures](SRD_PRICE_AUDIT.md) ; 140 cas exécutés concordants, 66 différences de volume | Définition des volumes cohérente sur tout le corpus ; aucune exclusion selon le résultat |
 | **P0 — replay livré ; audit à étendre** | Comparaison commune des horizons et de l'exécution | [Résultats](SRD_HORIZON_COMMON_REPLAY_RESULTS.md), 22 cutoffs, 375 replays, nouveaux cas matériels enregistrés | Scores et durées séparés descriptivement ; qualifier les nouveaux endpoints et les volumes avant confirmation |
 | **P1** | Décomposer la valeur du contexte sur le rang SRD | Baseline, +CAC/SBF, +secteurs, +régimes, +volatilité de contexte ciblée, +ensemble complet ; mêmes cohortes et règles de sélection | Gain incrémental mesuré face à la référence, avec pertes et incertitude conservées ; aucun bloc choisi sur sa meilleure performance 2026 |
+| **P1 — gate sectoriel livré** | Ne pas retenir le gate RF ; examiner séparément le momentum W20 | [S0/S1/S2](SRD_SECTOR_ACTION_RESULTS.md), couverture et concentrations explicites | Hypothèse future fixée après audit, sans choisir des variantes sur leur meilleur PnL 2026 |
 | **P1 — première matrice livrée** | Approfondir score/détention et l'incertitude | Matrice H1/H2/H3/H5/H10 commune livrée ; H20 reste un replay antérieur distinct | Vérifier la portée des écarts observés, sans réoptimiser les horizons sur 2026 |
 | **P1** | Préparer une confirmation propre aux modèles ML | Gel de quelques hypothèses, variables, modèles, paramètres, coûts et règles de portefeuille ; enregistrement prospectif séparé de SPEC-007 | Période réellement non consultée, décisions enregistrées avant les outcomes, règle d'arrêt et de lecture fixée |
 | **P1, en parallèle** | Faire vivre SPEC-007 sans changer son contrat | Nouvelles captures, registrations scellées, outcomes H5, monitor et checkpoints 8/13/26 | Lecture des 85 strict selon leurs signes gelés ; disponibilité et qualité documentées |
@@ -339,7 +372,8 @@ du `main` local ; la référence de cette synthèse est donc explicitement cette
 
 - [Model Lab](https://sandbox.hocus.works/quant-model-lab/), sous authentification :
   modèles SRD, indices, grands marchés, régimes, **Contextes SRD**, **VAD et détention**
-  et **Horizons courts**, **Horizon Comparison** ; quatorze onglets, neuf sections de replay.
+  et **Horizons courts**, **Horizon Comparison**, **Sector + Action** ; quinze onglets,
+  neuf sections de replay commun et huit sections secteur/action.
 - [Laboratoire SRD](https://sandbox.hocus.works/quant-lab-srd/?v=h5) : prix,
   corrélations et diagnostics historiques ; [guide](SRD_MARIMO_LAB.md).
 - [Déploiement et isolation des services](SANDBOX_DEPLOYMENT.md).
@@ -360,6 +394,7 @@ du `main` local ; la référence de cette synthèse est donc explicitement cette
 | `srd-short-horizons-v1` | Targets H1/H2/H3, 74 modèles, 462 replays, diagnostics et contributions |
 | `srd-price-audit-v1` | Rapprochement brut/prix primaires, 148 cas, différences de volume et inventaire commun des horizons |
 | `srd-horizon-common-replay-v1` | 22 cutoffs, dix scores figés, 375 replays, matrices, ledgers, overlap, audit et reçus de tests/publication |
+| `srd-sector-action-v1` | Mapping actuel, deux scores figés, neuf simulations S0/S1/S2, attribution, IC conditionnel, interaction, audits et tests |
 
 Les artefacts des corrélations, du lock et de confirmation sont référencés par
 leurs rapports dédiés. Les variantes initiales invalides ne sont pas des résultats

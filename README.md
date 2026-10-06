@@ -19,6 +19,14 @@ and [complete matrices](docs/SRD_HORIZON_COMMON_REPLAY_MATRICES.md). Ten frozen 
 22 dates, identical native/common universes, two sleeves and 375 simulations.
 The **Horizon Comparison** sandbox tab reads these preserved results.
 
+The [Sector-first + action experiment](docs/SRD_SECTOR_ACTION_RESULTS.md) replays
+rank RF H5 held H10 on those same 22 dates: action-only, top-two sector RF gate,
+and historical W20 momentum gate, with five stocks total. Net 45 bp returns are
++29.70%, +1.88% and +34.61%. The current ABC industry mapping covers 164/164 stocks
+but is not historical PIT. No new models are fitted; the sector RF gate is not
+recommended for a prospective lock. The **Sector + Action** tab provides eight
+sections and inspection filters; 45 tests pass across this experiment and the common replay.
+
 The complete correlation exploration is documented in the [French synthesis](docs/EXPLORATION_CORRELATIONS_SYNTHESE.md) ([PDF](docs/EXPLORATION_CORRELATIONS_SYNTHESE.pdf)): data, features, targets, 2024–2026 comparisons, reversal audit, H5 results by historical window, bootstrap intervals and remaining methodological limitations.
 
 **SPEC-006T:** the [ex-ante research contract](docs/SPEC_006T_EX_ANTE_RESEARCH_CONTRACT.md)
