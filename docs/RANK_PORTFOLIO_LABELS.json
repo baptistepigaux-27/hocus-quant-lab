@@ -1,0 +1,23 @@
+{
+  "observed_on": "2026-10-06",
+  "purpose": "Presentation-only supplements for unresolved local names; never used in features, models or selection",
+  "labels": {
+    "BE0974310428": {"name": "X-FAB", "source": "https://live.euronext.com/en/product/equities/be0974310428-XPAR"},
+    "FR0000032526": {"name": "Guerbet", "source": "https://live.euronext.com/fr/products/equities/company-news/2026-03-20-guerbet-mise-disposition-du-document-denregistrement"},
+    "FR0000039620": {"name": "Mersen", "source": "https://live.euronext.com/fr/product/indices/QS0010989117-XPAR"},
+    "FR0000051070": {"name": "Maurel & Prom", "source": "https://live.euronext.com/fr/product/indices/QS0010989117-XPAR"},
+    "FR0000045528": {"name": "Crédit Agricole Île-de-France (CCI)", "source": "https://live.euronext.com/sites/default/files/company_press_releases/attachments/2026/04/17/cpr01_notified_Rapport%20financier%20annuel%202025%20-%20Cr%C3%A9dit%20Agricole%20dIle-de-France.pdf"},
+    "FR0004163111": {"name": "Genfit", "source": "https://live.euronext.com/fr/product/equities/FR0004163111-XPAR/ipo"},
+    "FR0000032658": {"name": "Synergie", "source": "https://live.euronext.com/fr/products/equities/company-news/2026-04-27-synergie-communique-davis-reunion-assemblee-generale"},
+    "FR0011476928": {"name": "Fnac Darty", "source": "https://live.euronext.com/en/product/equities/FR0011476928-xpar"},
+    "FR0004040608": {"name": "ABC Arbitrage", "source": "https://live.euronext.com/fr/products/equities/company-news/2026-05-18-abc-arbitrage-mise-disposition-documents-preparatoires"},
+    "FR0000185514": {"name": "Crédit Agricole Nord de France (CCI)", "source": "https://live.euronext.com/fr/products/equities/company-news/2026-04-30-credit-agricole-nord-france-resultats-financiers-au-31"},
+    "FR0012634822": {"name": "MaaT Pharma", "source": "https://live.euronext.com/nl/product/equities/FR0012634822-XPAR"},
+    "FR0000038606": {"name": "Manitou", "source": "https://live.euronext.com/en/product/equities/FR0000038606-XPAR"},
+    "FR0013482791": {"name": "Nacon", "source": "https://live.euronext.com/en/ipo-showcase/nacon"},
+    "FR0000063737": {"name": "Aubay", "source": "https://live.euronext.com/en/product/equities/FR0000063737-XPAR"},
+    "FR0000063935": {"name": "Bonduelle", "source": "https://live.euronext.com/en/products/equities/company-news/2026-04-08-bonduelle-monthly-statement-number-shares-and-voting"},
+    "FR0014003U94": {"name": "Aramis Group", "source": "https://live.euronext.com/en/product/equities/FR0014003U94-XPAR"},
+    "FR0011950732": {"name": "Elior", "source": "https://live.euronext.com/fr/ipo-showcase/elior"}
+  }
+}

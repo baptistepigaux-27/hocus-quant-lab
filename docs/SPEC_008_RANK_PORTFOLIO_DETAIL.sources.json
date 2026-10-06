@@ -1,0 +1,34 @@
+{
+  "model_and_price_inputs": {
+    "data/analysis/spec008-model-lab-all-features/model_registry.json": "9b048da1a7335ebfafdba50f4ae19382e8611fbb6471d7919f6e35696fd7cda7",
+    "data/analysis/spec008-model-lab-all-features/predictions.parquet": "04b6e043f09fdea6cc5b7be082d342cb71b3ce2edabc61ff9812a2e45cda4485",
+    "data/analysis/spec008-model-lab-all-features/source_market.parquet": "5e81dde4fb4b0cd50ee2cd71d4c5945736a952c1a9640912eee185190605e1d1"
+  },
+  "source_artifacts": {
+    "data/analysis/spec008-model-lab-all-features/portfolio-top03/backtest_summary.parquet": "72ffe83ce5ac554ae1adf717bec3038499ee14aea0e1ed1e5eab63b2ff77e5b3",
+    "data/analysis/spec008-model-lab-all-features/portfolio-top03/backtest_trades.parquet": "da7215244386d24973a032b1e330b88d648e6502afe3dc08f96e5766cf4713be",
+    "data/analysis/spec008-model-lab-all-features/portfolio-top03/backtest_equity.parquet": "2ae66eaf7ec35c1c2a5e554d65885d394341084b12fb0a66a7741f9365031826",
+    "data/analysis/spec008-model-lab-all-features/portfolio-top03/selection_audit.parquet": "82170b6cfe1a05d6a8a9d40868119d2ee8ef8c32947d18b517dfe18ea08c6c7e"
+  },
+  "label_supplements_sha256": "78ea4268b27ceca27d31fd15ff0fca0126fcbfbed65adcd1bf1c24d9391398e0",
+  "local_label_snapshot_sha256": "2274112106e8955333641cc974a4fc87bd14b3b9b5480e333efc7aca73812602",
+  "generator_sha256": "7ee6a070afcb434df80e8897ee6c061e8e578968d1d76b380d017473577136ce",
+  "report_sha256": "a761cf719204fcac07aacacdfd099745c349106f45fe529f9bb6d4d41e4c012f",
+  "exports": {
+    "equity.csv": "d857773a54aa2fa7adee3caa643acbf2b7dac42d857df10401bfad6456736c85",
+    "local_label_snapshot.csv": "2274112106e8955333641cc974a4fc87bd14b3b9b5480e333efc7aca73812602",
+    "monthly.csv": "1e0e591fa99c4b4142790b57fe02efc4a798c0b766437fa2365b9a8842e65caa",
+    "rank_portfolio_detail.html": "82db04a8e700b500577f6c23389d64b3d7e69b5a6d2e273710c18a0b5eb6abed",
+    "stocks.csv": "7eef0d3790e046481a46a2988e15f3803491d63c80b22c36a7a5cd20448b2760",
+    "stocks_h10.csv": "79be1fc9e1e4fffb9338c75c79dfbdf34ac3de73b141b4c19c3a5029714a048a",
+    "stocks_h5.csv": "239abbd29a703af4c9a7a294881ad63589da114e380369cac81485fbf013b0e2",
+    "summary.csv": "7a6065cd4737f6d273699ba2d9d729fef9fe1f434ef5101af65b9992361ddaf8",
+    "trades.csv": "e0ceb9d541944cff24ca5a03158b14bdf8428c61261c3baf0d857a72f677d630",
+    "trades_h10.csv": "5105864a612159ce0bd489eb768cb37ab6e4ec73429004f1ebc3aa91d375a358",
+    "trades_h5.csv": "df727a3aa560c562e8b5bd4812d3b8b2605b2c167d69fc72f27cbf710b1b2b46",
+    "vintages.csv": "8c802bfe70158b9d9f3ae4e260cbb04a67129cc92a5685b2fbcbd0f8ad52a095"
+  },
+  "attribution_reconciles_to_nav": true,
+  "refits": 0,
+  "replays": 0
+}
