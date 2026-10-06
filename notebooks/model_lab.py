@@ -34,6 +34,11 @@ def _():
     context_root = Path(
         os.environ.get("HOCUS_SRD_CONTEXT_DATA", str(baseline_root.parent / "srd-context-v1"))
     )
+    vad_root = Path(
+        os.environ.get(
+            "HOCUS_SRD_VAD_DATA", str(baseline_root.parent / "srd-portfolio-extensions-v1")
+        )
+    )
     return (
         mo,
         pd,
@@ -46,7 +51,202 @@ def _():
         series_root,
         regimes_root,
         context_root,
+        vad_root,
     )
+
+
+@app.cell
+def _(mo):
+    vad_cost = mo.ui.dropdown(
+        options={"25 bp": 25, "45 bp": 45}, value="25 bp", label="Frais aller-retour · VAD"
+    )
+    vad_borrow = mo.ui.dropdown(
+        options={"0 % annuel": 0.0, "3 % annuel": 0.03},
+        value="3 % annuel",
+        label="Hypothèse de prêt des titres",
+    )
+    vad_target = mo.ui.dropdown(
+        options=[
+            "direction_abs",
+            "return_abs",
+            "direction_rel",
+            "rank_pct",
+            "excursion_balance",
+            "trend_tstat",
+        ],
+        value="rank_pct",
+        label="Target · actions seules",
+    )
+    vad_horizon = mo.ui.dropdown(
+        options={"Modèle H5 → détention H5/H10": 5, "Modèle H10 → détention H10/H20": 10},
+        value="Modèle H5 → détention H5/H10",
+        label="Horizon du modèle",
+    )
+    vad_holding = mo.ui.dropdown(
+        options={"Initiale": 1, "Prolongée": 2},
+        value="Prolongée",
+        label="Détention du ledger détaillé",
+    )
+    return vad_cost, vad_borrow, vad_target, vad_horizon, vad_holding
+
+
+@app.cell
+def _(mo, pd, px, vad_root, vad_cost, vad_borrow, vad_target, vad_horizon, vad_holding):
+    if not (vad_root / "report_complete.json").exists():
+        vad_panel = mo.md("## VAD et détention\nReplays des modèles actions seuls en préparation.")
+    else:
+        _comp = pd.read_parquet(vad_root / "comparison_winners.parquet")
+        _comp = _comp[
+            (_comp.cost_bp == vad_cost.value) & (_comp.borrow_rate_annual == vad_borrow.value)
+        ]
+        _view = _comp[["target", "horizon", "extended_horizon", "model"]].rename(
+            columns={
+                "target": "Target",
+                "horizon": "H modèle",
+                "extended_horizon": "Détention prolongée",
+                "model": "Modèle",
+            }
+        )
+        for _phase, _phase_label in [("native", "initiale"), ("extended", "prolongée")]:
+            for _strategy, _label in [("long_only", "Achat"), ("long_short", "Achat/VAD")]:
+                _view[f"{_label} · {_phase_label} (%)"] = (
+                    100 * _comp[f"{_phase}_{_strategy}_cumulative_return"]
+                ).round(2)
+        _chosen = _comp[
+            (_comp.target == vad_target.value) & (_comp.horizon == vad_horizon.value)
+        ].iloc[0]
+        _all = pd.read_parquet(vad_root / "winners_summary.parquet")
+        _selected = _all[
+            (_all.model_id == _chosen.model_id)
+            & (_all.cost_bp == vad_cost.value)
+            & ((_all.strategy == "long_only") | (_all.borrow_rate_annual == vad_borrow.value))
+        ]
+        _curve = pd.read_parquet(vad_root / "backtest_equity.parquet")
+        _curve = _curve[_curve.simulation_id.isin(_selected.simulation_id)].copy()
+        _curve["Portefeuille"] = (
+            _curve.strategy.map({"long_only": "Achat", "long_short": "Achat/VAD"})
+            + " · détention H"
+            + _curve.holding_horizon.astype(str)
+        )
+        _risk = _selected[
+            [
+                "holding_horizon",
+                "strategy",
+                "cumulative_return",
+                "max_drawdown",
+                "average_exposure",
+                "average_net_exposure",
+                "long_contribution",
+                "short_contribution",
+                "fees",
+                "borrow_fees",
+                "positions",
+            ]
+        ].copy()
+        for _column in [
+            "cumulative_return",
+            "max_drawdown",
+            "average_exposure",
+            "average_net_exposure",
+            "long_contribution",
+            "short_contribution",
+            "fees",
+            "borrow_fees",
+        ]:
+            _risk[_column] = (100 * _risk[_column]).round(3)
+        _hold = vad_horizon.value * vad_holding.value
+        _details = _selected[
+            (_selected.strategy == "long_short") & (_selected.holding_horizon == _hold)
+        ].iloc[0]
+        _stocks = pd.read_parquet(vad_root / "stock_contributions.parquet")
+        _stocks = _stocks[_stocks.simulation_id == _details.simulation_id].copy()
+        _stocks["Contribution nette (points %)"] = (100 * _stocks.contribution_net).round(3)
+        _trades = pd.read_parquet(vad_root / "backtest_trades.parquet")
+        _trades = _trades[_trades.simulation_id == _details.simulation_id]
+        vad_panel = mo.vstack(
+            [
+                mo.md("""
+            ## VAD et détention
+            **Modèles actions seuls · 1 048 variables · aucun contexte de marché.**
+            Scores et 12 gagnants choisis sur validation 2025 inchangés, aucun nouveau fit.
+            Achat/VAD : top 3 % acheté + flop 3 % vendu à découvert, **50/50 sans levier**.
+            Décisions S1 2026 ; liquidations suivies jusqu'au 31 juillet. Rendements cumulés.
+            Les contrôles de cet onglet sont indépendants des sélecteurs situés au-dessus.
+            """),
+                mo.hstack([vad_cost, vad_borrow], justify="start"),
+                mo.md("### Comparaison des douze gagnants · même capital initial"),
+                mo.ui.table(_view, selection=None, page_size=12),
+                mo.hstack([vad_target, vad_horizon], justify="start"),
+                mo.ui.plotly(
+                    px.line(
+                        _curve,
+                        x="session_date",
+                        y="equity",
+                        color="Portefeuille",
+                        title="NAV · mêmes scores, quatre portefeuilles",
+                    )
+                ),
+                mo.md("### Risque et contributions · valeurs en % du capital ou de l'exposition"),
+                mo.ui.table(_risk, selection=None),
+                mo.md(
+                    "Les contributions des achats et shorts s'additionnent au rendement net. "
+                    "Les frais sont rapportés au capital initial. "
+                    "L'exposition est celle effectivement investie."
+                ),
+                mo.md("### Actions et ledger · portefeuille achat/VAD"),
+                vad_holding,
+                mo.ui.table(
+                    _stocks[
+                        [
+                            "side",
+                            "display_name",
+                            "entity_id",
+                            "selections",
+                            "closed",
+                            "Contribution nette (points %)",
+                        ]
+                    ].sort_values("Contribution nette (points %)", ascending=False),
+                    selection=None,
+                    page_size=15,
+                ),
+                mo.ui.table(
+                    _trades[
+                        [
+                            "cutoff",
+                            "entity_id",
+                            "side",
+                            "entry_date",
+                            "scheduled_exit",
+                            "exit_date",
+                            "entry_price",
+                            "exit_price",
+                            "shares",
+                            "return_net",
+                            "entry_fee",
+                            "exit_fee",
+                            "borrow_fees",
+                            "pnl_net",
+                            "status",
+                            "future_quality",
+                        ]
+                    ].round(6),
+                    selection=None,
+                    page_size=15,
+                ),
+                mo.md("""
+            Deux/trois/cinq compartiments pour détention H5/H10/H20 :
+            la durée modifie aussi le temps investi.
+            Produits de vente bloqués, frais d'emprunt calculés en jours calendaires/365.
+            3 % annuel est une hypothèse, pas un tarif observé.
+            Disponibilité historique de prêt, dividendes à payer et marge non simulés.
+            Compartiments séparés sans netting entre vintages.
+            Scores naïfs constants : départage arbitraire par ISIN.
+            Prix raw et univers reconstruits.
+            Résultats de développement, sans confirmation indépendante.
+            """),
+            ]
+        )
+    return (vad_panel,)
 
 
 @app.cell
@@ -634,7 +834,7 @@ def _(mo, pd, px, index_root, index_group, index_target, index_horizon):
 
 
 @app.cell
-def _(mo, baseline_root, all_features_root, context_root):
+def _(mo, baseline_root, all_features_root, context_root, vad_root):
     _options = {"Strict 85 / Strong 138": str(baseline_root)}
     if (all_features_root / "summary.json").exists():
         _options["Toutes les variables · 1 048 features"] = str(all_features_root)
@@ -642,7 +842,9 @@ def _(mo, baseline_root, all_features_root, context_root):
         _options["Actions + contextes · 1 404 features"] = str(context_root)
     experiment_choice = mo.ui.dropdown(
         options=_options,
-        value=list(_options)[-1],
+        value="Toutes les variables · 1 048 features"
+        if (vad_root / "report_complete.json").exists()
+        else list(_options)[-1],
         label="Expérience · mêmes périodes et même univers",
     )
     mo.output.replace(experiment_choice)
@@ -840,6 +1042,7 @@ def _(
     series_panel,
     regimes_panel,
     context_panel,
+    vad_panel,
 ):
     _mid = model_choice.value
     _row = next(r for r in registry if r["model_id"] == _mid)
@@ -1127,6 +1330,7 @@ def _(
             "Grands marchés": series_panel,
             "SBF 120 · régimes": regimes_panel,
             "Contextes SRD": context_panel,
+            "VAD et détention": vad_panel,
         }
     )
     return

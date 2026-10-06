@@ -75,6 +75,16 @@ are combined only after every task completes. The report marker additionally
 requires saved-model prediction replays and the as-of integration audit. No
 fitting is triggered in the UI. See the [context contract](SRD_CONTEXT_INTEGRATION_CONTRACT.md).
 
+The **VAD et détention** tab reads `data/analysis/srd-portfolio-extensions-v1`
+through `HOCUS_SRD_VAD_DATA` and its own read-only bind. Run
+`uv run python scripts/replay_srd_vad_horizons.py` before installing the service.
+`report_complete.json` gates publication after native long-only reconciliation,
+signed PnL and borrow-fee audits. The tab uses the original stock-only validation
+winners regardless of the experiment selector above. Its own cost, borrow-rate,
+target, model horizon and detailed holding controls read precomputed artefacts.
+H5 models show H5/H10 holdings; H10 models show H10/H20. No fitting or replay runs
+in the notebook. See [the portfolio contract](SRD_VAD_HOLDING_CONTRACT.md).
+
 Install a changed template and restart only the Model Lab service:
 
 ```bash
@@ -91,7 +101,7 @@ counts are recorded in [the execution journal](RESEARCH_PROGRESS_2026_10_06.md).
 Notebook: [`model_lab.py`](../notebooks/model_lab.py). No fitting or portfolio replay
 runs in the UI. Navigation includes Overview, Model Benchmark, Target Comparison,
 Score Deciles, Backtest, Feature Importance, Methodology, Indices, Grands marchés,
-SBF 120 · régimes and Contextes SRD;
+SBF 120 · régimes, Contextes SRD and VAD et détention;
 all results are labelled
 **development backtest — not independent confirmation**.
 

@@ -76,6 +76,15 @@ The [comparison results](docs/SRD_CONTEXT_RESULTS.md) contrast validation-select
 models and top3 portfolios at 25/45 bp with the existing full-registry baseline.
 The Model Lab's **Contextes SRD** tab exposes the comparison and availability ledger.
 
+**Stock-only portfolio extensions:** the saved 1,048-feature scores are also replayed
+with a 50/50 top3 long / bottom3 short portfolio and longer holdings: H5 models
+held for H5/H10, H10 models for H10/H20. Transaction costs are 25/45 bp; short borrow
+rates are explicit 0%/3% annual sensitivities, not observed rates. No refit or change
+of validation winners. See the [ledger contract](docs/SRD_VAD_HOLDING_CONTRACT.md)
+and [results](docs/SRD_VAD_HOLDING_RESULTS.md). The **VAD et détention** tab exposes
+comparisons, daily curves and contributions. Decisions are from S1 2026; liquidations
+are followed through July. Reproduce with `uv run python scripts/replay_srd_vad_horizons.py`.
+
 - **AMF short positions:** Gremlin acquisition and the Quant Lab offline adapter are implemented; see [AMF rules](docs/AMF_SHORT_POSITIONS.md).
 - **Market prices:** real ABC Bourse files supplied manually have been imported. The full SRD archive has 199,416 observations across 197 provider identifiers; eight additional universes have 1,745,030 observations. Coverage is 2022-09-29 to 2026-09-28. These files are local and ignored by Git.
 - **Instrument reference:** the companion workbook has been ingested: 2,135 codes, including 2,067 with labels and 68 unresolved. Labels are a current snapshot, not historical point-in-time names.

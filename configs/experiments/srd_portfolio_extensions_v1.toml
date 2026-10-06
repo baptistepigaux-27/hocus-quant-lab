@@ -1,0 +1,20 @@
+version = "SRD-PORTFOLIO-EXTENSIONS/1.0.0"
+source_path = "data/analysis/spec008-model-lab-all-features"
+output_path = "data/analysis/srd-portfolio-extensions-v1"
+selection_fraction = 0.03
+long_short_long_weight = 0.5
+long_short_short_weight = 0.5
+costs_round_trip_bp = [25, 45]
+short_borrow_rates_annual = [0.0, 0.03]
+borrow_day_count = 365
+end_date = "2026-07-31"
+holding_horizons_for_h5 = [5, 10]
+holding_horizons_for_h10 = [10, 20]
+portfolio_sleeves_h5 = 2
+portfolio_sleeves_h10 = 3
+portfolio_sleeves_h20 = 5
+strategies = ["long_only", "long_short"]
+cash_rate = 0.0
+short_proceeds_reinvested = false
+financing_rate = 0.0
+

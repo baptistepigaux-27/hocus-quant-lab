@@ -32,6 +32,7 @@ sur une période indépendante n'est revendiqué.
 | Grands marchés | Estimateurs distincts sur les dates de CAC40/SBF120/S&P500/DAX40/FTSE100 | [Contrat](INDEX_SERIES_MODELS_CONTRACT.md), [résultats](INDEX_SERIES_MODELS_RESULTS.md), `9e15c6a` |
 | SBF 120, sept régimes | K-means des dates de l'indice, centres et tables de prévision 2024 figés | [Contrat](SBF120_KMEANS7_CONTRACT.md), [résultats](SBF120_KMEANS7_RESULTS.md) |
 | Contextes SRD | Producteurs historiques hors apprentissage, centres 2023 et jointure as-of ; 356 features ajoutées ; comparaison aux modèles actions seuls | [Contrat](SRD_CONTEXT_INTEGRATION_CONTRACT.md), [résultats](SRD_CONTEXT_RESULTS.md) |
+| VAD et détention | Modèles actions seuls, 50/50 top/flop 3 %, coûts 25/45 bp, prêt 0/3 %, détentions H5→H10 et H10→H20 | [Contrat](SRD_VAD_HOLDING_CONTRACT.md), [résultats](SRD_VAD_HOLDING_RESULTS.md) |
 
 Les données locales, modèles sérialisés et grands ledgers sont ignorés par Git.
 Les contrats, configs, scripts, rapports et empreintes des sources sont versionnés.
@@ -225,7 +226,48 @@ les 2 000 valeurs de régime sont reproduites exactement. Les empreintes et
 replays sont dans `srd-context-v1/comparison_replay_audit.json` et le
 [manifeste de publication](SRD_CONTEXT_RESULTS.sources.json).
 
-## 7. Publication et accès
+## 7. Modèles actions seuls : VAD et détention prolongée
+
+Les **56 modèles sans contexte** sont rejoués sur leurs scores sauvegardés ; les
+12 gagnants de validation restent identiques. Le choix utilisateur est **50 % achat
+/ 50 % VAD**, sans levier. Top/flop 3 % = **cinq titres par jambe** dans les coupes
+disponibles, sélections disjointes. Produits des shorts bloqués avec garantie ;
+aucun réinvestissement de ces produits et aucun nouveau fit.
+
+Les modèles H5 sont détenus 5 ou 10 séances, les H10 pendant 10 ou 20 séances.
+Les compartiments suivent la détention (2/3/5). Frais 25/45 bp par aller-retour,
+plus prêt des titres à 0 % ou 3 % annuel. Le taux 3 % est une hypothèse explicite,
+pas un tarif observé. Les décisions S1 2026 sont conservées ; les liquidations
+prolongées sont suivies jusqu'au 31 juillet, sans annualisation de la synthèse.
+
+**Rang du rendement, RF, frais 25 bp, prêt short 3 % annuel :**
+
+| Modèle | Détention | Achat seul | Achat/VAD 50/50 |
+| --- | --- | ---: | ---: |
+| H5 | H5 | +10,81 % | +0,08 % |
+| H5 | H10 | +21,98 % | +6,96 % |
+| H10 | H10 | +17,68 % | +8,49 % |
+| H10 | H20 | +11,32 % | +4,78 % |
+
+Pour le rang H5 détenu H5, les achats contribuent **+4,96 points** et les shorts
+**−4,88 points** au capital initial. La VAD ne consiste pas à ajouter gratuitement
+une seconde performance au portefeuille précédent : la moitié du budget va aux
+shorts, dont la contribution peut être négative. Pour le H5 détenu H10, ces
+contributions deviennent **+9,94 et −2,98 points**. Les variations d'exposition
+dues aux détentions figurent dans le rapport.
+
+Les **672 simulations** couvrent les deux détentions, les deux coûts et les
+sensibilités de prêt pour tous les modèles. Les **112 contrôles long-only natifs**
+reproduisent exactement **13 888 points de courbe** des résultats existants au
+30 juin. PnL de 125 512 positions fermées et frais d'emprunt de 25 160 shorts sont
+réconciliés indépendamment. Aucun résultat n'a de position non liquidée au 31 juillet.
+Les prix ou sorties absents restent signalés, et les anomalies futures annotées.
+
+Prêt historique, rappels, dividendes dus, fiscalité par titre et marge ne sont
+pas connus : VAD théorique et prix raw, toujours en développement rétrospectif.
+Tous les gagnants et toutes les simulations sont conservés, sans choix sur 2026.
+
+## 8. Publication et accès
 
 [Model Lab](https://sandbox.hocus.works/quant-model-lab/) :
 
@@ -236,6 +278,8 @@ replays sont dans `srd-context-v1/comparison_replay_audit.json` et le
 - **Contextes SRD** : modèles actions seuls/enrichis, coûts 25/45 bp, intervalles
   appariés et disponibilité historique ; jeu « Actions + contextes · 1 404 features »
   dans les contrôles de l'explorateur de modèles.
+- **VAD et détention** : actions seules, comparaison achat/VAD et détentions
+  prolongées, courbes, contributions par jambe/action et ledger.
 
 Le service `hocus-quant-model-lab-sandbox` utilise le port loopback **8069** et le
 checkout isolé. Chaque expérience a son bind en lecture seule. Les données et
@@ -258,6 +302,14 @@ Service Model Lab actif, loopback **200**, route publique sans credentials **401
 service SRD 8068 toujours actif. La publication et les empreintes des captures sont
 dans `data/analysis/srd-context-v1/sandbox_publication.json`.
 
+Publication VAD/détention observée le 6 octobre : **douze onglets**, contrôles
+indépendants 25/45 bp et prêt 0/3 %, courbes des quatre portefeuilles et ledger
+achat/VAD. Le navigateur a affiché le rang H5 puis H10/H20 à 45 bp, sans erreur
+JavaScript ni alerte. Les contrôles généraux ouvrent désormais le jeu actions
+seules de 1 048 variables par défaut. Le service et ses binds en lecture seule
+incluent le dossier des replays. Trace :
+`data/analysis/srd-portfolio-extensions-v1/sandbox_publication.json`.
+
 Pour la publication initiale des grands marchés, les choix CAC40 direction H5 et
 FTSE100 volatilité H10 avaient été inspectés au navigateur ; le log local
 `/tmp/hocus-index-series-browser.log` et les captures correspondantes sont des
@@ -265,7 +317,7 @@ traces opérationnelles, pas des preuves statistiques. Les replays scientifiques
 et empreintes sont persistés dans `data/analysis/`, et référencés dans le
 [fichier de provenance du journal](RESEARCH_PROGRESS_2026_10_06.sources.json).
 
-## 8. Prochaines étapes ouvertes
+## 9. Prochaines étapes ouvertes
 
 1. Décomposer l'ajout de contexte par blocs dans une nouvelle expérience fixée
    à l'avance ; le benchmark complet ne mesure pas une contribution causale par bloc.

@@ -1,0 +1,19 @@
+{
+  "status": "development_portfolio_extension_complete",
+  "training_fits": 0,
+  "backtest_count": 672,
+  "report_sha256": "5cb5387ece9fbd063dcf9ded8b73dbf08586594b1b2ad708e276a7261af4aff7",
+  "generator_sha256": "342b188e0a352ad1c1575ca93d6b800d96f3ae1822c8eb69f29738569e829ce8",
+  "ledger_generator_sha256": "28e17cf955a8da6238e9480dc29533d034713478bf5a9683d19c5f04eee14bd6",
+  "reconciliation_audit_sha256": "64f4218c3619d48e65aff20d2a7245557ef7e65d98022ef1421e10461e95ccc6",
+  "artifacts": {
+    "monthly_performance.parquet": "f5fb4c90444042b702581813fe907451eca3e020073dc31effa16fdb8afa8faa",
+    "backtest_summary.parquet": "578ec0957c433912b791cd6949d0a147ab2424d0721da4cfefabb8539c0d4901",
+    "backtest_equity.parquet": "79715e01719df9053e14579bbbdbf03e074cdf94fd11a3326e53e935e69aa187",
+    "winners_summary.parquet": "55ead41761a40dd467dd5bdba02a761a58326c35971aafea6fd113b7fa325feb",
+    "backtest_trades.parquet": "8a8a49e38504ee50eaa30469f0fbd7e04451094975ace1842e5bdc01fb961d9a",
+    "selection_audit.parquet": "1f0fce58739cd22301043fd412dfd94e3cf2bc295cc0fd0ec80460c45c103af9",
+    "stock_contributions.parquet": "4776ee747fb02bbd7255765d438ee0e9fe8e441a4aeb08574096cd9d0732d343",
+    "comparison_winners.parquet": "9b49f497648ab839b34a6dd1461c1cf5b12c7cd833621df92865def9b6bc339d"
+  }
+}
