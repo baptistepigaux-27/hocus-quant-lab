@@ -34,9 +34,19 @@ execute `uv run python scripts/report_index_models.py` and
 `uv run python scripts/audit_index_dataset.py --include-models` before deploying
 this tab. Only a successful independent reconciliation writes the completion marker.
 
+The **Grands marchés** tab reads `data/analysis/index-series-models-v1` via its own
+read-only bind and `HOCUS_INDEX_SERIES_DATA`. It selects one of CAC40, SBF120,
+S&P500, DAX40 and FTSE100, then direction/return/volatility and H5/H10. Every fitted
+estimator uses only dates of that index. The publication marker `report_complete.json`
+requires source/feature-prefix audits and checks of each estimator's single-index
+metadata. Generate the artefacts with `scripts/index_series_models.py` actions
+`prepare`, `run`, then `publish`; see the
+[time-series contract](INDEX_SERIES_MODELS_CONTRACT.md).
+
 Notebook: [`model_lab.py`](../notebooks/model_lab.py). No fitting or portfolio replay
 runs in the UI. Navigation includes Overview, Model Benchmark, Target Comparison,
-Score Deciles, Backtest, Feature Importance, Methodology and Indices; all results are labelled
+Score Deciles, Backtest, Feature Importance, Methodology, Indices and Grands marchés;
+all results are labelled
 **development backtest — not independent confirmation**.
 
 The local datasets/model files are not versioned. They must be generated with the

@@ -50,6 +50,14 @@ target calendar, reconciled independently before fitting. The initial index run
 with a mismatched Paris clock is archived locally and excluded from publication.
 Historical OOF scores and an as-of SRD join remain a subsequent research step.
 
+**Major-market time series:** [individual index forecasters](docs/INDEX_SERIES_MODELS_CONTRACT.md)
+fit CAC40, SBF120, S&P500, DAX40 and FTSE100 separately on daily dates. Each model
+uses only its index's 22 historical close features, for direction, return and
+volatility H5/H10, with temporal validation and simple reference forecasts.
+[Results](docs/INDEX_SERIES_MODELS_RESULTS.md) and the Model Lab's **Grands marchés**
+tab report temporal errors/AUC, block intervals and test 2026 context-score exports.
+Weights and preprocessing are never pooled across indices.
+
 - **AMF short positions:** Gremlin acquisition and the Quant Lab offline adapter are implemented; see [AMF rules](docs/AMF_SHORT_POSITIONS.md).
 - **Market prices:** real ABC Bourse files supplied manually have been imported. The full SRD archive has 199,416 observations across 197 provider identifiers; eight additional universes have 1,745,030 observations. Coverage is 2022-09-29 to 2026-09-28. These files are local and ignored by Git.
 - **Instrument reference:** the companion workbook has been ingested: 2,135 codes, including 2,067 with labels and 68 unresolved. Labels are a current snapshot, not historical point-in-time names.

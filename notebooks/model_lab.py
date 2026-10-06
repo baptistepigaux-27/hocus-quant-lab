@@ -23,7 +23,160 @@ def _():
             "HOCUS_INDEX_MODEL_LAB_DATA", str(baseline_root.parent / "spec008-index-model-lab")
         )
     )
-    return mo, pd, px, json, Path, baseline_root, all_features_root, index_root
+    series_root = Path(
+        os.environ.get(
+            "HOCUS_INDEX_SERIES_DATA", str(baseline_root.parent / "index-series-models-v1")
+        )
+    )
+    return mo, pd, px, json, Path, baseline_root, all_features_root, index_root, series_root
+
+
+@app.cell
+def _(mo):
+    series_index = mo.ui.dropdown(
+        options={
+            "CAC40": "FR0003500008",
+            "SBF 120": "FR0003999481",
+            "S&P 500": "ABC003500387",
+            "DAX40": "DE0008469008",
+            "FTSE 100": "ABC003500452",
+        },
+        value="CAC40",
+        label="Indice · modèle temporel individuel",
+    )
+    series_target = mo.ui.dropdown(
+        options={"Direction": "direction", "Rendement": "return", "Volatilité": "volatility"},
+        value="Direction",
+        label="Prévision temporelle",
+    )
+    series_horizon = mo.ui.dropdown(
+        options={"H5": 5, "H10": 10}, value="H5", label="Horizon temporel"
+    )
+    return series_index, series_target, series_horizon
+
+
+@app.cell
+def _(mo, pd, px, series_root, series_index, series_target, series_horizon):
+    if not (series_root / "report_complete.json").exists():
+        series_panel = mo.md("## Grands marchés\nModèles temporels individuels en préparation.")
+    else:
+        _overview = pd.read_parquet(series_root / "overview.parquet")
+        _metrics = pd.read_parquet(series_root / "metrics.parquet")
+        _predictions = pd.read_parquet(series_root / "predictions.parquet")
+        _confidence = pd.read_parquet(series_root / "confidence.parquet")
+        _choice = _overview[
+            (_overview.index_code == series_index.value)
+            & (_overview.target == series_target.value)
+            & (_overview.horizon == series_horizon.value)
+        ]
+        _mid = _choice.model_id.iloc[0]
+        _pred = (
+            _predictions[(_predictions.model_id == _mid) & (_predictions.split == "test")]
+            .sort_values("cutoff")
+            .copy()
+        )
+        if series_target.value == "direction":
+            _pred["Résultat observé"] = _pred.target_value.map({-1.0: 0.0, 1.0: 1.0})
+            _pred["Prévision"] = _pred.score
+            _pred["Référence"] = _pred.reference_score
+            _label = "Probabilité de hausse / direction observée"
+        else:
+            _pred["Résultat observé"] = 100 * _pred.target_value
+            _pred["Prévision"] = 100 * _pred.score
+            _pred["Référence"] = 100 * _pred.reference_score
+            _label = (
+                "Rendement futur (%)"
+                if series_target.value == "return"
+                else "Volatilité future annualisée (%)"
+            )
+        series_panel = mo.vstack(
+            [
+                mo.md("""
+            ## Grands marchés · modèles temporels individuels
+            **Un estimateur distinct apprend sur les dates d'un seul indice.**
+            CAC40, SBF120, S&P500, DAX40, FTSE100 · 22 variables historiques de close.
+            Direction, rendement et volatilité H5/H10 · coupes quotidiennes sur le calendrier CAC40.
+            Train 2024, validation S1 2025, retrain, test S1 2026 · purge et préparation train-only.
+            Les métriques portent sur les dates de l'indice choisi : AUC et corrélation temporelles.
+            Les observations futures quotidiennes se chevauchent.
+            Les résultats restent exploratoires.
+            """),
+                mo.hstack([series_index, series_target, series_horizon], justify="start"),
+                mo.md("### Modèle choisi sur validation · performance test 2026"),
+                mo.ui.table(
+                    _choice[
+                        [
+                            "index_name",
+                            "target",
+                            "horizon",
+                            "model",
+                            "n",
+                            "roc_auc",
+                            "temporal_spearman",
+                            "rmse",
+                            "reference_rmse",
+                            "skill",
+                            "primary_lo90",
+                            "primary_hi90",
+                            "loss_advantage_lo90",
+                            "loss_advantage_hi90",
+                        ]
+                    ],
+                    selection=None,
+                ),
+                mo.md(
+                    "Skill = 1 − perte modèle / perte référence. "
+                    "Une valeur ≤0 indique aucune amélioration avec ce critère."
+                ),
+                mo.ui.plotly(
+                    px.line(
+                        _pred,
+                        x="cutoff",
+                        y=["Prévision", "Résultat observé", "Référence"],
+                        title=_label,
+                    )
+                ),
+                mo.md("### Tous les modèles · validation et test"),
+                mo.ui.table(
+                    _metrics[
+                        (_metrics.index_code == series_index.value)
+                        & (_metrics.target == series_target.value)
+                        & (_metrics.horizon == series_horizon.value)
+                    ],
+                    selection=None,
+                    page_size=12,
+                ),
+                mo.md("### Incertitude temporelle · trois tailles de blocs"),
+                mo.ui.table(_confidence[_confidence.model_id == _mid], selection=None),
+                mo.md("### Ledger des prévisions · données de référence et résultats futurs"),
+                mo.ui.table(
+                    _pred[
+                        [
+                            "cutoff",
+                            "reference_quote_date",
+                            "reference_close",
+                            "score",
+                            "reference_score",
+                            "target_value",
+                            "target_end",
+                            "index_quote_end",
+                            "label_status",
+                        ]
+                    ],
+                    selection=None,
+                    page_size=12,
+                ),
+                mo.md("""
+            Références : fréquence de hausse historique, rendement zéro, volatilité historique H.
+            Sélection sur log-loss pour direction, RMSE pour les régressions.
+            Une référence peut gagner. Intervalles individuels 90 %, sans correction multiple,
+            conditionnels aux modèles ajustés. Scores test 2026 exportés pour un futur contexte SRD.
+            OOF roulant et jointure as-of restent nécessaires. Prix et timestamps reconstruits ;
+            aucune confirmation indépendante revendiquée.
+            """),
+            ]
+        )
+    return (series_panel,)
 
 
 @app.cell
@@ -363,6 +516,7 @@ def _(
     cost_choice,
     model_choice,
     index_panel,
+    series_panel,
 ):
     _mid = model_choice.value
     _row = next(r for r in registry if r["model_id"] == _mid)
@@ -639,6 +793,7 @@ def _(
             "Feature Importance": _importance_view,
             "Methodology": _method,
             "Indices": index_panel,
+            "Grands marchés": series_panel,
         }
     )
     return

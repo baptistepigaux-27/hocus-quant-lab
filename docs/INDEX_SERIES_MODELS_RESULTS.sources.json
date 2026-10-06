@@ -1,0 +1,17 @@
+{
+  "summary_sha256": "1f7da35400086ede192adf35b9b12a233eced0401af0baaaa580ced9f1e114a0",
+  "report_sha256": "5adc20809440df856d8ee8def0e62c6ab897791cd2817303bbd4b826a9ee3d55",
+  "generator_sha256": "0a0d45ca3c4be4b735cbfb13e2b0e0e4c686c9cbd1f741f42032505739a75076",
+  "single_index_fits_verified": true,
+  "artifacts": {
+    "confidence.parquet": "23afa704336e8c071eaee2506d53f1f7b048695a18fdac549fc68626f91399bc",
+    "source_selected.parquet": "f462d2eca30a11f323bc36d347842fcb637db2aefd756db4e27947f2f2ada35f",
+    "features.parquet": "56ae2c377390d8f6cd68a17dd4021ecce56726a89290a462b905fade1227c5af",
+    "metrics.parquet": "7720ecf84a3f27b678e6ac39e21f370345583c1cb34d22b0a407acf83a49a395",
+    "context_score_features.parquet": "e86d0a9eff06cf152ad7f3420cf065701e6eed07241015192adcb86f21aa32e0",
+    "trials.parquet": "d8b296ba0749306cec7ffdbec82be4757023c7129f257b9b39daff09d47ebc3b",
+    "overview.parquet": "5940fb30259d120d186f6cdef7ef8f5099169e4d402f6ab08de7fded19511606",
+    "predictions.parquet": "c65a5876d2486b20a3a97007c7966b997b068659b33acbf2b6e13616e45a33a7",
+    "targets.parquet": "6a9c99d64ab9b622388b086635f67a5bfd832a085a04ba594cccd957e8edc45c"
+  }
+}

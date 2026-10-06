@@ -1,0 +1,59 @@
+version = "INDEX-SERIES/1.0.0"
+seed = 20261006
+threads = 4
+codes = ["FR0003500008", "FR0003999481", "ABC003500387", "DE0008469008", "ABC003500452"]
+horizons = [5, 10]
+targets = ["direction", "return", "volatility"]
+source_path = "data/analysis/spec008-index-model-lab/source_market.parquet"
+output_path = "data/analysis/index-series-models-v1"
+train_start = "2024-01-01"
+train_end = "2024-12-31"
+validation_start = "2025-01-01"
+validation_end = "2025-06-30"
+test_start = "2026-01-01"
+test_end = "2026-06-30"
+cutoff_availability_timezone = "UTC"
+maximum_quote_age_days = 3
+annualization_sessions = 252
+minimum_training_labels = 100
+minimum_validation_labels = 50
+classification_selection = "minimum validation log_loss"
+regression_selection = "minimum validation RMSE"
+linear_classification_C = [0.05, 0.5]
+linear_regression_alpha = [10.0, 100.0]
+bootstrap_replicates = 5000
+bootstrap_blocks_h5 = [5, 10, 20]
+bootstrap_blocks_h10 = [10, 20, 40]
+classification_threshold = 0.5
+
+[[rf_grid]]
+n_estimators = 80
+max_depth = 2
+min_samples_leaf = 20
+max_features = 0.7
+
+[[rf_grid]]
+n_estimators = 100
+max_depth = 3
+min_samples_leaf = 30
+max_features = 1.0
+
+[[xgb_grid]]
+n_estimators = 80
+max_depth = 1
+learning_rate = 0.04
+subsample = 0.8
+colsample_bytree = 1.0
+min_child_weight = 20
+reg_alpha = 1.0
+reg_lambda = 20.0
+
+[[xgb_grid]]
+n_estimators = 100
+max_depth = 2
+learning_rate = 0.03
+subsample = 0.8
+colsample_bytree = 1.0
+min_child_weight = 30
+reg_alpha = 2.0
+reg_lambda = 40.0
